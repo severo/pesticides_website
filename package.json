@@ -1,0 +1,22 @@
+{
+  "name": "@severo/pesticides_website",
+  "version": "1.0.0",
+  "description": "Data visualization on pesticides in drinking water in Brazil",
+  "main": "index.html",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/severo/pesticides_website.git"
+  },
+  "author": "Sylvain Lesage <severo@rednegra.net>",
+  "license": "GPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/severo/pesticides_website/issues"
+  },
+  "homepage": "https://github.com/severo/pesticides_website#readme"
+}
