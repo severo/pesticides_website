@@ -1,6 +1,6 @@
 # Pesticides in Brazil - website
 
-See the website at https://severo.github.io/pesticides_website/index.html.
+See the website at https://severo.github.io/pesticides_website/.
 
 ## Install
 
