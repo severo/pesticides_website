@@ -1,3 +1,12 @@
 {
-  "lang": "English"
+  "content": {
+    "firstParagraph": "Paragraph in the content section",
+    "title": "Title of the content section"
+  },
+  "hero": {
+    "subtitle": "Data visualization on pesticides in drinking water in Brazil",
+    "title": "Pesticides in Brazil"
+  },
+  "lang": "English",
+  "title": "Data visualization on pesticides in drinking water in Brazil"
 }

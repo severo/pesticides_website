@@ -7,8 +7,16 @@
     "doc": "docs"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "mustache src/lang/en.json src/index.mustache > docs/index.html; mustache src/lang/pt.json src/index.mustache > docs/index.pt.html;"
+    "css-deploy": "npm run css-build && npm run css-postcss",
+    "css-build": "node-sass src/_sass/main.scss docs/css/main.css",
+    "css-postcss": "postcss --use autoprefixer --output docs/css/main.css docs/css/main.css",
+    "css-watch": "npm run css-build -- --watch",
+    "deploy": "npm run css-deploy && npm run js-build && npm run mustache-build",
+    "js-build": "babel src/_javascript --out-dir docs/lib",
+    "js-watch": "npm run js-build -- --watch",
+    "mustache-build": "mustache src/lang/en.json src/index.mustache > docs/index.html; mustache src/lang/pt.json src/index.mustache > docs/index.pt.html;",
+    "start": "npm-run-all --parallel css-watch js-watch",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
@@ -22,6 +30,14 @@
   "homepage": "https://github.com/severo/pesticides_website#readme",
   "dependencies": {},
   "devDependencies": {
-    "mustache": "^3.0.1"
+    "autoprefixer": "^9.4.7",
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.7.0",
+    "babel-preset-es2015-ie": "^6.7.0",
+    "bulma": "^0.7.4",
+    "mustache": "^3.0.1",
+    "node-sass": "^4.11.0",
+    "npm-run-all": "^4.1.5",
+    "postcss-cli": "^6.1.1"
   }
 }
