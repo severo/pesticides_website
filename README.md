@@ -2,17 +2,13 @@
 
 See the website at https://severo.github.io/pesticides_website/.
 
-The portuguese version is published at https://severo.github.io/pesticides_website/index.pt.html.
+The portuguese version is published at
+https://severo.github.io/pesticides_website/index.pt.html.
 
 ## Install
 
-See [INSTALL.md](./INSTALL.md).
+See [INSTALL.md](./INSTALL.md) if you want to install or deploy the website.
 
-## Technologies
+## Develop
 
-* [npm](https://www.npmjs.com/)
-* [babel](https://babeljs.io/)
-* [mustache](https://mustache.github.io/) / [mustache.js](https://github.com/janl/mustache.js)
-* [Bulma](https://bulma.io/) / [bulma-start](https://www.npmjs.com/package/bulma-start)
-* [Sass](http://sass-lang.com/) / [node-sass](https://www.npmjs.com/package/node-sass)
-* [PostCSS](https://postcss.org/) / [Autoprefixer](https://github.com/postcss/autoprefixer)
+See [DEVELOP.md](./DEVELOP.md) if you want to contribute to the code.
