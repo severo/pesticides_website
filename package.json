@@ -17,7 +17,7 @@
     "fix": "npm run fix:js && npm run fix:other",
     "js-build": "babel src/_javascript --out-dir docs/lib",
     "js-watch": "npm run js-build -- --watch",
-    "mustache-build": "mustache src/lang/en.json src/index.mustache > docs/index.html; mustache src/lang/pt.json src/index.mustache > docs/index.pt.html;",
+    "mustache-build": "mustache src/lang/en.json src/index.mustache.html > docs/index.html; mustache src/lang/pt.json src/index.mustache.html > docs/index.pt.html;",
     "prettier": "prettier \"**/*.{json,md,scss,yaml,yml}\"",
     "start": "npm-run-all --parallel css-watch js-watch",
     "test:other": "npm run prettier --list-different",
