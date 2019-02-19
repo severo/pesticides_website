@@ -10,17 +10,18 @@
     "css-build": "node-sass src/_sass/main.scss docs/css/main.css",
     "css-postcss": "postcss --use autoprefixer --output docs/css/main.css docs/css/main.css",
     "css-watch": "npm run css-build -- --watch",
-    "deploy": "npm run css-deploy && npm run js-build && npm run mustache-build",
-    "fix:other": "npm run prettier --write",
+    "deploy": "npm test && npm run css-deploy && npm run js-build && npm run mustache-build",
+    "fix:other": "prettier --write \"**/*.{json,md,scss,yaml,yml}\"",
     "fix:js": "npm run test:js --fix",
     "fix": "npm run fix:js && npm run fix:other",
     "js-build": "babel src/_javascript --out-dir docs/lib",
     "js-watch": "npm run js-build -- --watch",
-    "mustache-build": "mustache src/lang/en.json src/index.mustache.html > docs/index.html; mustache src/lang/pt.json src/index.mustache.html > docs/index.pt.html;",
-    "prettier": "prettier \"**/*.{json,md,scss,yaml,yml}\"",
+    "mustache-build-en": "mustache src/lang/en.json src/index.mustache.html > docs/index.html",
+    "mustache-build-pt": "mustache src/lang/pt.json src/index.mustache.html > docs/index.pt.html",
+    "mustache-build": "npm run mustache-build-en && npm run mustache-build-pt",
     "start": "npm-run-all --parallel css-watch js-watch",
-    "test:other": "npm run prettier --list-different",
-    "test:js": "eslint --ignore-path .gitignore --ignore-path .prettierignore \"**/*.{js,jsx}\"",
+    "test:other": "prettier --list-different \"**/*.{json,md,scss,yaml,yml}\"",
+    "test:js": "eslint --ignore-path .gitignore --ignore-path .prettierignore \"**/*.js\"",
     "test": "npm run test:other && npm run test:js"
   },
   "repository": {
@@ -45,26 +46,15 @@
     "eslint-config-prettier": "^4.0.0",
     "eslint-plugin-prettier": "^3.0.1",
     "husky": "^1.3.1",
-    "lint-staged": "^8.1.4",
     "mustache": "^3.0.1",
     "node-sass": "^4.11.0",
     "npm-run-all": "^4.1.5",
     "postcss-cli": "^6.1.1",
     "prettier": "^1.16.4"
   },
-  "lint-staged": {
-    "*.{js,jsx}": [
-      "eslint --fix",
-      "git add"
-    ],
-    "*.{json,md,scss,yaml,yml}": [
-      "prettier --write",
-      "git add"
-    ]
-  },
   "husky": {
     "hooks": {
-      "pre-commit": "lint-staged"
+      "pre-commit": "npm run test"
     }
   }
 }
