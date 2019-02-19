@@ -2,9 +2,8 @@
   "name": "@severo/pesticides_website",
   "version": "1.0.0",
   "description": "Data visualization on pesticides in drinking water in Brazil",
-  "main": "index.html",
   "directories": {
-    "doc": "docs"
+    "lib": "docs"
   },
   "scripts": {
     "css-deploy": "npm run css-build && npm run css-postcss",
