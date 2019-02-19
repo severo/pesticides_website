@@ -19,7 +19,8 @@ code. If you only want to install or deploy the website, see
     [bulma-start](https://www.npmjs.com/package/bulma-start)
 - JavaScript:
   - Ensure correct formatting: [ESLint](https://eslint.org/)
-  - Ensure retorcompatibility: [babel](https://babeljs.io/)
+  - Ensure retrocompatibility: [babel](https://babeljs.io/)
+  - Bundle ES modules: [rollup](https://rollupjs.org)
 - i18n:
   - Replace placeholders with language strings:
     [mustache](https://mustache.github.io/) /
@@ -173,21 +174,27 @@ scripts. Note that they modify the files, and must be launched manually:
 
 ### JavaScript
 
-- Add retrocompatibility for old browsers for files in
-  [`src/_javascript/`](./src/_javascript/), writing the output files in
-  [`docs/lib/`](./docs/lib).
+- Bundle the ECMAScript modules (ESM) in only one file:
+  [`docs/lib/main.js`](./docs/lib/main.js). Note that it also calls Babel to add
+  retrocompatibility for old browsers
 
   ```bash
   npm run js-build
   ```
 
-  The [`.babelrc`](.babelrc) configuration file for [Babel](https://babeljs.io)
-  currently points to the `es2015-ie` preset, that ensures retrocompatibility
-  with IE ≥ 9.
+  The [`.babelrc`](./src/.babelrc) configuration file for
+  [Babel](https://babeljs.io) currently points to the
+  [`@babel/preset-env` preset](https://babeljs.io/docs/en/babel-preset-env).
 
-- TODO try to be compatible to previous browsers
+  The [Rollup](https://rollupjs.org) configuration file (for bundlin ES modules,
+  and calling Babel) is [`rollup.config.js`](./rollup.config.js).
+
 - TODO see if we should add things, like support for async/await:
   https://babeljs.io/docs/en/babel-plugin-transform-async-to-generator
+- TODO minify (terser?)
+- TODO hot reloading
+- TODO tree shaking
+- TODO version generated files and replace in index.html
 
 ### HTML
 

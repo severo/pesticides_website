@@ -14,7 +14,7 @@
     "fix:other": "prettier --write \"**/*.{json,md,scss,yaml,yml}\"",
     "fix:js": "npm run test:js --fix",
     "fix": "npm run fix:js && npm run fix:other",
-    "js-build": "babel src/_javascript --out-dir docs/lib",
+    "js-build": "rollup -c",
     "js-watch": "npm run js-build -- --watch",
     "mustache-build-en": "mustache src/lang/en.json src/index.mustache.html > docs/index.html",
     "mustache-build-pt": "mustache src/lang/pt.json src/index.mustache.html > docs/index.pt.html",
@@ -36,11 +36,9 @@
   "homepage": "https://github.com/severo/pesticides_website#readme",
   "dependencies": {},
   "devDependencies": {
+    "@babel/core": "^7.3.3",
+    "@babel/preset-env": "^7.3.1",
     "autoprefixer": "^9.4.7",
-    "babel-cli": "^6.26.0",
-    "babel-eslint": "^10.0.1",
-    "babel-preset-env": "^1.7.0",
-    "babel-preset-es2015-ie": "^6.7.0",
     "bulma": "^0.7.4",
     "eslint": "^5.14.1",
     "eslint-config-prettier": "^4.0.0",
@@ -50,7 +48,10 @@
     "node-sass": "^4.11.0",
     "npm-run-all": "^4.1.5",
     "postcss-cli": "^6.1.1",
-    "prettier": "^1.16.4"
+    "prettier": "^1.16.4",
+    "rollup": "^1.2.2",
+    "rollup-plugin-babel": "^4.3.2",
+    "rollup-plugin-node-resolve": "^4.0.0"
   },
   "husky": {
     "hooks": {
