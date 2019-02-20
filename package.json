@@ -51,6 +51,7 @@
     "autoprefixer": "^9.4.7",
     "browser-sync": "^2.26.3",
     "bulma": "^0.7.4",
+    "d3": "^5.9.1",
     "d3-fetch": "^1.1.2",
     "eslint": "^5.14.1",
     "eslint-config-prettier": "^4.0.0",

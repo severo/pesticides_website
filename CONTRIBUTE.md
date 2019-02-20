@@ -63,3 +63,5 @@ The repository is composed of three main parts:
 - give information on the expected coding style
 - explain what to test with unit tests
 - explain what to test with integration tests
+- pass configuration values to the index.html file using mustache placeholders
+  (for example {{config.svg.height}})
