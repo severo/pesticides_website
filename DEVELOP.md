@@ -9,6 +9,9 @@ code. If you only want to install or deploy the website, see
 - Project management:
   - Manage dependendies: [npm](https://www.npmjs.com/)
   - Manage git hooks: [husky](https://github.com/typicode/husky)
+  - Run multiple npm-scripts in parallel or sequential:
+    [npm-run-all](https://www.npmjs.com/package/npm-run-all)
+  - Watch changes: [onchange](https://www.npmjs.com/package/onchange)
 - CSS:
   - Ensure correct formatting: [Prettier](https://prettier.io/)
   - Sass: [Sass](http://sass-lang.com/) /
@@ -27,6 +30,8 @@ code. If you only want to install or deploy the website, see
     [mustache.js](https://github.com/janl/mustache.js)
 - Markdown, JSON, YAML, YML:
   - Ensure correct formatting: [Prettier](https://prettier.io/)
+
+* TODO: add D3.js
 
 ## Get the code
 
@@ -79,14 +84,17 @@ detailed in that section.
 To build all, just launch
 
     ```bash
-    npm run deploy
+    npm run build
     ```
 
-- TODO add a bundler (rollup?) to bundle all the JS modules in one file (+
-  minify, + tree shaking to remove unused parts of code, + version generated
-  files and replace in the index.html file)
-
 ### Linters
+
+- Test the format of JavaScript files with [ESLint](https://eslint.org/), and
+  exit with error if a file is not formatted accorded to eslint rules.
+
+  ```bash
+  npm run test:js
+  ```
 
 - Test the format of JSON, Markdown, SCSS, YAML and YML files with
   [Prettier](https://prettier.io/), and exit with error if a file is not
@@ -94,13 +102,6 @@ To build all, just launch
 
   ```bash
   npm run test:other
-  ```
-
-- Test the format of JavaScript files with [ESLint](https://eslint.org/), and
-  exit with error if a file is not formatted accorded to eslint rules.
-
-  ```bash
-  npm run test:js
   ```
 
 - Test both in one command
@@ -125,17 +126,17 @@ These configuration files should be taken into account by your editor and allow
 it to fix the files. Otherwise, you can fix the files with the following
 scripts. Note that they modify the files, and must be launched manually:
 
+- Fix the format of JavaScript files inline with [ESLint](https://eslint.org/)
+
+  ```bash
+  npm run fix:js
+  ```
+
 - Fix the format of JSON, Markdown, SCSS, YAML and YML files inline with
   [Prettier](https://prettier.io/)
 
   ```bash
   npm run fix:other
-  ```
-
-- Fix the format of JavaScript files inline with [ESLint](https://eslint.org/)
-
-  ```bash
-  npm run fix:js
   ```
 
 - Fix all files inline in one command
@@ -155,7 +156,7 @@ scripts. Note that they modify the files, and must be launched manually:
 
 
     ```bash
-    npm run css-build
+    npm run build:css:sass
     ```
 
 - Add vendor CSS prefixes (`-webkit-`, `-moz-`, `-ms-`) to improve the support
@@ -163,13 +164,13 @@ scripts. Note that they modify the files, and must be launched manually:
   file):
 
   ```bash
-  npm run css-postcss
+  npm run build:css:postcss
   ```
 
 - Do both in one call:
 
   ```bash
-  npm run css-deploy
+  npm run build:css
   ```
 
 ### JavaScript
@@ -179,7 +180,7 @@ scripts. Note that they modify the files, and must be launched manually:
   retrocompatibility for old browsers
 
   ```bash
-  npm run js-build
+  npm run build:js
   ```
 
   The [`.babelrc`](./src/.babelrc) configuration file for
@@ -204,7 +205,7 @@ scripts. Note that they modify the files, and must be launched manually:
   and place the generated `index.html` file in [`src/`](./src):
 
   ```bash
-  npm run mustache-build-en
+  npm run build:mustache:en
   ```
 
 - Replace [mustache](https://mustache.github.io/) placeholders in
@@ -214,13 +215,13 @@ scripts. Note that they modify the files, and must be launched manually:
   [`src/`](./src):
 
   ```bash
-  npm run mustache-build-pt
+  npm run build:mustache:pt
   ```
 
 - Generate the files for all the languages
 
   ```bash
-  npm run mustache-build
+  npm run build:mustache
   ```
 
 ## Deployment
@@ -245,5 +246,33 @@ cancel the commit if an error appears.
 
 Some other scripts are only a help for the developer
 
-- TODO describe the "watch" scripts
-- TODO describe the web server scripts
+- TODO add web server scripts
+
+### Watch
+
+To automatically rebuild the corresponding parts of the website when a source
+file changes, launch:
+
+```bash
+npm run watch
+```
+
+More in details:
+
+- watch for changes in JavaScript files and rebuild:
+
+  ```bash
+  npm run watch:js
+  ```
+
+- watch for changes in SASS files and rebuild:
+
+  ```bash
+  npm run watch:css
+  ```
+
+- watch for changes in mustache templates files and rebuild:
+
+  ```bash
+  npm run watch:mustache
+  ```
