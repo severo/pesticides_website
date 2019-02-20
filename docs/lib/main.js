@@ -201,8 +201,10 @@
   var csv$1 = dsvParse(csvParse);
 
   var url = 'https://raw.githubusercontent.com/severo/data_brazil/master/data_by_municipality_for_maps.csv';
-  csv$1(url).then(function (data) {
-    console.log('A comment in the console to test JavaScript in https://github.com/severo/pesticides_website!');
+  var loadData = csv$1(url);
+
+  console.log('A comment in the console to test JavaScript in https://github.com/severo/pesticides_website!');
+  loadData().then(function (data) {
     console.log('The CSV file has been loaded, it contains ' + data.length + ' rows');
   });
 
