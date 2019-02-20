@@ -1,6 +1,6 @@
 {
   "name": "@severo/pesticides_website",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "Data visualization on pesticides in drinking water in Brazil",
   "directories": {
     "lib": "docs"
