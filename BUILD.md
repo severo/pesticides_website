@@ -1,10 +1,13 @@
-# Development
+# Build
 
-The documentation in this file is only necessary if you will contribute to the
-code. If you only want to install or deploy the website, see
-[INSTALL.md](./INSTALL.md) instead.
+This file is intended to explain the process of building the project, based on
+npm scripts. If you only want to install or deploy the website, see
+[INSTALL.md](./INSTALL.md) instead. If you want to contribute to the code, see
+[CONTRIBUTE.md](./CONTRIBUTE.md).
 
 ## Technologies
+
+Technologies used for the project management and building:
 
 - Project management:
   - Manage dependendies: [npm](https://www.npmjs.com/)
@@ -18,8 +21,6 @@ code. If you only want to install or deploy the website, see
     [node-sass](https://www.npmjs.com/package/node-sass)
   - Support old browsers: [PostCSS](https://postcss.org/) /
     [Autoprefixer](https://github.com/postcss/autoprefixer)
-  - Components: [Bulma](https://bulma.io/) /
-    [bulma-start](https://www.npmjs.com/package/bulma-start)
 - JavaScript:
   - Ensure correct formatting: [ESLint](https://eslint.org/)
   - Ensure retrocompatibility: [babel](https://babeljs.io/)
@@ -30,8 +31,6 @@ code. If you only want to install or deploy the website, see
     [mustache.js](https://github.com/janl/mustache.js)
 - Markdown, JSON, YAML, YML:
   - Ensure correct formatting: [Prettier](https://prettier.io/)
-
-* TODO: add D3.js
 
 ## Get the code
 
@@ -61,7 +60,7 @@ The repository is composed of three main parts:
 - [`src/`](./src): the source code of the website, in HTML (with mustache
   placeholders), JS and SASS.
 
-  Development takes place here.
+  Development takes place there.
 
 - [`docs/`](./docs): the compiled code, ready to be deployed. Note that
   generally `dist/` or `build/` are used, but using `docs/` allows to
@@ -139,9 +138,6 @@ scripts. Note that they modify the files, and must be launched manually:
   npm run lint:fix
   ```
 
-- TODO: give hints to configure editors
-- TODO: give hints on the expected coding style
-
 ### CSS
 
 - Generate the CSS file in the build directory
@@ -183,13 +179,6 @@ scripts. Note that they modify the files, and must be launched manually:
 
   The [Rollup](https://rollupjs.org) configuration file (for bundlin ES modules,
   and calling Babel) is [`rollup.config.js`](./rollup.config.js).
-
-- TODO see if we should add things, like support for async/await:
-  https://babeljs.io/docs/en/babel-plugin-transform-async-to-generator
-- TODO minify (terser?)
-- TODO hot reloading
-- TODO tree shaking
-- TODO version generated files and replace in index.html
 
 ### HTML
 
@@ -234,13 +223,9 @@ Note that before allowing to commit, a `pre-commit` hook is launched with
 [husky](https://github.com/typicode/husky) that triggers `npm run test` and so
 cancel the commit if an error appears.
 
-- TODO automatically deploy the files in `docs` and add to git staged files
-
 ## Scripts for development
 
 Some other scripts are only a help for the developer
-
-- TODO add web server scripts
 
 ### Watch
 
@@ -270,3 +255,25 @@ More in details:
   ```bash
   npm run watch:mustache
   ```
+
+## TODO
+
+- Read
+  https://github.com/damonbauer/npm-build-boilerplate/blob/master/package.json
+  and add more processing if useful
+- give hints to configure editors (add an `.editorconfig` file?)
+- ESLint: add support for async/await:
+  https://babeljs.io/docs/en/babel-plugin-transform-async-to-generator? (maybe
+  it's already supported)
+- minify (terser?)
+- uglify?
+- tree shaking
+- version generated files and replace in index.html
+- automatically deploy the files in `docs` and add to git staged files
+- add a "clean" script, with rimraf?
+- add web server scripts
+- add unit tests
+- add integration tests
+- if we minify: add a header banner (see
+  [how d3.js does](https://github.com/d3/d3-voronoi/blob/master/rollup.config.js))
+- add CI tools: Codacy, Travis?

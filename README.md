@@ -11,4 +11,6 @@ See [INSTALL.md](./INSTALL.md) if you want to install or deploy the website.
 
 ## Develop
 
-See [DEVELOP.md](./DEVELOP.md) if you want to contribute to the code.
+See [CONTRIBUTE.md](./CONTRIBUTE.md) if you want to contribute to the code. Also
+review [BUILD.md](./BUILD.md) to understand how the project is built and
+deployed.
