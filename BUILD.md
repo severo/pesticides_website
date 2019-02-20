@@ -230,7 +230,7 @@ Some other scripts are only a help for the developer
 ### Watch
 
 To automatically rebuild the corresponding parts of the website when a source
-file changes, launch:
+file changes (note that the project is also build before watching), launch:
 
 ```bash
 npm run watch
@@ -238,23 +238,43 @@ npm run watch
 
 More in details:
 
+- watch, without bulding the project before:
+
+  ```bash
+  npm run watch-only
+  ```
+
 - watch for changes in JavaScript files and rebuild:
 
   ```bash
-  npm run watch:js
+  npm run watch-only:js
   ```
 
 - watch for changes in SASS files and rebuild:
 
   ```bash
-  npm run watch:css
+  npm run watch-only:css
   ```
 
 - watch for changes in mustache templates files and rebuild:
 
   ```bash
-  npm run watch:mustache
+  npm run watch-only:mustache
   ```
+
+### Serve
+
+To launch a web server on the [`docs/`](./docs/) directory:
+
+```bash
+npm run serve
+```
+
+Note that the configuration for Browsersync is defined in the
+[`bc-config.js`](bc-config.js) file.
+
+Note that you certainly want to run both `npm run serve` and `npm run watch` at
+the same time (in two terminals).
 
 ## TODO
 
@@ -271,9 +291,13 @@ More in details:
 - version generated files and replace in index.html
 - automatically deploy the files in `docs` and add to git staged files
 - add a "clean" script, with rimraf?
-- add web server scripts
 - add unit tests
 - add integration tests
 - if we minify: add a header banner (see
   [how d3.js does](https://github.com/d3/d3-voronoi/blob/master/rollup.config.js))
 - add CI tools: Codacy, Travis?
+- only one script (`npm run serve`) to replace the need for both `watch` and
+  `serve`. But simply launching `run-p server watch` fails to capture all the
+  changes.
+- when the build fails in `watch`, the script needs to be restarted. Find how to
+  avoid this and simply handle the errors
