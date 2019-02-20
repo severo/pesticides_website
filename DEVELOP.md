@@ -93,7 +93,7 @@ To build all, just launch
   exit with error if a file is not formatted accorded to eslint rules.
 
   ```bash
-  npm run test:js
+  npm run lint:test:js
   ```
 
 - Test the format of JSON, Markdown, SCSS, YAML and YML files with
@@ -101,19 +101,13 @@ To build all, just launch
   formatted accorded to prettier rules, showing a list of the files to fix.
 
   ```bash
-  npm run test:other
+  npm run lint:test:other
   ```
 
 - Test both in one command
 
   ```bash
-  npm run test
-  ```
-
-  or
-
-  ```bash
-  npm test
+  npm run lint:test
   ```
 
 Note that the configuration for Prettier is defined in the
@@ -129,20 +123,20 @@ scripts. Note that they modify the files, and must be launched manually:
 - Fix the format of JavaScript files inline with [ESLint](https://eslint.org/)
 
   ```bash
-  npm run fix:js
+  npm run lint:fix:js
   ```
 
 - Fix the format of JSON, Markdown, SCSS, YAML and YML files inline with
   [Prettier](https://prettier.io/)
 
   ```bash
-  npm run fix:other
+  npm run lint:fix:other
   ```
 
 - Fix all files inline in one command
 
   ```bash
-  npm run fix
+  npm run lint:fix
   ```
 
 - TODO: give hints to configure editors
