@@ -3,9 +3,8 @@
 The documentation in this file is only necessary if you will contribute to the
 code.
 
-If you only want to install or deploy the website, see
-[INSTALL.md](./INSTALL.md) instead. If you're interested in the build process,
-see [BUILD.md](./BUILD.md).
+If you want to install or deploy the website, see [INSTALL.md](./INSTALL.md)
+instead. If you're interested in the build process, see [BUILD.md](./BUILD.md).
 
 ## Technologies
 
@@ -13,7 +12,7 @@ Technologies used in the application:
 
 - Components: [Bulma](https://bulma.io/) /
   [bulma-start](https://www.npmjs.com/package/bulma-start)
-- Datavisualization: [D3.js](https://d3js.org/)
+- Data visualization: [D3.js](https://d3js.org/)
 
 ## Get the code
 

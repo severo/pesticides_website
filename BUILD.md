@@ -1,7 +1,7 @@
 # Build
 
 This file is intended to explain the process of building the project, based on
-npm scripts. If you only want to install or deploy the website, see
+npm scripts. If you want to install or deploy the website, see
 [INSTALL.md](./INSTALL.md) instead. If you want to contribute to the code, see
 [CONTRIBUTE.md](./CONTRIBUTE.md).
 
@@ -12,7 +12,7 @@ Technologies used for the project management and building:
 - Project management:
   - Manage dependendies: [npm](https://www.npmjs.com/)
   - Manage git hooks: [husky](https://github.com/typicode/husky)
-  - Run multiple npm-scripts in parallel or sequential:
+  - Run multiple npm-scripts in parallel or sequentially:
     [npm-run-all](https://www.npmjs.com/package/npm-run-all)
   - Watch changes: [onchange](https://www.npmjs.com/package/onchange)
 - CSS:
@@ -80,7 +80,7 @@ The workflow to compile the [`src/`](./src) source code directory into the
 [`docs/`](./docs) output directory realize a series of processings. There are
 detailed in that section.
 
-To build all, just launch
+To build them all, launch
 
     ```bash
     npm run build
@@ -89,7 +89,7 @@ To build all, just launch
 ### Linters
 
 - Test the format of JavaScript files with [ESLint](https://eslint.org/), and
-  exit with error if a file is not formatted accorded to eslint rules.
+  exit with error if a file is not formatted according to eslint rules.
 
   ```bash
   npm run lint:test:js
@@ -157,7 +157,7 @@ scripts. Note that they modify the files, and must be launched manually:
   npm run build:css:postcss
   ```
 
-- Do both in one call:
+- Do both in one call (first SASS, then PostCSS):
 
   ```bash
   npm run build:css
@@ -177,8 +177,8 @@ scripts. Note that they modify the files, and must be launched manually:
   [Babel](https://babeljs.io) currently points to the
   [`@babel/preset-env` preset](https://babeljs.io/docs/en/babel-preset-env).
 
-  The [Rollup](https://rollupjs.org) configuration file (for bundlin ES modules,
-  and calling Babel) is [`rollup.config.js`](./rollup.config.js).
+  The [Rollup](https://rollupjs.org) configuration file (for bundling ES
+  modules, and calling Babel) is [`rollup.config.js`](./rollup.config.js).
 
 ### HTML
 
@@ -216,24 +216,24 @@ https://severo.github.io/pesticides_website/ on every new commit on the
 
 The website files are copied from the
 [`/docs`](https://github.com/severo/pesticides_website/tree/master/docs)
-directory (destination of the build). This means that every commit should come
-with a build process.
+directory (destination of the build). This means that the docs directory must be
+built before every commit, in order the changes to be deployed.
 
 Note that before allowing to commit, a `pre-commit` hook is launched with
 [husky](https://github.com/typicode/husky) that triggers `npm run test` and so
-cancel the commit if an error appears.
+cancel the commit if any error appears.
 
 ## Scripts for development
 
-Some other scripts are only a help for the developer
+Some other scripts are only a help for the developer.
 
 ### Watch
 
-To automatically rebuild the corresponding parts of the website when a source
-file changes (note that the project is also build before watching), launch:
+To automatically build the website, and then rebuild it when a source file
+changes, launch:
 
 ```bash
-npm run watch
+npm run build-and-watch
 ```
 
 More in details:
@@ -241,25 +241,25 @@ More in details:
 - watch, without bulding the project before:
 
   ```bash
-  npm run watch-only
+  npm run watch
   ```
 
-- watch for changes in JavaScript files and rebuild:
+- watch for changes in JavaScript files and rebuild on change:
 
   ```bash
-  npm run watch-only:js
+  npm run watch:js
   ```
 
-- watch for changes in SASS files and rebuild:
+- watch for changes in SASS files and rebuild on change:
 
   ```bash
-  npm run watch-only:css
+  npm run watch:css
   ```
 
-- watch for changes in mustache templates files and rebuild:
+- watch for changes in mustache templates files and rebuild on change:
 
   ```bash
-  npm run watch-only:mustache
+  npm run watch:mustache
   ```
 
 ### Serve
@@ -270,7 +270,7 @@ To launch a web server on the [`docs/`](./docs/) directory:
 npm run serve
 ```
 
-Note that the configuration for Browsersync is defined in the
+The configuration for Browsersync is defined in the
 [`bc-config.js`](bc-config.js) file.
 
 Note that you certainly want to run both `npm run serve` and `npm run watch` at
@@ -287,17 +287,19 @@ the same time (in two terminals).
   it's already supported)
 - minify (terser?)
 - uglify?
-- tree shaking
-- version generated files and replace in index.html
-- automatically deploy the files in `docs` and add to git staged files
+- tree shaking (already done by rollup?)
+- version generated CSS and JS files and automatically replace the links in
+  index.html
+- automatically deploy the files in `docs` before a commit, and add to git
+  staged files
 - add a "clean" script, with rimraf?
 - add unit tests
 - add integration tests
 - if we minify: add a header banner (see
-  [how d3.js does](https://github.com/d3/d3-voronoi/blob/master/rollup.config.js))
+  [how it's done in D3.js](https://github.com/d3/d3-voronoi/blob/master/rollup.config.js))
 - add CI tools: Codacy, Travis?
 - only one script (`npm run serve`) to replace the need for both `watch` and
   `serve`. But simply launching `run-p server watch` fails to capture all the
   changes.
 - when the build fails in `watch`, the script needs to be restarted. Find how to
-  avoid this and simply handle the errors
+  avoid this and simply handle the errors.

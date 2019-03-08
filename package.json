@@ -14,6 +14,7 @@
     "build:mustache": "run-s build:mustache:en build:mustache:pt",
     "build:mustache:en": "mustache src/lang/en.json src/index.mustache.html docs/index.html",
     "build:mustache:pt": "mustache src/lang/pt.json src/index.mustache.html docs/index.pt.html",
+    "build-and-watch": "run-s build watch",
     "lint:fix": "run-s lint:fix:src lint:fix:other",
     "lint:fix:other": "prettier --write \"**/*.{json,md,yaml,yml}\"",
     "lint:fix:src": "run-s lint:fix:src:*",
@@ -28,11 +29,10 @@
     "lint:test:src:lang": "prettier --list-different \"src/lang/*.json\"",
     "serve": "browser-sync start -c bs-config.js",
     "test": "npm run lint:test",
-    "watch": "run-s build watch-only",
-    "watch-only": "run-p watch-only:css watch-only:js watch-only:mustache",
-    "watch-only:css": "onchange \"src/_sass\" -- npm run build:css",
-    "watch-only:js": "onchange \"src/_javascript\" -- npm run build:js",
-    "watch-only:mustache": "onchange \"src/index.mustache.html\" -- npm run build:mustache"
+    "watch": "run-p watch:css watch:js watch:mustache",
+    "watch:css": "onchange \"src/_sass\" -- npm run build:css",
+    "watch:js": "onchange \"src/_javascript\" -- npm run build:js",
+    "watch:mustache": "onchange \"src/index.mustache.html\" -- npm run build:mustache"
   },
   "repository": {
     "type": "git",
