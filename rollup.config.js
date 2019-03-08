@@ -6,6 +6,7 @@ export default {
   output: {
     file: 'docs/lib/main.js',
     format: 'iife',
+    name: 'pesticides_website',
   },
   plugins: [
     resolve(),
