@@ -280,7 +280,9 @@ the same time (in two terminals).
 
 - Read
   https://github.com/damonbauer/npm-build-boilerplate/blob/master/package.json
-  and add more processing if useful
+  and add more processing if useful. See also
+  https://buzut.fr/npm-for-everything/ and
+  https://buzut.fr/configurer-rollup-bundles-esm-cjs/
 - give hints to configure editors (add an `.editorconfig` file?)
 - ESLint: add support for async/await:
   https://babeljs.io/docs/en/babel-plugin-transform-async-to-generator? (maybe
@@ -291,7 +293,7 @@ the same time (in two terminals).
 - version generated CSS and JS files and automatically replace the links in
   index.html
 - automatically deploy the files in `docs` before a commit, and add to git
-  staged files
+  staged files (see https://docs.npmjs.com/misc/scripts)
 - add a "clean" script, with rimraf?
 - add unit tests
 - add integration tests
