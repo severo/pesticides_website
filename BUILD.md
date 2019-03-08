@@ -305,3 +305,9 @@ the same time (in two terminals).
   changes.
 - when the build fails in `watch`, the script needs to be restarted. Find how to
   avoid this and simply handle the errors.
+- maybe compute automatically the data hashes (see src/data/ files). Currently
+  it's done manually with:
+
+  ```bash
+  cat estados.topojson | openssl dgst -sha384 -binary | openssl base64 -A
+  ```

@@ -1,44 +1,6 @@
 (function () {
   'use strict';
 
-  function ascending(a, b) {
-    return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
-  }
-
-  function bisector(compare) {
-    if (compare.length === 1) compare = ascendingComparator(compare);
-    return {
-      left: function(a, x, lo, hi) {
-        if (lo == null) lo = 0;
-        if (hi == null) hi = a.length;
-        while (lo < hi) {
-          var mid = lo + hi >>> 1;
-          if (compare(a[mid], x) < 0) lo = mid + 1;
-          else hi = mid;
-        }
-        return lo;
-      },
-      right: function(a, x, lo, hi) {
-        if (lo == null) lo = 0;
-        if (hi == null) hi = a.length;
-        while (lo < hi) {
-          var mid = lo + hi >>> 1;
-          if (compare(a[mid], x) > 0) hi = mid;
-          else lo = mid + 1;
-        }
-        return lo;
-      }
-    };
-  }
-
-  function ascendingComparator(f) {
-    return function(d, x) {
-      return ascending(f(d), x);
-    };
-  }
-
-  var ascendingBisect = bisector(ascending);
-
   var noop = {value: function() {}};
 
   function dispatch() {
@@ -121,6 +83,57 @@
     if (callback != null) type.push({name: name, value: callback});
     return type;
   }
+
+  var cfg = {
+    arrowMarkerSize: 8,
+    arrowStroke: '#555',
+    data: {
+      states: {
+        url: 'https://raw.githubusercontent.com/severo/data_brazil/master/estados.topojson'
+      },
+      statistics: {
+        url: 'https://raw.githubusercontent.com/severo/data_brazil/master/data_by_municipality_for_maps.csv'
+      }
+    }
+  };
+
+  function ascending(a, b) {
+    return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
+  }
+
+  function bisector(compare) {
+    if (compare.length === 1) compare = ascendingComparator(compare);
+    return {
+      left: function(a, x, lo, hi) {
+        if (lo == null) lo = 0;
+        if (hi == null) hi = a.length;
+        while (lo < hi) {
+          var mid = lo + hi >>> 1;
+          if (compare(a[mid], x) < 0) lo = mid + 1;
+          else hi = mid;
+        }
+        return lo;
+      },
+      right: function(a, x, lo, hi) {
+        if (lo == null) lo = 0;
+        if (hi == null) hi = a.length;
+        while (lo < hi) {
+          var mid = lo + hi >>> 1;
+          if (compare(a[mid], x) > 0) hi = mid;
+          else lo = mid + 1;
+        }
+        return lo;
+      }
+    };
+  }
+
+  function ascendingComparator(f) {
+    return function(d, x) {
+      return ascending(f(d), x);
+    };
+  }
+
+  var ascendingBisect = bisector(ascending);
 
   var xhtml = "http://www.w3.org/1999/xhtml";
 
@@ -971,12 +984,6 @@
     on: selection_on,
     dispatch: selection_dispatch
   };
-
-  function select(selector) {
-    return typeof selector === "string"
-        ? new Selection([[document.querySelector(selector)]], [document.documentElement])
-        : new Selection([[selector]], root);
-  }
 
   function define(constructor, factory, prototype) {
     constructor.prototype = factory.prototype = prototype;
@@ -2939,7 +2946,7 @@
         : "");
   }
 
-  function dsv(delimiter) {
+  function dsvFormat(delimiter) {
     var reFormat = new RegExp("[\"" + delimiter + "\n\r]"),
         DELIMITER = delimiter.charCodeAt(0);
 
@@ -3043,21 +3050,11 @@
     };
   }
 
-  var csv = dsv(",");
+  var csv = dsvFormat(",");
 
   var csvParse = csv.parse;
-  var csvParseRows = csv.parseRows;
-  var csvFormat = csv.format;
-  var csvFormatBody = csv.formatBody;
-  var csvFormatRows = csv.formatRows;
 
-  var tsv = dsv("\t");
-
-  var tsvParse = tsv.parse;
-  var tsvParseRows = tsv.parseRows;
-  var tsvFormat = tsv.format;
-  var tsvFormatBody = tsv.formatBody;
-  var tsvFormatRows = tsv.formatRows;
+  var tsv = dsvFormat("\t");
 
   function responseText(response) {
     if (!response.ok) throw new Error(response.status + " " + response.statusText);
@@ -3078,6 +3075,15 @@
   }
 
   var csv$1 = dsvParse(csvParse);
+
+  function responseJson(response) {
+    if (!response.ok) throw new Error(response.status + " " + response.statusText);
+    return response.json();
+  }
+
+  function json(input, init) {
+    return fetch(input, init).then(responseJson);
+  }
 
   function tree_add(d) {
     var x = +this._x.call(null, d),
@@ -5296,35 +5302,85 @@
     bezierCurveTo: function(x1, y1, x2, y2, x, y) { this._context.bezierCurveTo(y1, x1, y2, x2, y, x); }
   };
 
-  var cfg = {
-    arrowMarkerSize: 8,
-    arrowStroke: '#555',
-    dataUrl: 'https://raw.githubusercontent.com/severo/data_brazil/master/data_by_municipality_for_maps.csv'
-  };
+  var NUMBER_STATES = 27;
+  var INTEGRITY_HASH = 'sha384-ouQz9pxNn8qAzuMhLlb5tBC+H8tZ7nniJlpcWSVLHwx7QKja0yPvC08KJSqiTtvi';
 
-  var loadData = csv$1(cfg.dataUrl);
+  function checkData(url) {
+    return function (data) {
+      /* Some basic tests to check the data seems correct
+       *
+       * Note: the integrity of the data has already been checked in d3.json
+       */
+      if (!data.hasOwnProperty('type') || data.type !== 'Topology') {
+        throw new Error('The data is not a topojson - at ' + url);
+      } else if (data.objects.estados.geometries.length !== NUMBER_STATES) {
+        throw new Error('The number of states should be ' + NUMBER_STATES);
+      }
 
-  function addFiltersToSvg(svg) {
-    var defs = svg.append('defs'); // Filter for the shade
-
-    var filter1 = defs.append('filter').attr('id', 'filter1');
-    filter1.append('feDropShadow').attr('stdDeviation', '3'); // Marker for the arrow in legend
-
-    defs.append('marker').attr('id', 'arrow').attr('viewBox', '0 -5 10 10').attr('refX', '10').attr('refY', '0').attr('markerWidth', cfg.arrowMarkerSize).attr('markerHeight', cfg.arrowMarkerSize).attr('orient', 'auto').attr('stroke', cfg.arrowStroke).attr('fill', 'none').append('path').attr('d', 'M0,-5L10,0L0,5').attr('class', 'arrowHead'); //svg.append('style').text(forkAwesomeStyle);
-
-    return svg;
+      return data;
+    };
   }
 
-  var init$1 = loadData.then(function (data) {
-    console.log('The CSV file has been loaded, it contains ' + data.length + ' rows');
-    var svg = select('svg#map');
-    addFiltersToSvg(svg);
-    return '';
-  });
+  function load(url) {
+    return json(url, {
+      integrity: INTEGRITY_HASH
+    }).then(checkData(url));
+  }
 
-  console.log('A comment in the console to test JavaScript in https://github.com/severo/pesticides_website!');
-  init$1.then(function () {
-    return console.log('Init done.');
+  var ROWS = 2242;
+  var INTEGRITY_HASH$1 = 'sha384-1mMiVJ4KDmhyjlz86hL3dd+AYo/ShdE/2L8iW5nCdsUHlgsMt9ZS/PTVg12LyTZM';
+
+  function checkData$1(url) {
+    return function (data) {
+      /* Some basic tests to check the data seems correct
+       *
+       * Note: the integrity of the data has already been checked in d3.json
+       */
+      if (!Array.isArray(data)) {
+        throw new Error('The data is not a CSV - at ' + url);
+      } else if (data.length !== ROWS) {
+        throw new Error('The number of rows of statistics should be ' + ROWS);
+      }
+
+      return data;
+    };
+  }
+
+  function load$1(url) {
+    return csv$1(url, {
+      integrity: INTEGRITY_HASH$1
+    }).then(checkData$1(url));
+  }
+
+  function loadData(dataCfg, dispatcher) {
+    var _this = this;
+
+    var dataPromises = [load(dataCfg.states.url), load$1(dataCfg.statistics.url)];
+    return Promise.all(dataPromises).then(function (result) {
+      var data = {
+        states: result[0],
+        statistics: result[1]
+      };
+      dispatcher.call('load', _this, data);
+      return data;
+    });
+  }
+
+  function init$1(cfg, dispatcher) {
+    return loadData(cfg.data, dispatcher);
+  }
+
+  var dispatcher = dispatch('load');
+  dispatcher.on('load.state', function (data) {
+    console.log('Data has been loaded:');
+    console.log(data);
+  });
+  /* Asynchronous */
+
+  init$1(cfg, dispatcher).catch(function (error) {
+    /* TODO: decide what to do if the init has failed.
+     * Meanwhile, it prints the error in the console. */
+    console.log(error);
   });
 
 }());
