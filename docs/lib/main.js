@@ -5296,8 +5296,13 @@
     bezierCurveTo: function(x1, y1, x2, y2, x, y) { this._context.bezierCurveTo(y1, x1, y2, x2, y, x); }
   };
 
-  var url = 'https://raw.githubusercontent.com/severo/data_brazil/master/data_by_municipality_for_maps.csv';
-  var loadData = csv$1(url);
+  var cfg = {
+    arrowMarkerSize: 8,
+    arrowStroke: '#555',
+    dataUrl: 'https://raw.githubusercontent.com/severo/data_brazil/master/data_by_municipality_for_maps.csv'
+  };
+
+  var loadData = csv$1(cfg.dataUrl);
 
   function addFiltersToSvg(svg) {
     var defs = svg.append('defs'); // Filter for the shade
@@ -5305,16 +5310,21 @@
     var filter1 = defs.append('filter').attr('id', 'filter1');
     filter1.append('feDropShadow').attr('stdDeviation', '3'); // Marker for the arrow in legend
 
-    defs.append('marker').attr('id', 'arrow').attr('viewBox', '0 -5 10 10').attr('refX', '10').attr('refY', '0').attr('markerWidth', arrowMarkerSize).attr('markerHeight', arrowMarkerSize).attr('orient', 'auto').attr('stroke', arrowStroke).attr('fill', 'none').append('path').attr('d', 'M0,-5L10,0L0,5').attr('class', 'arrowHead'); //svg.append('style').text(forkAwesomeStyle);
+    defs.append('marker').attr('id', 'arrow').attr('viewBox', '0 -5 10 10').attr('refX', '10').attr('refY', '0').attr('markerWidth', cfg.arrowMarkerSize).attr('markerHeight', cfg.arrowMarkerSize).attr('orient', 'auto').attr('stroke', cfg.arrowStroke).attr('fill', 'none').append('path').attr('d', 'M0,-5L10,0L0,5').attr('class', 'arrowHead'); //svg.append('style').text(forkAwesomeStyle);
 
     return svg;
   }
 
-  console.log('A comment in the console to test JavaScript in https://github.com/severo/pesticides_website!');
-  loadData.then(function (data) {
+  var init$1 = loadData.then(function (data) {
     console.log('The CSV file has been loaded, it contains ' + data.length + ' rows');
     var svg = select('svg#map');
     addFiltersToSvg(svg);
+    return '';
+  });
+
+  console.log('A comment in the console to test JavaScript in https://github.com/severo/pesticides_website!');
+  init$1.then(function () {
+    return console.log('Init done.');
   });
 
 }());
