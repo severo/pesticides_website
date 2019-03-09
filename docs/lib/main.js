@@ -87,11 +87,20 @@
   var cfg = {
     arrowMarkerSize: 8,
     arrowStroke: '#555',
-    data: {
+    datasets: {
+      municipalities: {
+        integrityHash: 'sha384-VFdBqXvo0dqch+0XxcCuJwSv2GPRd5KVqV78wHeLOp8XulVaDU1QKiUcYpCCHKOG',
+        municipalitiesNumber: 5570,
+        url: 'https://raw.githubusercontent.com/severo/data_brazil/master/municipios.topojson'
+      },
       states: {
+        integrityHash: 'sha384-ouQz9pxNn8qAzuMhLlb5tBC+H8tZ7nniJlpcWSVLHwx7QKja0yPvC08KJSqiTtvi',
+        statesNumber: 27,
         url: 'https://raw.githubusercontent.com/severo/data_brazil/master/estados.topojson'
       },
       statistics: {
+        integrityHash: 'sha384-1mMiVJ4KDmhyjlz86hL3dd+AYo/ShdE/2L8iW5nCdsUHlgsMt9ZS/PTVg12LyTZM',
+        rowsNumber: 2242,
         url: 'https://raw.githubusercontent.com/severo/data_brazil/master/data_by_municipality_for_maps.csv'
       }
     }
@@ -5302,72 +5311,117 @@
     bezierCurveTo: function(x1, y1, x2, y2, x, y) { this._context.bezierCurveTo(y1, x1, y2, x2, y, x); }
   };
 
-  var NUMBER_STATES = 27;
-  var INTEGRITY_HASH = 'sha384-ouQz9pxNn8qAzuMhLlb5tBC+H8tZ7nniJlpcWSVLHwx7QKja0yPvC08KJSqiTtvi';
-
-  function checkData(url) {
+  function checkData(cfg) {
     return function (data) {
       /* Some basic tests to check the data seems correct
        *
        * Note: the integrity of the data has already been checked in d3.json
        */
       if (!data.hasOwnProperty('type') || data.type !== 'Topology') {
-        throw new Error('The data is not a topojson - at ' + url);
-      } else if (data.objects.estados.geometries.length !== NUMBER_STATES) {
-        throw new Error('The number of states should be ' + NUMBER_STATES);
+        throw new Error('The data is not a topojson - at ' + cfg.url);
+      } else if (data.objects.municipios.geometries.length !== cfg.municipalitiesNumber) {
+        throw new Error('The number of municipalities should be ' + cfg.municipalitiesNumber);
       }
 
       return data;
     };
   }
 
-  function load(url) {
-    return json(url, {
-      integrity: INTEGRITY_HASH
-    }).then(checkData(url));
+  function load(cfg) {
+    return json(cfg.url, {
+      integrity: cfg.integrityHash
+    }).then(checkData(cfg));
+  }
+  var key = 'municipalities';
+
+  var municipalities = /*#__PURE__*/Object.freeze({
+    load: load,
+    key: key
+  });
+
+  function checkData$1(cfg) {
+    return function (data) {
+      /* Some basic tests to check the data seems correct
+       *
+       * Note: the integrity of the data has already been checked in d3.json
+       */
+      if (!data.hasOwnProperty('type') || data.type !== 'Topology') {
+        throw new Error('The data is not a topojson - at ' + cfg.url);
+      } else if (data.objects.estados.geometries.length !== cfg.statesNumber) {
+        throw new Error('The number of states should be ' + cfg.statesNumber);
+      }
+
+      return data;
+    };
   }
 
-  var ROWS = 2242;
-  var INTEGRITY_HASH$1 = 'sha384-1mMiVJ4KDmhyjlz86hL3dd+AYo/ShdE/2L8iW5nCdsUHlgsMt9ZS/PTVg12LyTZM';
+  function load$1(cfg) {
+    return json(cfg.url, {
+      integrity: cfg.integrityHash
+    }).then(checkData$1(cfg));
+  }
+  var key$1 = 'states';
 
-  function checkData$1(url) {
+  var states = /*#__PURE__*/Object.freeze({
+    load: load$1,
+    key: key$1
+  });
+
+  function checkData$2(cfg) {
     return function (data) {
       /* Some basic tests to check the data seems correct
        *
        * Note: the integrity of the data has already been checked in d3.json
        */
       if (!Array.isArray(data)) {
-        throw new Error('The data is not a CSV - at ' + url);
-      } else if (data.length !== ROWS) {
-        throw new Error('The number of rows of statistics should be ' + ROWS);
+        throw new Error('The data is not a CSV - at ' + cfg.url);
+      } else if (data.length !== cfg.rowsNumber) {
+        throw new Error('The number of rows of statistics should be ' + cfg.rowsNumber);
       }
 
       return data;
     };
   }
 
-  function load$1(url) {
-    return csv$1(url, {
-      integrity: INTEGRITY_HASH$1
-    }).then(checkData$1(url));
+  function load$2(cfg) {
+    return csv$1(cfg.url, {
+      integrity: cfg.integrityHash
+    }).then(checkData$2(cfg));
   }
+  var key$2 = 'statistics';
 
-  function loadData(dataCfg, dispatcher) {
+  var statistics = /*#__PURE__*/Object.freeze({
+    load: load$2,
+    key: key$2
+  });
+
+  function loadData(cfg, dispatcher) {
     var _this = this;
 
-    var dataPromises = [load(dataCfg.states.url), load$1(dataCfg.statistics.url)];
-    return Promise.all(dataPromises).then(function (result) {
-      var data = {
-        states: result[0],
-        statistics: result[1]
-      };
+    var datasets = [municipalities, states, statistics];
+    var keys = datasets.map(function (cur) {
+      return cur.key;
+    });
+    var promises = datasets.map(function (cur) {
+      return cur.load(cfg[cur.key]);
+    });
+    return Promise.all(promises).then(function (results) {
+      /* Form the data object */
+      var data = results.reduce(function (acc, cur, it) {
+        acc[keys[it]] = cur;
+        return acc;
+      }, {});
+      /* Publish the change in data */
+
       dispatcher.call('load', _this, data);
+      /* Return the data (useless for this application - to be removed) */
+
       return data;
     });
   }
 
   function init$1(cfg, dispatcher) {
-    return loadData(cfg.data, dispatcher);
+    return loadData(cfg.datasets, dispatcher);
   }
 
   var dispatcher = dispatch('load');

@@ -8,8 +8,12 @@ function checkData(cfg) {
      */
     if (!data.hasOwnProperty('type') || data.type !== 'Topology') {
       throw new Error('The data is not a topojson - at ' + cfg.url);
-    } else if (data.objects.estados.geometries.length !== cfg.statesNumber) {
-      throw new Error('The number of states should be ' + cfg.statesNumber);
+    } else if (
+      data.objects.municipios.geometries.length !== cfg.municipalitiesNumber
+    ) {
+      throw new Error(
+        'The number of municipalities should be ' + cfg.municipalitiesNumber
+      );
     }
     return data;
   };
@@ -18,4 +22,4 @@ function checkData(cfg) {
 export function load(cfg) {
   return d3.json(cfg.url, {integrity: cfg.integrityHash}).then(checkData(cfg));
 }
-export const key = 'states';
+export const key = 'municipalities';
