@@ -12,7 +12,11 @@ Technologies used in the application:
 
 - Components: [Bulma](https://bulma.io/) /
   [bulma-start](https://www.npmjs.com/package/bulma-start)
-- Data visualization: [D3.js](https://d3js.org/)
+- Data loading: [topojson](https://github.com/topojson/topojson),
+  [d3-fetch](https://github.com/d3/d3-fetch)
+- State management: [d3-dispatch](https://github.com/d3/d3-dispatch)
+- Data visualization:
+  - projections: [d3-geo](https://github.com/d3/d3-geo/)
 
 ## Get the code
 
