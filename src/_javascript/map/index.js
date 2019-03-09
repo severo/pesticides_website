@@ -2,6 +2,7 @@ import {createPath, createProjection} from './projection';
 import {cfg} from './cfg';
 import {createCountries} from './countries';
 import {createMap} from './map';
+import {createSeaBackground} from './seaBackground';
 import {createSvg} from './svg';
 
 export function createBigMap(data) {
@@ -33,6 +34,7 @@ export function createBigMap(data) {
   const path = createPath(projection);
 
   // Add sub-elements
+  createSeaBackground(map, mapWidth, mapHeight, cfg.seaBackground);
   createCountries(map, path, data.geojson.countries, cfg.countries);
 
   // TODO: evaluate if the function shuold return a value or not

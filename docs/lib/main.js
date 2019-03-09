@@ -1920,6 +1920,10 @@
     defaultWidth: 500,
     projection: {
       fitMargin: 20
+    },
+    seaBackground: {
+      fill: '#e3eef9',
+      stroke: 'none'
     }
   };
 
@@ -1931,6 +1935,10 @@
     var map = parent.append('g') // TODO: pass the class name as a parameter?
     .classed('map', true).attr('width', width).attr('height', height);
     return map;
+  }
+
+  function createSeaBackground(parent, width, height, cfg) {
+    return parent.append('rect').attr('x', 0).attr('y', 0).attr('width', width).attr('height', height).attr('fill', cfg.fill).attr('stroke', cfg.stroke);
   }
 
   var xhtml = "http://www.w3.org/1999/xhtml";
@@ -2815,6 +2823,7 @@
 
     var path = createPath(projection); // Add sub-elements
 
+    createSeaBackground(map, mapWidth, mapHeight, cfg.seaBackground);
     createCountries(map, path, data.geojson.countries, cfg.countries); // TODO: evaluate if the function shuold return a value or not
 
     return svg;

@@ -9,4 +9,8 @@ export const cfg = {
   projection: {
     fitMargin: 20,
   },
+  seaBackground: {
+    fill: '#e3eef9',
+    stroke: 'none',
+  },
 };
