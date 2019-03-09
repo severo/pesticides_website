@@ -4,7 +4,7 @@ import {loadData} from './data';
 
 const dispatcher = dispatch('load');
 
-/* Should be useless... We will see */
+// Should be useless... We will see
 const state = {};
 dispatcher.on('load.state', data => {
   state.data = data;
@@ -12,9 +12,16 @@ dispatcher.on('load.state', data => {
   //console.log(data);
 });
 
-/* Asynchronous */
-loadData(cfg.datasets, dispatcher).catch(error => {
-  /* TODO: decide what to do if the init has failed.
-   * Meanwhile, it prints the error in the console. */
-  console.log(error);
+// Asynchronous
+loadData(cfg.datasets)
+  .then(data => {
+    // Publish the data with the "load" event
+    dispatcher.call('load', this, data);
+    // Should we return a value?
+  })
+  .catch(error => {
+    /* TODO: decide what to do if the init has failed.
+     * Meanwhile, it prints the error in the console. */
+    console.log(error);
+  });
 });
