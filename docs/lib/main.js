@@ -1,12 +1,6 @@
 (function () {
   'use strict';
 
-  var cfg = {
-    fitMargin: 20,
-    height: 1000,
-    width: 920
-  };
-
   // Adds floating point numbers with twice the normal precision.
   // Reference: J. R. Shewchuk, Adaptive Precision Floating-Point Arithmetic and
   // Fast Robust Geometric Predicates, Discrete & Computational Geometry 18(3)
@@ -1179,11 +1173,53 @@
   }
 
   var areaSum$1 = adder(),
-      areaRingSum$1 = adder();
+      areaRingSum$1 = adder(),
+      x00,
+      y00,
+      x0,
+      y0;
 
-  var x0 = Infinity,
-      y0 = x0,
-      x1 = -x0,
+  var areaStream = {
+    point: noop,
+    lineStart: noop,
+    lineEnd: noop,
+    polygonStart: function() {
+      areaStream.lineStart = areaRingStart;
+      areaStream.lineEnd = areaRingEnd;
+    },
+    polygonEnd: function() {
+      areaStream.lineStart = areaStream.lineEnd = areaStream.point = noop;
+      areaSum$1.add(abs(areaRingSum$1));
+      areaRingSum$1.reset();
+    },
+    result: function() {
+      var area = areaSum$1 / 2;
+      areaSum$1.reset();
+      return area;
+    }
+  };
+
+  function areaRingStart() {
+    areaStream.point = areaPointFirst;
+  }
+
+  function areaPointFirst(x, y) {
+    areaStream.point = areaPoint;
+    x00 = x0 = x, y00 = y0 = y;
+  }
+
+  function areaPoint(x, y) {
+    areaRingSum$1.add(y0 * x - x0 * y);
+    x0 = x, y0 = y;
+  }
+
+  function areaRingEnd() {
+    areaPoint(x00, y00);
+  }
+
+  var x0$1 = Infinity,
+      y0$1 = x0$1,
+      x1 = -x0$1,
       y1 = x1;
 
   var boundsStream = {
@@ -1193,20 +1229,311 @@
     polygonStart: noop,
     polygonEnd: noop,
     result: function() {
-      var bounds = [[x0, y0], [x1, y1]];
-      x1 = y1 = -(y0 = x0 = Infinity);
+      var bounds = [[x0$1, y0$1], [x1, y1]];
+      x1 = y1 = -(y0$1 = x0$1 = Infinity);
       return bounds;
     }
   };
 
   function boundsPoint(x, y) {
-    if (x < x0) x0 = x;
+    if (x < x0$1) x0$1 = x;
     if (x > x1) x1 = x;
-    if (y < y0) y0 = y;
+    if (y < y0$1) y0$1 = y;
     if (y > y1) y1 = y;
   }
 
-  var lengthSum$1 = adder();
+  // TODO Enforce positive area for exterior, negative area for interior?
+
+  var X0 = 0,
+      Y0 = 0,
+      Z0 = 0,
+      X1 = 0,
+      Y1 = 0,
+      Z1 = 0,
+      X2 = 0,
+      Y2 = 0,
+      Z2 = 0,
+      x00$1,
+      y00$1,
+      x0$2,
+      y0$2;
+
+  var centroidStream = {
+    point: centroidPoint,
+    lineStart: centroidLineStart,
+    lineEnd: centroidLineEnd,
+    polygonStart: function() {
+      centroidStream.lineStart = centroidRingStart;
+      centroidStream.lineEnd = centroidRingEnd;
+    },
+    polygonEnd: function() {
+      centroidStream.point = centroidPoint;
+      centroidStream.lineStart = centroidLineStart;
+      centroidStream.lineEnd = centroidLineEnd;
+    },
+    result: function() {
+      var centroid = Z2 ? [X2 / Z2, Y2 / Z2]
+          : Z1 ? [X1 / Z1, Y1 / Z1]
+          : Z0 ? [X0 / Z0, Y0 / Z0]
+          : [NaN, NaN];
+      X0 = Y0 = Z0 =
+      X1 = Y1 = Z1 =
+      X2 = Y2 = Z2 = 0;
+      return centroid;
+    }
+  };
+
+  function centroidPoint(x, y) {
+    X0 += x;
+    Y0 += y;
+    ++Z0;
+  }
+
+  function centroidLineStart() {
+    centroidStream.point = centroidPointFirstLine;
+  }
+
+  function centroidPointFirstLine(x, y) {
+    centroidStream.point = centroidPointLine;
+    centroidPoint(x0$2 = x, y0$2 = y);
+  }
+
+  function centroidPointLine(x, y) {
+    var dx = x - x0$2, dy = y - y0$2, z = sqrt(dx * dx + dy * dy);
+    X1 += z * (x0$2 + x) / 2;
+    Y1 += z * (y0$2 + y) / 2;
+    Z1 += z;
+    centroidPoint(x0$2 = x, y0$2 = y);
+  }
+
+  function centroidLineEnd() {
+    centroidStream.point = centroidPoint;
+  }
+
+  function centroidRingStart() {
+    centroidStream.point = centroidPointFirstRing;
+  }
+
+  function centroidRingEnd() {
+    centroidPointRing(x00$1, y00$1);
+  }
+
+  function centroidPointFirstRing(x, y) {
+    centroidStream.point = centroidPointRing;
+    centroidPoint(x00$1 = x0$2 = x, y00$1 = y0$2 = y);
+  }
+
+  function centroidPointRing(x, y) {
+    var dx = x - x0$2,
+        dy = y - y0$2,
+        z = sqrt(dx * dx + dy * dy);
+
+    X1 += z * (x0$2 + x) / 2;
+    Y1 += z * (y0$2 + y) / 2;
+    Z1 += z;
+
+    z = y0$2 * x - x0$2 * y;
+    X2 += z * (x0$2 + x);
+    Y2 += z * (y0$2 + y);
+    Z2 += z * 3;
+    centroidPoint(x0$2 = x, y0$2 = y);
+  }
+
+  function PathContext(context) {
+    this._context = context;
+  }
+
+  PathContext.prototype = {
+    _radius: 4.5,
+    pointRadius: function(_) {
+      return this._radius = _, this;
+    },
+    polygonStart: function() {
+      this._line = 0;
+    },
+    polygonEnd: function() {
+      this._line = NaN;
+    },
+    lineStart: function() {
+      this._point = 0;
+    },
+    lineEnd: function() {
+      if (this._line === 0) this._context.closePath();
+      this._point = NaN;
+    },
+    point: function(x, y) {
+      switch (this._point) {
+        case 0: {
+          this._context.moveTo(x, y);
+          this._point = 1;
+          break;
+        }
+        case 1: {
+          this._context.lineTo(x, y);
+          break;
+        }
+        default: {
+          this._context.moveTo(x + this._radius, y);
+          this._context.arc(x, y, this._radius, 0, tau);
+          break;
+        }
+      }
+    },
+    result: noop
+  };
+
+  var lengthSum$1 = adder(),
+      lengthRing,
+      x00$2,
+      y00$2,
+      x0$3,
+      y0$3;
+
+  var lengthStream = {
+    point: noop,
+    lineStart: function() {
+      lengthStream.point = lengthPointFirst;
+    },
+    lineEnd: function() {
+      if (lengthRing) lengthPoint(x00$2, y00$2);
+      lengthStream.point = noop;
+    },
+    polygonStart: function() {
+      lengthRing = true;
+    },
+    polygonEnd: function() {
+      lengthRing = null;
+    },
+    result: function() {
+      var length = +lengthSum$1;
+      lengthSum$1.reset();
+      return length;
+    }
+  };
+
+  function lengthPointFirst(x, y) {
+    lengthStream.point = lengthPoint;
+    x00$2 = x0$3 = x, y00$2 = y0$3 = y;
+  }
+
+  function lengthPoint(x, y) {
+    x0$3 -= x, y0$3 -= y;
+    lengthSum$1.add(sqrt(x0$3 * x0$3 + y0$3 * y0$3));
+    x0$3 = x, y0$3 = y;
+  }
+
+  function PathString() {
+    this._string = [];
+  }
+
+  PathString.prototype = {
+    _radius: 4.5,
+    _circle: circle(4.5),
+    pointRadius: function(_) {
+      if ((_ = +_) !== this._radius) this._radius = _, this._circle = null;
+      return this;
+    },
+    polygonStart: function() {
+      this._line = 0;
+    },
+    polygonEnd: function() {
+      this._line = NaN;
+    },
+    lineStart: function() {
+      this._point = 0;
+    },
+    lineEnd: function() {
+      if (this._line === 0) this._string.push("Z");
+      this._point = NaN;
+    },
+    point: function(x, y) {
+      switch (this._point) {
+        case 0: {
+          this._string.push("M", x, ",", y);
+          this._point = 1;
+          break;
+        }
+        case 1: {
+          this._string.push("L", x, ",", y);
+          break;
+        }
+        default: {
+          if (this._circle == null) this._circle = circle(this._radius);
+          this._string.push("M", x, ",", y, this._circle);
+          break;
+        }
+      }
+    },
+    result: function() {
+      if (this._string.length) {
+        var result = this._string.join("");
+        this._string = [];
+        return result;
+      } else {
+        return null;
+      }
+    }
+  };
+
+  function circle(radius) {
+    return "m0," + radius
+        + "a" + radius + "," + radius + " 0 1,1 0," + -2 * radius
+        + "a" + radius + "," + radius + " 0 1,1 0," + 2 * radius
+        + "z";
+  }
+
+  function geoPath(projection, context) {
+    var pointRadius = 4.5,
+        projectionStream,
+        contextStream;
+
+    function path(object) {
+      if (object) {
+        if (typeof pointRadius === "function") contextStream.pointRadius(+pointRadius.apply(this, arguments));
+        geoStream(object, projectionStream(contextStream));
+      }
+      return contextStream.result();
+    }
+
+    path.area = function(object) {
+      geoStream(object, projectionStream(areaStream));
+      return areaStream.result();
+    };
+
+    path.measure = function(object) {
+      geoStream(object, projectionStream(lengthStream));
+      return lengthStream.result();
+    };
+
+    path.bounds = function(object) {
+      geoStream(object, projectionStream(boundsStream));
+      return boundsStream.result();
+    };
+
+    path.centroid = function(object) {
+      geoStream(object, projectionStream(centroidStream));
+      return centroidStream.result();
+    };
+
+    path.projection = function(_) {
+      return arguments.length ? (projectionStream = _ == null ? (projection = null, identity) : (projection = _).stream, path) : projection;
+    };
+
+    path.context = function(_) {
+      if (!arguments.length) return context;
+      contextStream = _ == null ? (context = null, new PathString) : new PathContext(context = _);
+      if (typeof pointRadius !== "function") contextStream.pointRadius(pointRadius);
+      return path;
+    };
+
+    path.pointRadius = function(_) {
+      if (!arguments.length) return pointRadius;
+      pointRadius = typeof _ === "function" ? _ : (contextStream.pointRadius(+_), +_);
+      return path;
+    };
+
+    return path.projection(projection).context(context);
+  }
 
   function transformer(methods) {
     return function(stream) {
@@ -1576,22 +1903,921 @@
     return reclip();
   }
 
-  function createProjection(width, height, fitMargin, geometry) {
-    return geoMercator().fitExtent([[fitMargin, fitMargin], [width - fitMargin, height - fitMargin]], geometry).clipExtent([[0, 0], [width, height]]);
+  function createProjection(width, height, cfg, geometry) {
+    return geoMercator().fitExtent([[cfg.fitMargin, cfg.fitMargin], [width - cfg.fitMargin, height - cfg.fitMargin]], geometry).clipExtent([[0, 0], [width, height]]);
+  }
+  function createPath(projection) {
+    return geoPath().projection(projection);
   }
 
-  function createMap(data) {
-    var projection = createProjection(cfg.width, cfg.height, cfg.fitMargin, data.geojson.brazil);
-    /*  const path = d3.geoPath().projection(projection);
-     const map = svg
-      .append('g')
-      .classed('map', true)
-      .attr('width', width)
-      .attr('height', height);
-      */
+  var cfg = {
+    countries: {
+      fill: '#DDD',
+      stroke: '#BBB',
+      strokeWidth: 1
+    },
+    defaultHeight: 500,
+    defaultWidth: 500,
+    projection: {
+      fitMargin: 20
+    }
+  };
 
-    console.log('Map created.');
-    return projection;
+  function createCountries(parent, path, data, cfg) {
+    return parent.append('g').selectAll('path').data(data.features).enter().append('path').attr('fill', cfg.fill).attr('stroke', cfg.stroke).attr('stroke-width', cfg.strokeWidth).attr('d', path);
+  }
+
+  function createMap(parent, width, height) {
+    var map = parent.append('g') // TODO: pass the class name as a parameter?
+    .classed('map', true).attr('width', width).attr('height', height);
+    return map;
+  }
+
+  var xhtml = "http://www.w3.org/1999/xhtml";
+
+  var namespaces = {
+    svg: "http://www.w3.org/2000/svg",
+    xhtml: xhtml,
+    xlink: "http://www.w3.org/1999/xlink",
+    xml: "http://www.w3.org/XML/1998/namespace",
+    xmlns: "http://www.w3.org/2000/xmlns/"
+  };
+
+  function namespace(name) {
+    var prefix = name += "", i = prefix.indexOf(":");
+    if (i >= 0 && (prefix = name.slice(0, i)) !== "xmlns") name = name.slice(i + 1);
+    return namespaces.hasOwnProperty(prefix) ? {space: namespaces[prefix], local: name} : name;
+  }
+
+  function creatorInherit(name) {
+    return function() {
+      var document = this.ownerDocument,
+          uri = this.namespaceURI;
+      return uri === xhtml && document.documentElement.namespaceURI === xhtml
+          ? document.createElement(name)
+          : document.createElementNS(uri, name);
+    };
+  }
+
+  function creatorFixed(fullname) {
+    return function() {
+      return this.ownerDocument.createElementNS(fullname.space, fullname.local);
+    };
+  }
+
+  function creator(name) {
+    var fullname = namespace(name);
+    return (fullname.local
+        ? creatorFixed
+        : creatorInherit)(fullname);
+  }
+
+  function none() {}
+
+  function selector(selector) {
+    return selector == null ? none : function() {
+      return this.querySelector(selector);
+    };
+  }
+
+  function selection_select(select) {
+    if (typeof select !== "function") select = selector(select);
+
+    for (var groups = this._groups, m = groups.length, subgroups = new Array(m), j = 0; j < m; ++j) {
+      for (var group = groups[j], n = group.length, subgroup = subgroups[j] = new Array(n), node, subnode, i = 0; i < n; ++i) {
+        if ((node = group[i]) && (subnode = select.call(node, node.__data__, i, group))) {
+          if ("__data__" in node) subnode.__data__ = node.__data__;
+          subgroup[i] = subnode;
+        }
+      }
+    }
+
+    return new Selection(subgroups, this._parents);
+  }
+
+  function empty() {
+    return [];
+  }
+
+  function selectorAll(selector) {
+    return selector == null ? empty : function() {
+      return this.querySelectorAll(selector);
+    };
+  }
+
+  function selection_selectAll(select) {
+    if (typeof select !== "function") select = selectorAll(select);
+
+    for (var groups = this._groups, m = groups.length, subgroups = [], parents = [], j = 0; j < m; ++j) {
+      for (var group = groups[j], n = group.length, node, i = 0; i < n; ++i) {
+        if (node = group[i]) {
+          subgroups.push(select.call(node, node.__data__, i, group));
+          parents.push(node);
+        }
+      }
+    }
+
+    return new Selection(subgroups, parents);
+  }
+
+  function matcher(selector) {
+    return function() {
+      return this.matches(selector);
+    };
+  }
+
+  function selection_filter(match) {
+    if (typeof match !== "function") match = matcher(match);
+
+    for (var groups = this._groups, m = groups.length, subgroups = new Array(m), j = 0; j < m; ++j) {
+      for (var group = groups[j], n = group.length, subgroup = subgroups[j] = [], node, i = 0; i < n; ++i) {
+        if ((node = group[i]) && match.call(node, node.__data__, i, group)) {
+          subgroup.push(node);
+        }
+      }
+    }
+
+    return new Selection(subgroups, this._parents);
+  }
+
+  function sparse(update) {
+    return new Array(update.length);
+  }
+
+  function selection_enter() {
+    return new Selection(this._enter || this._groups.map(sparse), this._parents);
+  }
+
+  function EnterNode(parent, datum) {
+    this.ownerDocument = parent.ownerDocument;
+    this.namespaceURI = parent.namespaceURI;
+    this._next = null;
+    this._parent = parent;
+    this.__data__ = datum;
+  }
+
+  EnterNode.prototype = {
+    constructor: EnterNode,
+    appendChild: function(child) { return this._parent.insertBefore(child, this._next); },
+    insertBefore: function(child, next) { return this._parent.insertBefore(child, next); },
+    querySelector: function(selector) { return this._parent.querySelector(selector); },
+    querySelectorAll: function(selector) { return this._parent.querySelectorAll(selector); }
+  };
+
+  function constant(x) {
+    return function() {
+      return x;
+    };
+  }
+
+  var keyPrefix = "$"; // Protect against keys like “__proto__”.
+
+  function bindIndex(parent, group, enter, update, exit, data) {
+    var i = 0,
+        node,
+        groupLength = group.length,
+        dataLength = data.length;
+
+    // Put any non-null nodes that fit into update.
+    // Put any null nodes into enter.
+    // Put any remaining data into enter.
+    for (; i < dataLength; ++i) {
+      if (node = group[i]) {
+        node.__data__ = data[i];
+        update[i] = node;
+      } else {
+        enter[i] = new EnterNode(parent, data[i]);
+      }
+    }
+
+    // Put any non-null nodes that don’t fit into exit.
+    for (; i < groupLength; ++i) {
+      if (node = group[i]) {
+        exit[i] = node;
+      }
+    }
+  }
+
+  function bindKey(parent, group, enter, update, exit, data, key) {
+    var i,
+        node,
+        nodeByKeyValue = {},
+        groupLength = group.length,
+        dataLength = data.length,
+        keyValues = new Array(groupLength),
+        keyValue;
+
+    // Compute the key for each node.
+    // If multiple nodes have the same key, the duplicates are added to exit.
+    for (i = 0; i < groupLength; ++i) {
+      if (node = group[i]) {
+        keyValues[i] = keyValue = keyPrefix + key.call(node, node.__data__, i, group);
+        if (keyValue in nodeByKeyValue) {
+          exit[i] = node;
+        } else {
+          nodeByKeyValue[keyValue] = node;
+        }
+      }
+    }
+
+    // Compute the key for each datum.
+    // If there a node associated with this key, join and add it to update.
+    // If there is not (or the key is a duplicate), add it to enter.
+    for (i = 0; i < dataLength; ++i) {
+      keyValue = keyPrefix + key.call(parent, data[i], i, data);
+      if (node = nodeByKeyValue[keyValue]) {
+        update[i] = node;
+        node.__data__ = data[i];
+        nodeByKeyValue[keyValue] = null;
+      } else {
+        enter[i] = new EnterNode(parent, data[i]);
+      }
+    }
+
+    // Add any remaining nodes that were not bound to data to exit.
+    for (i = 0; i < groupLength; ++i) {
+      if ((node = group[i]) && (nodeByKeyValue[keyValues[i]] === node)) {
+        exit[i] = node;
+      }
+    }
+  }
+
+  function selection_data(value, key) {
+    if (!value) {
+      data = new Array(this.size()), j = -1;
+      this.each(function(d) { data[++j] = d; });
+      return data;
+    }
+
+    var bind = key ? bindKey : bindIndex,
+        parents = this._parents,
+        groups = this._groups;
+
+    if (typeof value !== "function") value = constant(value);
+
+    for (var m = groups.length, update = new Array(m), enter = new Array(m), exit = new Array(m), j = 0; j < m; ++j) {
+      var parent = parents[j],
+          group = groups[j],
+          groupLength = group.length,
+          data = value.call(parent, parent && parent.__data__, j, parents),
+          dataLength = data.length,
+          enterGroup = enter[j] = new Array(dataLength),
+          updateGroup = update[j] = new Array(dataLength),
+          exitGroup = exit[j] = new Array(groupLength);
+
+      bind(parent, group, enterGroup, updateGroup, exitGroup, data, key);
+
+      // Now connect the enter nodes to their following update node, such that
+      // appendChild can insert the materialized enter node before this node,
+      // rather than at the end of the parent node.
+      for (var i0 = 0, i1 = 0, previous, next; i0 < dataLength; ++i0) {
+        if (previous = enterGroup[i0]) {
+          if (i0 >= i1) i1 = i0 + 1;
+          while (!(next = updateGroup[i1]) && ++i1 < dataLength);
+          previous._next = next || null;
+        }
+      }
+    }
+
+    update = new Selection(update, parents);
+    update._enter = enter;
+    update._exit = exit;
+    return update;
+  }
+
+  function selection_exit() {
+    return new Selection(this._exit || this._groups.map(sparse), this._parents);
+  }
+
+  function selection_join(onenter, onupdate, onexit) {
+    var enter = this.enter(), update = this, exit = this.exit();
+    enter = typeof onenter === "function" ? onenter(enter) : enter.append(onenter + "");
+    if (onupdate != null) update = onupdate(update);
+    if (onexit == null) exit.remove(); else onexit(exit);
+    return enter && update ? enter.merge(update).order() : update;
+  }
+
+  function selection_merge(selection) {
+
+    for (var groups0 = this._groups, groups1 = selection._groups, m0 = groups0.length, m1 = groups1.length, m = Math.min(m0, m1), merges = new Array(m0), j = 0; j < m; ++j) {
+      for (var group0 = groups0[j], group1 = groups1[j], n = group0.length, merge = merges[j] = new Array(n), node, i = 0; i < n; ++i) {
+        if (node = group0[i] || group1[i]) {
+          merge[i] = node;
+        }
+      }
+    }
+
+    for (; j < m0; ++j) {
+      merges[j] = groups0[j];
+    }
+
+    return new Selection(merges, this._parents);
+  }
+
+  function selection_order() {
+
+    for (var groups = this._groups, j = -1, m = groups.length; ++j < m;) {
+      for (var group = groups[j], i = group.length - 1, next = group[i], node; --i >= 0;) {
+        if (node = group[i]) {
+          if (next && node.compareDocumentPosition(next) ^ 4) next.parentNode.insertBefore(node, next);
+          next = node;
+        }
+      }
+    }
+
+    return this;
+  }
+
+  function selection_sort(compare) {
+    if (!compare) compare = ascending$1;
+
+    function compareNode(a, b) {
+      return a && b ? compare(a.__data__, b.__data__) : !a - !b;
+    }
+
+    for (var groups = this._groups, m = groups.length, sortgroups = new Array(m), j = 0; j < m; ++j) {
+      for (var group = groups[j], n = group.length, sortgroup = sortgroups[j] = new Array(n), node, i = 0; i < n; ++i) {
+        if (node = group[i]) {
+          sortgroup[i] = node;
+        }
+      }
+      sortgroup.sort(compareNode);
+    }
+
+    return new Selection(sortgroups, this._parents).order();
+  }
+
+  function ascending$1(a, b) {
+    return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
+  }
+
+  function selection_call() {
+    var callback = arguments[0];
+    arguments[0] = this;
+    callback.apply(null, arguments);
+    return this;
+  }
+
+  function selection_nodes() {
+    var nodes = new Array(this.size()), i = -1;
+    this.each(function() { nodes[++i] = this; });
+    return nodes;
+  }
+
+  function selection_node() {
+
+    for (var groups = this._groups, j = 0, m = groups.length; j < m; ++j) {
+      for (var group = groups[j], i = 0, n = group.length; i < n; ++i) {
+        var node = group[i];
+        if (node) return node;
+      }
+    }
+
+    return null;
+  }
+
+  function selection_size() {
+    var size = 0;
+    this.each(function() { ++size; });
+    return size;
+  }
+
+  function selection_empty() {
+    return !this.node();
+  }
+
+  function selection_each(callback) {
+
+    for (var groups = this._groups, j = 0, m = groups.length; j < m; ++j) {
+      for (var group = groups[j], i = 0, n = group.length, node; i < n; ++i) {
+        if (node = group[i]) callback.call(node, node.__data__, i, group);
+      }
+    }
+
+    return this;
+  }
+
+  function attrRemove(name) {
+    return function() {
+      this.removeAttribute(name);
+    };
+  }
+
+  function attrRemoveNS(fullname) {
+    return function() {
+      this.removeAttributeNS(fullname.space, fullname.local);
+    };
+  }
+
+  function attrConstant(name, value) {
+    return function() {
+      this.setAttribute(name, value);
+    };
+  }
+
+  function attrConstantNS(fullname, value) {
+    return function() {
+      this.setAttributeNS(fullname.space, fullname.local, value);
+    };
+  }
+
+  function attrFunction(name, value) {
+    return function() {
+      var v = value.apply(this, arguments);
+      if (v == null) this.removeAttribute(name);
+      else this.setAttribute(name, v);
+    };
+  }
+
+  function attrFunctionNS(fullname, value) {
+    return function() {
+      var v = value.apply(this, arguments);
+      if (v == null) this.removeAttributeNS(fullname.space, fullname.local);
+      else this.setAttributeNS(fullname.space, fullname.local, v);
+    };
+  }
+
+  function selection_attr(name, value) {
+    var fullname = namespace(name);
+
+    if (arguments.length < 2) {
+      var node = this.node();
+      return fullname.local
+          ? node.getAttributeNS(fullname.space, fullname.local)
+          : node.getAttribute(fullname);
+    }
+
+    return this.each((value == null
+        ? (fullname.local ? attrRemoveNS : attrRemove) : (typeof value === "function"
+        ? (fullname.local ? attrFunctionNS : attrFunction)
+        : (fullname.local ? attrConstantNS : attrConstant)))(fullname, value));
+  }
+
+  function defaultView(node) {
+    return (node.ownerDocument && node.ownerDocument.defaultView) // node is a Node
+        || (node.document && node) // node is a Window
+        || node.defaultView; // node is a Document
+  }
+
+  function styleRemove(name) {
+    return function() {
+      this.style.removeProperty(name);
+    };
+  }
+
+  function styleConstant(name, value, priority) {
+    return function() {
+      this.style.setProperty(name, value, priority);
+    };
+  }
+
+  function styleFunction(name, value, priority) {
+    return function() {
+      var v = value.apply(this, arguments);
+      if (v == null) this.style.removeProperty(name);
+      else this.style.setProperty(name, v, priority);
+    };
+  }
+
+  function selection_style(name, value, priority) {
+    return arguments.length > 1
+        ? this.each((value == null
+              ? styleRemove : typeof value === "function"
+              ? styleFunction
+              : styleConstant)(name, value, priority == null ? "" : priority))
+        : styleValue(this.node(), name);
+  }
+
+  function styleValue(node, name) {
+    return node.style.getPropertyValue(name)
+        || defaultView(node).getComputedStyle(node, null).getPropertyValue(name);
+  }
+
+  function propertyRemove(name) {
+    return function() {
+      delete this[name];
+    };
+  }
+
+  function propertyConstant(name, value) {
+    return function() {
+      this[name] = value;
+    };
+  }
+
+  function propertyFunction(name, value) {
+    return function() {
+      var v = value.apply(this, arguments);
+      if (v == null) delete this[name];
+      else this[name] = v;
+    };
+  }
+
+  function selection_property(name, value) {
+    return arguments.length > 1
+        ? this.each((value == null
+            ? propertyRemove : typeof value === "function"
+            ? propertyFunction
+            : propertyConstant)(name, value))
+        : this.node()[name];
+  }
+
+  function classArray(string) {
+    return string.trim().split(/^|\s+/);
+  }
+
+  function classList(node) {
+    return node.classList || new ClassList(node);
+  }
+
+  function ClassList(node) {
+    this._node = node;
+    this._names = classArray(node.getAttribute("class") || "");
+  }
+
+  ClassList.prototype = {
+    add: function(name) {
+      var i = this._names.indexOf(name);
+      if (i < 0) {
+        this._names.push(name);
+        this._node.setAttribute("class", this._names.join(" "));
+      }
+    },
+    remove: function(name) {
+      var i = this._names.indexOf(name);
+      if (i >= 0) {
+        this._names.splice(i, 1);
+        this._node.setAttribute("class", this._names.join(" "));
+      }
+    },
+    contains: function(name) {
+      return this._names.indexOf(name) >= 0;
+    }
+  };
+
+  function classedAdd(node, names) {
+    var list = classList(node), i = -1, n = names.length;
+    while (++i < n) list.add(names[i]);
+  }
+
+  function classedRemove(node, names) {
+    var list = classList(node), i = -1, n = names.length;
+    while (++i < n) list.remove(names[i]);
+  }
+
+  function classedTrue(names) {
+    return function() {
+      classedAdd(this, names);
+    };
+  }
+
+  function classedFalse(names) {
+    return function() {
+      classedRemove(this, names);
+    };
+  }
+
+  function classedFunction(names, value) {
+    return function() {
+      (value.apply(this, arguments) ? classedAdd : classedRemove)(this, names);
+    };
+  }
+
+  function selection_classed(name, value) {
+    var names = classArray(name + "");
+
+    if (arguments.length < 2) {
+      var list = classList(this.node()), i = -1, n = names.length;
+      while (++i < n) if (!list.contains(names[i])) return false;
+      return true;
+    }
+
+    return this.each((typeof value === "function"
+        ? classedFunction : value
+        ? classedTrue
+        : classedFalse)(names, value));
+  }
+
+  function textRemove() {
+    this.textContent = "";
+  }
+
+  function textConstant(value) {
+    return function() {
+      this.textContent = value;
+    };
+  }
+
+  function textFunction(value) {
+    return function() {
+      var v = value.apply(this, arguments);
+      this.textContent = v == null ? "" : v;
+    };
+  }
+
+  function selection_text(value) {
+    return arguments.length
+        ? this.each(value == null
+            ? textRemove : (typeof value === "function"
+            ? textFunction
+            : textConstant)(value))
+        : this.node().textContent;
+  }
+
+  function htmlRemove() {
+    this.innerHTML = "";
+  }
+
+  function htmlConstant(value) {
+    return function() {
+      this.innerHTML = value;
+    };
+  }
+
+  function htmlFunction(value) {
+    return function() {
+      var v = value.apply(this, arguments);
+      this.innerHTML = v == null ? "" : v;
+    };
+  }
+
+  function selection_html(value) {
+    return arguments.length
+        ? this.each(value == null
+            ? htmlRemove : (typeof value === "function"
+            ? htmlFunction
+            : htmlConstant)(value))
+        : this.node().innerHTML;
+  }
+
+  function raise() {
+    if (this.nextSibling) this.parentNode.appendChild(this);
+  }
+
+  function selection_raise() {
+    return this.each(raise);
+  }
+
+  function lower() {
+    if (this.previousSibling) this.parentNode.insertBefore(this, this.parentNode.firstChild);
+  }
+
+  function selection_lower() {
+    return this.each(lower);
+  }
+
+  function selection_append(name) {
+    var create = typeof name === "function" ? name : creator(name);
+    return this.select(function() {
+      return this.appendChild(create.apply(this, arguments));
+    });
+  }
+
+  function constantNull() {
+    return null;
+  }
+
+  function selection_insert(name, before) {
+    var create = typeof name === "function" ? name : creator(name),
+        select = before == null ? constantNull : typeof before === "function" ? before : selector(before);
+    return this.select(function() {
+      return this.insertBefore(create.apply(this, arguments), select.apply(this, arguments) || null);
+    });
+  }
+
+  function remove() {
+    var parent = this.parentNode;
+    if (parent) parent.removeChild(this);
+  }
+
+  function selection_remove() {
+    return this.each(remove);
+  }
+
+  function selection_cloneShallow() {
+    return this.parentNode.insertBefore(this.cloneNode(false), this.nextSibling);
+  }
+
+  function selection_cloneDeep() {
+    return this.parentNode.insertBefore(this.cloneNode(true), this.nextSibling);
+  }
+
+  function selection_clone(deep) {
+    return this.select(deep ? selection_cloneDeep : selection_cloneShallow);
+  }
+
+  function selection_datum(value) {
+    return arguments.length
+        ? this.property("__data__", value)
+        : this.node().__data__;
+  }
+
+  var filterEvents = {};
+
+  if (typeof document !== "undefined") {
+    var element = document.documentElement;
+    if (!("onmouseenter" in element)) {
+      filterEvents = {mouseenter: "mouseover", mouseleave: "mouseout"};
+    }
+  }
+
+  function filterContextListener(listener, index, group) {
+    listener = contextListener(listener, index, group);
+    return function(event) {
+      var related = event.relatedTarget;
+      if (!related || (related !== this && !(related.compareDocumentPosition(this) & 8))) {
+        listener.call(this, event);
+      }
+    };
+  }
+
+  function contextListener(listener, index, group) {
+    return function(event1) {
+      try {
+        listener.call(this, this.__data__, index, group);
+      } finally {
+      }
+    };
+  }
+
+  function parseTypenames(typenames) {
+    return typenames.trim().split(/^|\s+/).map(function(t) {
+      var name = "", i = t.indexOf(".");
+      if (i >= 0) name = t.slice(i + 1), t = t.slice(0, i);
+      return {type: t, name: name};
+    });
+  }
+
+  function onRemove(typename) {
+    return function() {
+      var on = this.__on;
+      if (!on) return;
+      for (var j = 0, i = -1, m = on.length, o; j < m; ++j) {
+        if (o = on[j], (!typename.type || o.type === typename.type) && o.name === typename.name) {
+          this.removeEventListener(o.type, o.listener, o.capture);
+        } else {
+          on[++i] = o;
+        }
+      }
+      if (++i) on.length = i;
+      else delete this.__on;
+    };
+  }
+
+  function onAdd(typename, value, capture) {
+    var wrap = filterEvents.hasOwnProperty(typename.type) ? filterContextListener : contextListener;
+    return function(d, i, group) {
+      var on = this.__on, o, listener = wrap(value, i, group);
+      if (on) for (var j = 0, m = on.length; j < m; ++j) {
+        if ((o = on[j]).type === typename.type && o.name === typename.name) {
+          this.removeEventListener(o.type, o.listener, o.capture);
+          this.addEventListener(o.type, o.listener = listener, o.capture = capture);
+          o.value = value;
+          return;
+        }
+      }
+      this.addEventListener(typename.type, listener, capture);
+      o = {type: typename.type, name: typename.name, value: value, listener: listener, capture: capture};
+      if (!on) this.__on = [o];
+      else on.push(o);
+    };
+  }
+
+  function selection_on(typename, value, capture) {
+    var typenames = parseTypenames(typename + ""), i, n = typenames.length, t;
+
+    if (arguments.length < 2) {
+      var on = this.node().__on;
+      if (on) for (var j = 0, m = on.length, o; j < m; ++j) {
+        for (i = 0, o = on[j]; i < n; ++i) {
+          if ((t = typenames[i]).type === o.type && t.name === o.name) {
+            return o.value;
+          }
+        }
+      }
+      return;
+    }
+
+    on = value ? onAdd : onRemove;
+    if (capture == null) capture = false;
+    for (i = 0; i < n; ++i) this.each(on(typenames[i], value, capture));
+    return this;
+  }
+
+  function dispatchEvent(node, type, params) {
+    var window = defaultView(node),
+        event = window.CustomEvent;
+
+    if (typeof event === "function") {
+      event = new event(type, params);
+    } else {
+      event = window.document.createEvent("Event");
+      if (params) event.initEvent(type, params.bubbles, params.cancelable), event.detail = params.detail;
+      else event.initEvent(type, false, false);
+    }
+
+    node.dispatchEvent(event);
+  }
+
+  function dispatchConstant(type, params) {
+    return function() {
+      return dispatchEvent(this, type, params);
+    };
+  }
+
+  function dispatchFunction(type, params) {
+    return function() {
+      return dispatchEvent(this, type, params.apply(this, arguments));
+    };
+  }
+
+  function selection_dispatch(type, params) {
+    return this.each((typeof params === "function"
+        ? dispatchFunction
+        : dispatchConstant)(type, params));
+  }
+
+  var root = [null];
+
+  function Selection(groups, parents) {
+    this._groups = groups;
+    this._parents = parents;
+  }
+
+  function selection() {
+    return new Selection([[document.documentElement]], root);
+  }
+
+  Selection.prototype = selection.prototype = {
+    constructor: Selection,
+    select: selection_select,
+    selectAll: selection_selectAll,
+    filter: selection_filter,
+    data: selection_data,
+    enter: selection_enter,
+    exit: selection_exit,
+    join: selection_join,
+    merge: selection_merge,
+    order: selection_order,
+    sort: selection_sort,
+    call: selection_call,
+    nodes: selection_nodes,
+    node: selection_node,
+    size: selection_size,
+    empty: selection_empty,
+    each: selection_each,
+    attr: selection_attr,
+    style: selection_style,
+    property: selection_property,
+    classed: selection_classed,
+    text: selection_text,
+    html: selection_html,
+    raise: selection_raise,
+    lower: selection_lower,
+    append: selection_append,
+    insert: selection_insert,
+    remove: selection_remove,
+    clone: selection_clone,
+    datum: selection_datum,
+    on: selection_on,
+    dispatch: selection_dispatch
+  };
+
+  function select(selector) {
+    return typeof selector === "string"
+        ? new Selection([[document.querySelector(selector)]], [document.documentElement])
+        : new Selection([[selector]], root);
+  }
+
+  function createSvg(width, height) {
+    // TODO: pass hardcoded div#map from the arguments or the configuration
+    var svg = select('div#map').append('svg').attr('width', width).attr('height', height).attr('viewBox', '0,0,' + width + ',' + height);
+    return svg;
+  }
+
+  function createBigMap(data) {
+    // Height and width are special parameters, they could be variable
+    // in a future version
+    // TODO: variable height and width, depending on the screen size and layout
+    var height = cfg.defaultHeight;
+    var width = cfg.defaultWidth;
+    var mapHeight = height;
+    var mapWidth = width; // Setup basic DOM elements
+
+    var svg = createSvg(width, height);
+    var map = createMap(svg, mapWidth, mapHeight); // Projection is a function that maps geographic coordinates to planar
+    // coordinates in the SVG viewport
+
+    var projection = createProjection(mapWidth, mapHeight, cfg.projection, data.geojson.brazil); // Path is a function that transforms a geometry (a point, a line, a polygon)
+    // into a SVG path (also allows to generate canvas paths, for example)
+    // Note that it takes geographic coordinates, not planar ones
+    // (that's why the projection is passed as an argument)
+
+    var path = createPath(projection); // Add sub-elements
+
+    createCountries(map, path, data.geojson.countries, cfg.countries); // TODO: evaluate if the function shuold return a value or not
+
+    return svg;
   }
 
   var noop$1 = {value: function() {}};
@@ -1608,7 +2834,7 @@
     this._ = _;
   }
 
-  function parseTypenames(typenames, types) {
+  function parseTypenames$1(typenames, types) {
     return typenames.trim().split(/^|\s+/).map(function(t) {
       var name = "", i = t.indexOf(".");
       if (i >= 0) name = t.slice(i + 1), t = t.slice(0, i);
@@ -1621,7 +2847,7 @@
     constructor: Dispatch,
     on: function(typename, callback) {
       var _ = this._,
-          T = parseTypenames(typename + "", _),
+          T = parseTypenames$1(typename + "", _),
           t,
           i = -1,
           n = T.length;
@@ -2223,13 +3449,21 @@
   var pi$1 = Math.PI;
 
   function postProcess(raw) {
+    /* TODO: we could get Brazil path from countries, instead of raw.states
+     */
     var data = {
       geojson: {
         brazil: merge$1(raw.states, raw.states.objects.estados.geometries),
-        states: feature(raw.states, raw.states.objects.estados)
+        countries: toGeoJson(raw.countries, 'countries'),
+        municipalities: toGeoJson(raw.municipalities, 'municipios'),
+        states: toGeoJson(raw.states, 'estados')
       }
     };
     return data;
+  }
+
+  function toGeoJson(topojson, key) {
+    return feature(topojson, topojson.objects[key]);
   }
 
   function checkData$1(cfg) {
@@ -2282,7 +3516,7 @@
   var _this = undefined;
   var dispatcher = dispatch('load'); // Should be useless... We will see
   dispatcher.on('load.state', function (data) {
-    console.log('Data has been loaded'); //console.log(data);
+    console.log('Data has been loaded');
   }); // Asynchronous
 
   loadData().then(function (data) {
@@ -2295,7 +3529,7 @@
   }); // Create the map when data has loaded
 
   dispatcher.on('load.map', function (data) {
-    createMap(data);
+    createBigMap(data);
   });
 
 }());

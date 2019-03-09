@@ -1,5 +1,12 @@
 export const cfg = {
-  fitMargin: 20,
-  height: 1000,
-  width: 920,
+  countries: {
+    fill: '#DDD',
+    stroke: '#BBB',
+    strokeWidth: 1,
+  },
+  defaultHeight: 500,
+  defaultWidth: 500,
+  projection: {
+    fitMargin: 20,
+  },
 };

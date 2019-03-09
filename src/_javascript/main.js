@@ -1,4 +1,4 @@
-import {createMap} from './map';
+import {createBigMap} from './map';
 import {dispatch} from 'd3-dispatch';
 import {loadData} from './data';
 
@@ -9,7 +9,6 @@ const state = {};
 dispatcher.on('load.state', data => {
   state.data = data;
   console.log('Data has been loaded');
-  //console.log(data);
 });
 
 // Asynchronous
@@ -27,5 +26,5 @@ loadData()
 
 // Create the map when data has loaded
 dispatcher.on('load.map', data => {
-  createMap(data);
+  createBigMap(data);
 });
