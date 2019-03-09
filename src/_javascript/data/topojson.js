@@ -1,4 +1,4 @@
-import * as d3 from 'd3';
+import {json} from 'd3-fetch';
 
 function checkData(cfg) {
   return data => {
@@ -20,5 +20,5 @@ function checkData(cfg) {
 }
 
 export function load(cfg) {
-  return d3.json(cfg.url, {integrity: cfg.integrityHash}).then(checkData(cfg));
+  return json(cfg.url, {integrity: cfg.integrityHash}).then(checkData(cfg));
 }

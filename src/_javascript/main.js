@@ -1,4 +1,4 @@
-import {cfg} from './cfg';
+import {createMap} from './map';
 import {dispatch} from 'd3-dispatch';
 import {loadData} from './data';
 
@@ -13,7 +13,7 @@ dispatcher.on('load.state', data => {
 });
 
 // Asynchronous
-loadData(cfg.datasets)
+loadData()
   .then(data => {
     // Publish the data with the "load" event
     dispatcher.call('load', this, data);
@@ -24,4 +24,8 @@ loadData(cfg.datasets)
      * Meanwhile, it prints the error in the console. */
     console.log(error);
   });
+
+// Create the map when data has loaded
+dispatcher.on('load.map', data => {
+  createMap(data);
 });

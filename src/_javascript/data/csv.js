@@ -1,4 +1,4 @@
-import * as d3 from 'd3';
+import {csv} from 'd3-fetch';
 
 function checkData(cfg) {
   return data => {
@@ -16,5 +16,5 @@ function checkData(cfg) {
 }
 
 export function load(cfg) {
-  return d3.csv(cfg.url, {integrity: cfg.integrityHash}).then(checkData(cfg));
+  return csv(cfg.url, {integrity: cfg.integrityHash}).then(checkData(cfg));
 }

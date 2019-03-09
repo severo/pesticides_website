@@ -1,4 +1,4 @@
-import {geoMercator} from 'd3';
+import {geoMercator} from 'd3-geo';
 
 export function createProjection(width, height, fitMargin, geometry) {
   return geoMercator()

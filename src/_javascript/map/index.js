@@ -1,11 +1,12 @@
+import {cfg} from './cfg';
 import {createProjection} from './projection';
 
-export function createMap(cfg, data) {
+export function createMap(data) {
   const projection = createProjection(
     cfg.width,
     cfg.height,
     cfg.fitMargin,
-    data.geometry
+    data.geojson.brazil
   );
 
   /*  const path = d3.geoPath().projection(projection);
