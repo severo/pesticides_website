@@ -24,7 +24,9 @@ export function createBigMap(data) {
   // TODO: move to the configuration, or to the arguments
   // Selected level of simplification, among: original, simplifiedForBrazil,
   // simplifiedForState
+  //const level = 'original';
   const level = 'simplifiedForBrazil';
+
   // Selected geometry: Brazil
   const selectedGeometry = data.geojson[level].brazil;
 
@@ -44,7 +46,7 @@ export function createBigMap(data) {
   const path = createPath(projection);
 
   // Add sub-elements
-  // TODO: simplify geometries?
+  // TODO: add a label for the Atlantic Ocean?
   createSeaBackground(map, mapWidth, mapHeight, cfg.seaBackground);
   createCountries(map, path, data.geojson[level].countries, cfg.countries);
   addShadowAroundGeometry(map, path, selectedGeometry, cfg.shadow);
