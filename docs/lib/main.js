@@ -2774,6 +2774,11 @@
     return reclip();
   }
 
+  // - Mercator?
+  // - Orthographic?
+  // - see https://epsg.io/?q=Brazil%20kind%3APROJCRS
+  // https://observablehq.com/@lemonnish/country-centered-projection
+
   function createProjection(width, height, cfg, geometry) {
     return geoMercator().fitExtent([[cfg.fitMargin, cfg.fitMargin], [width - cfg.fitMargin, height - cfg.fitMargin]], geometry).clipExtent([[0, 0], [width, height]]);
   }
