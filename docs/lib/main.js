@@ -2834,9 +2834,13 @@
     var svg = createSvg(width, height);
     var svgDefs = addDefsToSvg(svg);
     addShadowFilter(svgDefs, cfg.shadow.svgFilter);
-    var map = createMap(svg, mapWidth, mapHeight); // Selected geometry: Brazil
+    var map = createMap(svg, mapWidth, mapHeight); // TODO: move to the configuration, or to the arguments
+    // Selected level of simplification, among: original, simplifiedForBrazil,
+    // simplifiedForState
 
-    var selectedGeometry = data.geojson.brazil; // Projection is a function that maps geographic coordinates to planar
+    var level = 'simplifiedForBrazil'; // Selected geometry: Brazil
+
+    var selectedGeometry = data.geojson[level].brazil; // Projection is a function that maps geographic coordinates to planar
     // coordinates in the SVG viewport
 
     var projection = createProjection(mapWidth, mapHeight, cfg.projection, selectedGeometry); // Path is a function that transforms a geometry (a point, a line, a polygon)
@@ -2848,7 +2852,7 @@
     // TODO: simplify geometries?
 
     createSeaBackground(map, mapWidth, mapHeight, cfg.seaBackground);
-    createCountries(map, path, data.geojson.countries, cfg.countries);
+    createCountries(map, path, data.geojson[level].countries, cfg.countries);
     addShadowAroundGeometry(map, path, selectedGeometry, cfg.shadow); // TODO: evaluate if the function should return a value or not
 
     return svg;
@@ -3307,19 +3311,251 @@
 
   // Given a hash of GeoJSON objects, returns a hash of GeoJSON geometry objects.
 
+  function planarTriangleArea(triangle) {
+    var a = triangle[0], b = triangle[1], c = triangle[2];
+    return Math.abs((a[0] - c[0]) * (b[1] - a[1]) - (a[0] - b[0]) * (c[1] - a[1])) / 2;
+  }
+
+  function compare(a, b) {
+    return a[1][2] - b[1][2];
+  }
+
+  function newHeap() {
+    var heap = {},
+        array = [],
+        size = 0;
+
+    heap.push = function(object) {
+      up(array[object._ = size] = object, size++);
+      return size;
+    };
+
+    heap.pop = function() {
+      if (size <= 0) return;
+      var removed = array[0], object;
+      if (--size > 0) object = array[size], down(array[object._ = 0] = object, 0);
+      return removed;
+    };
+
+    heap.remove = function(removed) {
+      var i = removed._, object;
+      if (array[i] !== removed) return; // invalid request
+      if (i !== --size) object = array[size], (compare(object, removed) < 0 ? up : down)(array[object._ = i] = object, i);
+      return i;
+    };
+
+    function up(object, i) {
+      while (i > 0) {
+        var j = ((i + 1) >> 1) - 1,
+            parent = array[j];
+        if (compare(object, parent) >= 0) break;
+        array[parent._ = i] = parent;
+        array[object._ = i = j] = object;
+      }
+    }
+
+    function down(object, i) {
+      while (true) {
+        var r = (i + 1) << 1,
+            l = r - 1,
+            j = i,
+            child = array[j];
+        if (l < size && compare(array[l], child) < 0) child = array[j = l];
+        if (r < size && compare(array[r], child) < 0) child = array[j = r];
+        if (j === i) break;
+        array[child._ = i] = child;
+        array[object._ = i = j] = object;
+      }
+    }
+
+    return heap;
+  }
+
+  function copy(point) {
+    return [point[0], point[1], 0];
+  }
+
+  function presimplify(topology, weight) {
+    var point = topology.transform ? transform(topology.transform) : copy,
+        heap = newHeap();
+
+    if (weight == null) weight = planarTriangleArea;
+
+    var arcs = topology.arcs.map(function(arc) {
+      var triangles = [],
+          maxWeight = 0,
+          triangle,
+          i,
+          n;
+
+      arc = arc.map(point);
+
+      for (i = 1, n = arc.length - 1; i < n; ++i) {
+        triangle = [arc[i - 1], arc[i], arc[i + 1]];
+        triangle[1][2] = weight(triangle);
+        triangles.push(triangle);
+        heap.push(triangle);
+      }
+
+      // Always keep the arc endpoints!
+      arc[0][2] = arc[n][2] = Infinity;
+
+      for (i = 0, n = triangles.length; i < n; ++i) {
+        triangle = triangles[i];
+        triangle.previous = triangles[i - 1];
+        triangle.next = triangles[i + 1];
+      }
+
+      while (triangle = heap.pop()) {
+        var previous = triangle.previous,
+            next = triangle.next;
+
+        // If the weight of the current point is less than that of the previous
+        // point to be eliminated, use the latter’s weight instead. This ensures
+        // that the current point cannot be eliminated without eliminating
+        // previously- eliminated points.
+        if (triangle[1][2] < maxWeight) triangle[1][2] = maxWeight;
+        else maxWeight = triangle[1][2];
+
+        if (previous) {
+          previous.next = next;
+          previous[2] = triangle[2];
+          update(previous);
+        }
+
+        if (next) {
+          next.previous = previous;
+          next[0] = triangle[0];
+          update(next);
+        }
+      }
+
+      return arc;
+    });
+
+    function update(triangle) {
+      heap.remove(triangle);
+      triangle[1][2] = weight(triangle);
+      heap.push(triangle);
+    }
+
+    return {
+      type: "Topology",
+      bbox: topology.bbox,
+      objects: topology.objects,
+      arcs: arcs
+    };
+  }
+
+  function quantile(topology, p) {
+    var array = [];
+
+    topology.arcs.forEach(function(arc) {
+      arc.forEach(function(point) {
+        if (isFinite(point[2])) { // Ignore endpoints, whose weight is Infinity.
+          array.push(point[2]);
+        }
+      });
+    });
+
+    return array.length && quantile$1(array.sort(descending), p);
+  }
+
+  function quantile$1(array, p) {
+    if (!(n = array.length)) return;
+    if ((p = +p) <= 0 || n < 2) return array[0];
+    if (p >= 1) return array[n - 1];
+    var n,
+        h = (n - 1) * p,
+        i = Math.floor(h),
+        a = array[i],
+        b = array[i + 1];
+    return a + (b - a) * (h - i);
+  }
+
+  function descending(a, b) {
+    return b - a;
+  }
+
+  function simplify(topology, minWeight) {
+    minWeight = minWeight == null ? Number.MIN_VALUE : +minWeight;
+
+    // Remove points whose weight is less than the minimum weight.
+    var arcs = topology.arcs.map(function(input) {
+      var i = -1,
+          j = 0,
+          n = input.length,
+          output = new Array(n), // pessimistic
+          point;
+
+      while (++i < n) {
+        if ((point = input[i])[2] >= minWeight) {
+          output[j++] = [point[0], point[1]];
+        }
+      }
+
+      output.length = j;
+      return output;
+    });
+
+    return {
+      type: "Topology",
+      transform: topology.transform,
+      bbox: topology.bbox,
+      objects: topology.objects,
+      arcs: arcs
+    };
+  }
+
   var pi$1 = Math.PI;
 
   function postProcess(raw) {
+    // TODO: prepare the data and find the better simplification quantiles
+    // TODO: see if quantification might also help
+    // see https://observablehq.com/@lemonnish/minify-topojson-in-the-browser
+    // TODO: compress data with gzip
+    // TODO: hardcoded quantiles to cfg
+    // The quantiles parameters for the topojson.simplify function are tuned for
+    // the Brazilian scale, and for the median Brazilian state scale
+    var quantiles = {
+      brazil: 0.1,
+      state: 0.3
+    };
     var countries = toGeoJson(raw.countries, 'countries');
+    var countriesBrazil = toSimplGeoJson(raw.countries, quantiles.brazil, 'countries');
+    var countriesState = toSimplGeoJson(raw.countries, quantiles.state, 'countries');
     var data = {
       geojson: {
-        brazil: selectBrazil(countries),
-        countries: countries,
-        municipalities: toGeoJson(raw.municipalities, 'municipios'),
-        states: toGeoJson(raw.states, 'estados')
+        original: {
+          brazil: selectBrazil(countries),
+          countries: countries,
+          municipalities: toGeoJson(raw.municipalities, 'municipios'),
+          states: toGeoJson(raw.states, 'estados')
+        },
+        simplifiedForBrazil: {
+          brazil: selectBrazil(countriesBrazil),
+          countries: countriesBrazil,
+          municipalities: toSimplGeoJson(raw.municipalities, quantiles.brazil, 'municipios'),
+          states: toSimplGeoJson(raw.states, quantiles.brazil, 'estados')
+        },
+        simplifiedForState: {
+          brazil: selectBrazil(countriesState),
+          countries: countriesState,
+          municipalities: toSimplGeoJson(raw.municipalities, quantiles.state, 'municipios'),
+          states: toSimplGeoJson(raw.states, quantiles.state, 'estados')
+        }
       }
     };
     return data;
+  }
+
+  function toSimplGeoJson(geom, quant, key) {
+    return toGeoJson(simpl(geom, quant), key);
+  }
+
+  function simpl(geom, quant) {
+    var preparedGeom = presimplify(geom);
+    return simplify(preparedGeom, quantile(preparedGeom, quant));
   }
 
   function toGeoJson(topojson, key) {

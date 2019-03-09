@@ -21,8 +21,12 @@ export function createBigMap(data) {
   addShadowFilter(svgDefs, cfg.shadow.svgFilter);
   const map = createMap(svg, mapWidth, mapHeight);
 
+  // TODO: move to the configuration, or to the arguments
+  // Selected level of simplification, among: original, simplifiedForBrazil,
+  // simplifiedForState
+  const level = 'simplifiedForBrazil';
   // Selected geometry: Brazil
-  const selectedGeometry = data.geojson.brazil;
+  const selectedGeometry = data.geojson[level].brazil;
 
   // Projection is a function that maps geographic coordinates to planar
   // coordinates in the SVG viewport
@@ -42,7 +46,7 @@ export function createBigMap(data) {
   // Add sub-elements
   // TODO: simplify geometries?
   createSeaBackground(map, mapWidth, mapHeight, cfg.seaBackground);
-  createCountries(map, path, data.geojson.countries, cfg.countries);
+  createCountries(map, path, data.geojson[level].countries, cfg.countries);
   addShadowAroundGeometry(map, path, selectedGeometry, cfg.shadow);
 
   // TODO: evaluate if the function should return a value or not
