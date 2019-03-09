@@ -9,10 +9,10 @@ function checkData(cfg) {
     if (!data.hasOwnProperty('type') || data.type !== 'Topology') {
       throw new Error('The data is not a topojson - at ' + cfg.url);
     } else if (
-      data.objects.municipios.geometries.length !== cfg.municipalitiesNumber
+      data.objects[cfg.topojsonKey].geometries.length !== cfg.geometriesNumber
     ) {
       throw new Error(
-        'The number of municipalities should be ' + cfg.municipalitiesNumber
+        'The number of geometries should be ' + cfg.geometriesNumber
       );
     }
     return data;
@@ -22,4 +22,3 @@ function checkData(cfg) {
 export function load(cfg) {
   return d3.json(cfg.url, {integrity: cfg.integrityHash}).then(checkData(cfg));
 }
-export const key = 'municipalities';

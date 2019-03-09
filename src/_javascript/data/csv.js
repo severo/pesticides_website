@@ -9,9 +9,7 @@ function checkData(cfg) {
     if (!Array.isArray(data)) {
       throw new Error('The data is not a CSV - at ' + cfg.url);
     } else if (data.length !== cfg.rowsNumber) {
-      throw new Error(
-        'The number of rows of statistics should be ' + cfg.rowsNumber
-      );
+      throw new Error('The number of rows should be ' + cfg.rowsNumber);
     }
     return data;
   };
@@ -20,4 +18,3 @@ function checkData(cfg) {
 export function load(cfg) {
   return d3.csv(cfg.url, {integrity: cfg.integrityHash}).then(checkData(cfg));
 }
-export const key = 'statistics';
