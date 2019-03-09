@@ -13,4 +13,14 @@ export const cfg = {
     fill: '#e3eef9',
     stroke: 'none',
   },
+  shadow: {
+    fill: '#F8F8F8',
+    stroke: '#BBB',
+    strokeWidth: 1,
+    svgFilter: {
+      id: 'filter1',
+      stdDeviation: 3,
+      type: 'feDropShadow',
+    },
+  },
 };

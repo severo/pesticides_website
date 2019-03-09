@@ -1,9 +1,10 @@
+import {addDefsToSvg, createSvg} from './svg';
+import {addShadowAroundGeometry, addShadowFilter} from './shadow';
 import {createPath, createProjection} from './projection';
 import {cfg} from './cfg';
 import {createCountries} from './countries';
 import {createMap} from './map';
 import {createSeaBackground} from './seaBackground';
-import {createSvg} from './svg';
 
 export function createBigMap(data) {
   // Height and width are special parameters, they could be variable
@@ -16,7 +17,12 @@ export function createBigMap(data) {
 
   // Setup basic DOM elements
   const svg = createSvg(width, height);
+  const svgDefs = addDefsToSvg(svg);
+  addShadowFilter(svgDefs, cfg.shadow.svgFilter);
   const map = createMap(svg, mapWidth, mapHeight);
+
+  // Selected geometry: Brazil
+  const selectedGeometry = data.geojson.brazil;
 
   // Projection is a function that maps geographic coordinates to planar
   // coordinates in the SVG viewport
@@ -24,7 +30,7 @@ export function createBigMap(data) {
     mapWidth,
     mapHeight,
     cfg.projection,
-    data.geojson.brazil
+    selectedGeometry
   );
 
   // Path is a function that transforms a geometry (a point, a line, a polygon)
@@ -34,9 +40,11 @@ export function createBigMap(data) {
   const path = createPath(projection);
 
   // Add sub-elements
+  // TODO: simplify geometries?
   createSeaBackground(map, mapWidth, mapHeight, cfg.seaBackground);
   createCountries(map, path, data.geojson.countries, cfg.countries);
+  addShadowAroundGeometry(map, path, selectedGeometry, cfg.shadow);
 
-  // TODO: evaluate if the function shuold return a value or not
+  // TODO: evaluate if the function should return a value or not
   return svg;
 }

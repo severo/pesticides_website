@@ -1,12 +1,11 @@
-import {feature, merge} from 'topojson';
+import {feature} from 'topojson';
 
 export function postProcess(raw) {
-  /* TODO: we could get Brazil path from countries, instead of raw.states
-   */
+  const countries = toGeoJson(raw.countries, 'countries');
   const data = {
     geojson: {
-      brazil: merge(raw.states, raw.states.objects.estados.geometries),
-      countries: toGeoJson(raw.countries, 'countries'),
+      brazil: selectBrazil(countries),
+      countries: countries,
       municipalities: toGeoJson(raw.municipalities, 'municipios'),
       states: toGeoJson(raw.states, 'estados'),
     },
@@ -16,4 +15,12 @@ export function postProcess(raw) {
 
 function toGeoJson(topojson, key) {
   return feature(topojson, topojson.objects[key]);
+}
+
+function selectBrazil(countries) {
+  // TODO: put hardcoded string "Brazil" to cfg
+  return {
+    features: countries.features.filter(ft => ft.properties.NAME === 'Brazil'),
+    type: 'FeatureCollection',
+  };
 }
