@@ -1,18 +1,19 @@
-import * as d3 from 'd3-dispatch';
 import {cfg} from './cfg';
-import {init} from './init';
+import {dispatch} from 'd3-dispatch';
+import {loadData} from './data';
 
-const dispatcher = d3.dispatch('load');
+const dispatcher = dispatch('load');
 
+/* Should be useless... We will see */
 const state = {};
 dispatcher.on('load.state', data => {
   state.data = data;
-  console.log('Data has been loaded:');
-  console.log(data);
+  console.log('Data has been loaded');
+  //console.log(data);
 });
 
 /* Asynchronous */
-init(cfg, dispatcher).catch(error => {
+loadData(cfg.datasets, dispatcher).catch(error => {
   /* TODO: decide what to do if the init has failed.
    * Meanwhile, it prints the error in the console. */
   console.log(error);
