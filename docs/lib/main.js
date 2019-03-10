@@ -2725,6 +2725,47 @@
     };
   }
 
+  function azimuthalRaw(scale) {
+    return function(x, y) {
+      var cx = cos(x),
+          cy = cos(y),
+          k = scale(cx * cy);
+      return [
+        k * cy * sin(x),
+        k * sin(y)
+      ];
+    }
+  }
+
+  function azimuthalInvert(angle) {
+    return function(x, y) {
+      var z = sqrt(x * x + y * y),
+          c = angle(z),
+          sc = sin(c),
+          cc = cos(c);
+      return [
+        atan2(x * sc, z * cc),
+        asin(z && y * sc / z)
+      ];
+    }
+  }
+
+  var azimuthalEqualAreaRaw = azimuthalRaw(function(cxcy) {
+    return sqrt(2 / (1 + cxcy));
+  });
+
+  azimuthalEqualAreaRaw.invert = azimuthalInvert(function(z) {
+    return 2 * asin(z / 2);
+  });
+
+  var azimuthalEquidistantRaw = azimuthalRaw(function(c) {
+    return (c = acos(c)) && c / sin(c);
+  });
+
+  azimuthalEquidistantRaw.invert = azimuthalInvert(function(z) {
+    return z;
+  });
+
   function mercatorRaw(lambda, phi) {
     return [lambda, log(tan((halfPi + phi) / 2))];
   }
@@ -2774,16 +2815,133 @@
     return reclip();
   }
 
-  // - Mercator?
-  // - Orthographic?
-  // - see https://epsg.io/?q=Brazil%20kind%3APROJCRS
-  // https://observablehq.com/@lemonnish/country-centered-projection
+  var abs$1 = Math.abs;
+  var cos$1 = Math.cos;
+  var sign = Math.sign || function(x) { return x > 0 ? 1 : x < 0 ? -1 : 0; };
+  var sin$1 = Math.sin;
+  var tan$1 = Math.tan;
+
+  var epsilon$1 = 1e-6;
+  var pi$1 = Math.PI;
+  var halfPi$1 = pi$1 / 2;
+  var sqrt1_2 = Math.SQRT1_2;
+
+  function asin$1(x) {
+    return x > 1 ? halfPi$1 : x < -1 ? -halfPi$1 : Math.asin(x);
+  }
+
+  function acos$1(x) {
+    return x > 1 ? 0 : x < -1 ? pi$1 : Math.acos(x);
+  }
+
+  // https://github.com/scijs/integrate-adaptive-simpson
+
+  function polyconicRaw(lambda, phi) {
+    if (abs$1(phi) < epsilon$1) return [lambda, 0];
+    var tanPhi = tan$1(phi),
+        k = lambda * sin$1(phi);
+    return [
+      sin$1(k) / tanPhi,
+      phi + (1 - cos$1(k)) / tanPhi
+    ];
+  }
+
+  polyconicRaw.invert = function(x, y) {
+    if (abs$1(y) < epsilon$1) return [x, 0];
+    var k = x * x + y * y,
+        phi = y * 0.5,
+        i = 10, delta;
+    do {
+      var tanPhi = tan$1(phi),
+          secPhi = 1 / cos$1(phi),
+          j = k - 2 * y * phi + phi * phi;
+      phi -= delta = (tanPhi * j + 2 * (phi - y)) / (2 + j * secPhi * secPhi + 2 * (phi - y) * tanPhi);
+    } while (abs$1(delta) > epsilon$1 && --i > 0);
+    tanPhi = tan$1(phi);
+    return [
+      (abs$1(y) < abs$1(phi + 1 / tanPhi) ? asin$1(x * tanPhi) : sign(x) * (acos$1(abs$1(x * tanPhi)) + halfPi$1)) / sin$1(phi),
+      phi
+    ];
+  };
+
+  function geoPolyconic() {
+    return projection(polyconicRaw)
+        .scale(103.74);
+  }
+
+  // TODO generate on-the-fly to avoid external modification.
+  var octahedron = [
+    [0, 90],
+    [-90, 0], [0, 0], [90, 0], [180, 0],
+    [0, -90]
+  ];
+
+  [
+    [0, 2, 1],
+    [0, 3, 2],
+    [5, 1, 2],
+    [5, 2, 3],
+    [0, 1, 4],
+    [0, 4, 3],
+    [5, 4, 1],
+    [5, 3, 4]
+  ].map(function(face) {
+    return face.map(function(i) {
+      return octahedron[i];
+    });
+  });
+
+  var K = [
+    [0.9986, -0.062],
+    [1.0000, 0.0000],
+    [0.9986, 0.0620],
+    [0.9954, 0.1240],
+    [0.9900, 0.1860],
+    [0.9822, 0.2480],
+    [0.9730, 0.3100],
+    [0.9600, 0.3720],
+    [0.9427, 0.4340],
+    [0.9216, 0.4958],
+    [0.8962, 0.5571],
+    [0.8679, 0.6176],
+    [0.8350, 0.6769],
+    [0.7986, 0.7346],
+    [0.7597, 0.7903],
+    [0.7186, 0.8435],
+    [0.6732, 0.8936],
+    [0.6213, 0.9394],
+    [0.5722, 0.9761],
+    [0.5322, 1.0000]
+  ];
+
+  K.forEach(function(d) {
+    d[1] *= 1.0144;
+  });
 
   function createProjection(width, height, cfg, geometry) {
-    return geoMercator().fitExtent([[cfg.fitMargin, cfg.fitMargin], [width - cfg.fitMargin, height - cfg.fitMargin]], geometry).clipExtent([[0, 0], [width, height]]);
+    return getProjection[cfg.type]().fitExtent([[cfg.fitMargin, cfg.fitMargin], [width - cfg.fitMargin, height - cfg.fitMargin]], geometry).clipExtent([[0, 0], [width, height]]);
   }
   function createPath(projection) {
     return geoPath().projection(projection);
+  }
+  var getProjection = {
+    epsg5530: epsg5530,
+    mercator: mercator
+  }; // EPSG-5530 is the "official" projection for Brazil
+  // PROJ.4:
+  // '+proj=poly +lat_0=0 +lon_0=-54 +x_0=5000000 +y_0=10000000 +ellps=aust_SA
+  //  +towgs84=-67.35,3.88,-38.22,0,0,0,0 +units=m +no_defs'
+  // See:
+  //  - https://observablehq.com/@fil/epsg-5530 for its use in D3.js
+  //  - https://epsg.io/?q=Brazil%20kind%3APROJCRS
+
+  function epsg5530() {
+    var lon_0 = -54;
+    return geoPolyconic().rotate([-lon_0, 0]);
+  }
+
+  function mercator() {
+    return geoMercator();
   }
 
   var cfg = {
@@ -2795,7 +2953,8 @@
     defaultHeight: 500,
     defaultWidth: 500,
     projection: {
-      fitMargin: 20
+      fitMargin: 20,
+      type: 'epsg5530'
     },
     seaBackground: {
       fill: '#e3eef9',
@@ -2855,6 +3014,7 @@
     // (that's why the projection is passed as an argument)
 
     var path = createPath(projection); // Add sub-elements
+    // TODO: add graticules to get an idea of lat/long and deformation?
     // TODO: add a label for the Atlantic Ocean?
 
     createSeaBackground(map, mapWidth, mapHeight, cfg.seaBackground);
@@ -3513,7 +3673,7 @@
     };
   }
 
-  var pi$1 = Math.PI;
+  var pi$2 = Math.PI;
 
   function postProcess(raw) {
     // TODO: prepare the data and find the better simplification quantiles

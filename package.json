@@ -53,6 +53,7 @@
     "bulma": "^0.7.4",
     "d3": "^5.9.1",
     "d3-fetch": "^1.1.2",
+    "d3-geo-projection": "^2.6.0",
     "eslint": "^5.15.1",
     "eslint-config-prettier": "^4.1.0",
     "eslint-plugin-prettier": "^3.0.1",

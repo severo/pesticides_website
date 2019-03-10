@@ -8,6 +8,7 @@ export const cfg = {
   defaultWidth: 500,
   projection: {
     fitMargin: 20,
+    type: 'epsg5530',
   },
   seaBackground: {
     fill: '#e3eef9',

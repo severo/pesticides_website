@@ -46,6 +46,7 @@ export function createBigMap(data) {
   const path = createPath(projection);
 
   // Add sub-elements
+  // TODO: add graticules to get an idea of lat/long and deformation?
   // TODO: add a label for the Atlantic Ocean?
   createSeaBackground(map, mapWidth, mapHeight, cfg.seaBackground);
   createCountries(map, path, data.geojson[level].countries, cfg.countries);
