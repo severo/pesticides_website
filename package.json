@@ -32,7 +32,7 @@
     "watch": "run-p watch:css watch:js watch:mustache",
     "watch:css": "onchange \"src/_sass\" -- npm run build:css",
     "watch:js": "onchange \"src/_javascript\" -- npm run build:js",
-    "watch:mustache": "onchange \"src/index.mustache.html\" -- npm run build:mustache"
+    "watch:mustache": "onchange \"src/index.mustache.html\" \"src/lang\" -- npm run build:mustache"
   },
   "repository": {
     "type": "git",
