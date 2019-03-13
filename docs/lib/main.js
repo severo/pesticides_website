@@ -3613,36 +3613,6 @@
     };
   }
 
-  function quantile(topology, p) {
-    var array = [];
-
-    topology.arcs.forEach(function(arc) {
-      arc.forEach(function(point) {
-        if (isFinite(point[2])) { // Ignore endpoints, whose weight is Infinity.
-          array.push(point[2]);
-        }
-      });
-    });
-
-    return array.length && quantile$1(array.sort(descending), p);
-  }
-
-  function quantile$1(array, p) {
-    if (!(n = array.length)) return;
-    if ((p = +p) <= 0 || n < 2) return array[0];
-    if (p >= 1) return array[n - 1];
-    var n,
-        h = (n - 1) * p,
-        i = Math.floor(h),
-        a = array[i],
-        b = array[i + 1];
-    return a + (b - a) * (h - i);
-  }
-
-  function descending(a, b) {
-    return b - a;
-  }
-
   function simplify(topology, minWeight) {
     minWeight = minWeight == null ? Number.MIN_VALUE : +minWeight;
 
@@ -3680,17 +3650,25 @@
     // TODO: see if quantification might also help
     // see https://observablehq.com/@lemonnish/minify-topojson-in-the-browser
     // TODO: compress data with gzip
-    // TODO: hardcoded quantiles to cfg
-    // The quantiles parameters for the topojson.simplify function are tuned for
-    // the Brazilian scale, and for the median Brazilian state scale
-    var quantiles = {
-      brazil: 0.1,
-      state: 0.3
+    // The smallest retained area (triangle) in px^2
+    // See https://bost.ocks.org/mike/simplify/
+    // Value between 1 and 4 px^2 seem to be optimal
+    // TODO: hardcoded values to cfg
+    var BRAZIL_MIN_AREA_PX2 = 2.25;
+    var STATE_MIN_AREA_PX2 = 1; // TODO: The data are in degrees. We need to project (using
+    // the projection we want for the application), for a given level of zoom, and
+    // then we can compute the area in px^2. We just scale until it seems correct,
+    // and we will compute the area when we have the time to bikeshed
+
+    var minAreaToSimplificationFactor = 0.01;
+    var simplificationFactors = {
+      brazil: BRAZIL_MIN_AREA_PX2 * minAreaToSimplificationFactor,
+      state: STATE_MIN_AREA_PX2 * minAreaToSimplificationFactor
     }; // TODO: filter the countries in the topojson, not in the resulting geojson
 
     var countries = toGeoJson(raw.countries, 'countries');
-    var countriesBrazil = toSimplGeoJson(raw.countries, quantiles.brazil, 'countries');
-    var countriesState = toSimplGeoJson(raw.countries, quantiles.state, 'countries');
+    var countriesBrazil = toSimplGeoJson(raw.countries, simplificationFactors.brazil, 'countries');
+    var countriesState = toSimplGeoJson(raw.countries, simplificationFactors.state, 'countries');
     var data = {
       geojson: {
         original: {
@@ -3702,27 +3680,27 @@
         simplifiedForBrazil: {
           brazil: selectBrazil(countriesBrazil),
           countries: selectCountries(countriesBrazil),
-          municipalities: toSimplGeoJson(raw.municipalities, quantiles.brazil, 'municipios'),
-          states: toSimplGeoJson(raw.states, quantiles.brazil, 'estados')
+          municipalities: toSimplGeoJson(raw.municipalities, simplificationFactors.brazil, 'municipios'),
+          states: toSimplGeoJson(raw.states, simplificationFactors.brazil, 'estados')
         },
         simplifiedForState: {
           brazil: selectBrazil(countriesState),
           countries: selectCountries(countriesState),
-          municipalities: toSimplGeoJson(raw.municipalities, quantiles.state, 'municipios'),
-          states: toSimplGeoJson(raw.states, quantiles.state, 'estados')
+          municipalities: toSimplGeoJson(raw.municipalities, simplificationFactors.state, 'municipios'),
+          states: toSimplGeoJson(raw.states, simplificationFactors.state, 'estados')
         }
       }
     };
     return data;
   }
 
-  function toSimplGeoJson(geom, quant, key) {
-    return toGeoJson(simpl(geom, quant), key);
+  function toSimplGeoJson(geom, factor, key) {
+    return toGeoJson(simpl(geom, factor), key);
   }
 
-  function simpl(geom, quant) {
+  function simpl(geom, factor) {
     var preparedGeom = presimplify(geom);
-    return simplify(preparedGeom, quantile(preparedGeom, quant));
+    return simplify(preparedGeom, factor);
   }
 
   function toGeoJson(topojson, key) {

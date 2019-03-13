@@ -1,25 +1,37 @@
-import {feature, presimplify, quantile, simplify} from 'topojson';
+import {feature, presimplify, simplify} from 'topojson';
 
 export function postProcess(raw) {
   // TODO: prepare the data and find the better simplification quantiles
   // TODO: see if quantification might also help
   // see https://observablehq.com/@lemonnish/minify-topojson-in-the-browser
   // TODO: compress data with gzip
-  // TODO: hardcoded quantiles to cfg
-  // The quantiles parameters for the topojson.simplify function are tuned for
-  // the Brazilian scale, and for the median Brazilian state scale
-  const quantiles = {brazil: 0.1, state: 0.3};
+
+  // The smallest retained area (triangle) in px^2
+  // See https://bost.ocks.org/mike/simplify/
+  // Value between 1 and 4 px^2 seem to be optimal
+  // TODO: hardcoded values to cfg
+  const BRAZIL_MIN_AREA_PX2 = 2.25;
+  const STATE_MIN_AREA_PX2 = 1;
+  // TODO: The data are in degrees. We need to project (using
+  // the projection we want for the application), for a given level of zoom, and
+  // then we can compute the area in px^2. We just scale until it seems correct,
+  // and we will compute the area when we have the time to bikeshed
+  const minAreaToSimplificationFactor = 0.01;
+  const simplificationFactors = {
+    brazil: BRAZIL_MIN_AREA_PX2 * minAreaToSimplificationFactor,
+    state: STATE_MIN_AREA_PX2 * minAreaToSimplificationFactor,
+  };
 
   // TODO: filter the countries in the topojson, not in the resulting geojson
   const countries = toGeoJson(raw.countries, 'countries');
   const countriesBrazil = toSimplGeoJson(
     raw.countries,
-    quantiles.brazil,
+    simplificationFactors.brazil,
     'countries'
   );
   const countriesState = toSimplGeoJson(
     raw.countries,
-    quantiles.state,
+    simplificationFactors.state,
     'countries'
   );
   const data = {
@@ -35,33 +47,41 @@ export function postProcess(raw) {
         countries: selectCountries(countriesBrazil),
         municipalities: toSimplGeoJson(
           raw.municipalities,
-          quantiles.brazil,
+          simplificationFactors.brazil,
           'municipios'
         ),
-        states: toSimplGeoJson(raw.states, quantiles.brazil, 'estados'),
+        states: toSimplGeoJson(
+          raw.states,
+          simplificationFactors.brazil,
+          'estados'
+        ),
       },
       simplifiedForState: {
         brazil: selectBrazil(countriesState),
         countries: selectCountries(countriesState),
         municipalities: toSimplGeoJson(
           raw.municipalities,
-          quantiles.state,
+          simplificationFactors.state,
           'municipios'
         ),
-        states: toSimplGeoJson(raw.states, quantiles.state, 'estados'),
+        states: toSimplGeoJson(
+          raw.states,
+          simplificationFactors.state,
+          'estados'
+        ),
       },
     },
   };
   return data;
 }
 
-function toSimplGeoJson(geom, quant, key) {
-  return toGeoJson(simpl(geom, quant), key);
+function toSimplGeoJson(geom, factor, key) {
+  return toGeoJson(simpl(geom, factor), key);
 }
 
-function simpl(geom, quant) {
+function simpl(geom, factor) {
   const preparedGeom = presimplify(geom);
-  return simplify(preparedGeom, quantile(preparedGeom, quant));
+  return simplify(preparedGeom, factor);
 }
 
 function toGeoJson(topojson, key) {
