@@ -1,5 +1,3 @@
-import {select} from 'd3-selection';
-
 // TODO: in cfg
 // TODO: i18n
 const cfg = {
@@ -20,7 +18,7 @@ const cfg = {
   ],
 };
 
-export function append(dispatcher, parent) {
+export function append(dispatcher, parent, defaultState) {
   const control = parent
     .append('nav')
     .attr('id', cfg.id)
@@ -37,13 +35,11 @@ export function append(dispatcher, parent) {
 
   li.append('a').text(opt => opt.text);
 
+  setActiveClass(li, defaultState.zoom);
+
   // TODO: ontouch?
   li.on('click', (data, id, cur) => {
-    // change style
-    li.classed(cfg.isActiveClass, false);
-    // TODO: does not seem optimal, surely we can have access to the element
-    select(cur[id]).classed(cfg.isActiveClass, true);
-
+    setActiveClass(li, data.id);
     // invoke callbacks
     dispatcher.call(cfg.callbackTypename, null, {
       selected: data.id,
@@ -51,4 +47,9 @@ export function append(dispatcher, parent) {
   });
 
   return control;
+}
+
+function setActiveClass(li, id) {
+  // set the isActiveClass to the current tab
+  li.classed(cfg.isActiveClass, data => data.id === id);
 }

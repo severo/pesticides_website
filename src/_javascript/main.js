@@ -50,5 +50,5 @@ loadData()
 // TODO: in cfg
 const appId = 'app';
 const appDiv = select('div#' + appId);
-appendControls(dispatcher, appDiv);
+appendControls(dispatcher, appDiv, state);
 appendContent(dispatcher, appDiv);
