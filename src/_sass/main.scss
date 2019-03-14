@@ -34,6 +34,7 @@ $primary-invert: $pink-invert;
   }
 }
 
+// See https://github.com/jgthms/bulma/issues/847#issuecomment-314110630
 .is-loading {
   position: relative;
   pointer-events: none;
