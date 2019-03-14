@@ -1,8 +1,8 @@
 import {addShadowAroundGeometry, addShadowFilter} from './shadow';
 import {appendDefs, appendSvg} from './svg';
-import {createCountries, createSeaBackground} from './layers/countries';
 import {createPath, createProjection} from './projection';
 import {cfg} from './cfg';
+import {createCountries} from './layers/countries';
 import {createMap} from './map';
 
 export function create(state, content) {
@@ -52,21 +52,15 @@ export function create(state, content) {
   const path = createPath(projection);
 
   // Add sub-elements
-  // TODO: add graticules to get an idea of lat/long and deformation?
-  // TODO: add a label for the Atlantic Ocean?
-  createSeaBackground(map, mapWidth, mapHeight, cfg.seaBackground);
   createCountries(
     map,
+    projection,
     path,
+    width,
+    height,
     state.data.geojson[level].countries,
-    cfg.countries
+    svg
   );
-  /*createCountriesLabels(
-    map,
-    path,
-    state.data.geojson[level].countries,
-    cfg.countries
-  );*/
   addShadowAroundGeometry(map, path, selectedGeometry, cfg.shadow);
 
   // TODO: evaluate if the function should return a value or not

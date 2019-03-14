@@ -17,6 +17,8 @@ Technologies used in the application:
 - State management: [d3-dispatch](https://github.com/d3/d3-dispatch)
 - Data visualization:
   - projections: [d3-geo](https://github.com/d3/d3-geo/)
+  - labels: [polylabel](https://github.com/mapbox/polylabel) (copied here to
+    have ESM), [tinyqueue](https://github.com/mourner/tinyqueue)
 
 ## Get the code
 
