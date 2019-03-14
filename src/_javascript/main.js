@@ -14,7 +14,6 @@ const dispatcher = dispatch(
   'zoom-control-changed'
 );
 
-// Should be useless... We will see
 const state = {
   data: {},
   view: 'number',

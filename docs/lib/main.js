@@ -1771,8 +1771,7 @@
 
   var _this = undefined;
 
-  var dispatcher = dispatch('data-loaded', 'state-changed', 'view-changed', 'view-control-changed', 'zoom-control-changed'); // Should be useless... We will see
-
+  var dispatcher = dispatch('data-loaded', 'state-changed', 'view-changed', 'view-control-changed', 'zoom-control-changed');
   var state = {
     data: {},
     view: 'number',
