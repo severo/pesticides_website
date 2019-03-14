@@ -41,6 +41,7 @@ export function append(dispatcher, parent) {
   li.on('click', (data, id, cur) => {
     // change style
     li.classed(cfg.isActiveClass, false);
+    // TODO: does not seem optimal, surely we can have access to the element
     select(cur[id]).classed(cfg.isActiveClass, true);
 
     // invoke callbacks
@@ -50,7 +51,4 @@ export function append(dispatcher, parent) {
   });
 
   return control;
-}
-export function init() {
-  select('#' + cfg.defaultOptionId).dispatch('click');
 }

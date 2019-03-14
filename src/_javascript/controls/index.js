@@ -10,7 +10,3 @@ export function appendControls(dispatcher, parent) {
 
   return controls;
 }
-export function initControls() {
-  zoomControl.init();
-  viewControl.init();
-}

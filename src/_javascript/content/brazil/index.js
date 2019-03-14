@@ -4,9 +4,12 @@ import {createCountries, createSeaBackground} from './layers/countries';
 import {createPath, createProjection} from './projection';
 import {cfg} from './cfg';
 import {createMap} from './map';
-import {select} from 'd3-selection';
 
-export function createBigMap(data) {
+export function create(state, content) {
+  // Clean existing contents
+  // TODO: be more clever
+  content.html(null);
+
   // Height and width are special parameters, they could be variable
   // in a future version
   // TODO: variable height and width, depending on the screen size and layout
@@ -17,7 +20,7 @@ export function createBigMap(data) {
 
   // Setup basic DOM elements
   // TODO: use args or configuration instead of hardcoded div#map
-  const svg = appendSvg(select('div#app'), width, height);
+  const svg = appendSvg(content, width, height);
   const svgDefs = appendDefs(svg);
   addShadowFilter(svgDefs, cfg.shadow.svgFilter);
   const map = createMap(svg, mapWidth, mapHeight);
@@ -25,11 +28,13 @@ export function createBigMap(data) {
   // TODO: move to the configuration, or to the arguments
   // Selected level of simplification, among: original, simplifiedForBrazil,
   // simplifiedForState
+  // TODO: depend on state.zoom
   //const level = 'original';
   const level = 'simplifiedForBrazil';
 
   // Selected geometry: Brazil
-  const selectedGeometry = data.geojson[level].brazil;
+  // TODO: depend on state.zoom
+  const selectedGeometry = state.data.geojson[level].brazil;
 
   // Projection is a function that maps geographic coordinates to planar
   // coordinates in the SVG viewport
@@ -50,13 +55,18 @@ export function createBigMap(data) {
   // TODO: add graticules to get an idea of lat/long and deformation?
   // TODO: add a label for the Atlantic Ocean?
   createSeaBackground(map, mapWidth, mapHeight, cfg.seaBackground);
-  createCountries(map, path, data.geojson[level].countries, cfg.countries);
-  createCountriesLabels(
+  createCountries(
     map,
     path,
-    data.geojson[level].countries,
+    state.data.geojson[level].countries,
     cfg.countries
   );
+  /*createCountriesLabels(
+    map,
+    path,
+    state.data.geojson[level].countries,
+    cfg.countries
+  );*/
   addShadowAroundGeometry(map, path, selectedGeometry, cfg.shadow);
 
   // TODO: evaluate if the function should return a value or not

@@ -1,21 +1,38 @@
+import * as brazil from './brazil';
+
 const cfg = {
   id: 'content',
 };
 
+const create = {
+  brazil: {
+    concentration: brazil.create,
+    number: brazil.create,
+  },
+  saopaolo: {
+    concentration: state => {},
+    number: state => {},
+  },
+};
+
 export function appendContent(dispatcher, parent) {
-  const content = parent
-    .append('div')
-    .attr('id', cfg.id)
-    .classed('is-loading', true);
+  const content = parent.append('div').attr('id', cfg.id);
 
-  const notification = content.append('div').classed('notification', true);
+  startLoading(content);
 
-  dispatcher.on('state-changed.content', data => {
-    content.classed('is-loading', true);
-    notification.text(JSON.stringify(data, ['view', 'zoom']));
-    content.classed('is-loading', false);
+  dispatcher.on('state-changed.content', state => {
+    startLoading(content);
+    create[state.zoom][state.view](state, content);
+    endLoading(content);
   });
 
   return content;
 }
 export function initContent() {}
+
+function startLoading(content) {
+  content.classed('is-loading', true);
+}
+function endLoading(content) {
+  content.classed('is-loading', false);
+}
