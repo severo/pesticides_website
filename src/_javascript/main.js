@@ -21,7 +21,7 @@ const state = {
 dispatcher.on('data-loaded.state', data => {
   state.data = data;
   console.log('Data has been loaded');
-  dispatcher.call('state-changed', this, data);
+  dispatcher.call('state-changed', this, state);
 });
 dispatcher.on('view-control-changed.state', data => {
   state.view = data.selected;
