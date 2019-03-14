@@ -20,7 +20,7 @@ const cfg = {
   ],
 };
 
-export function appendZoomControl(dispatcher, parent) {
+export function append(dispatcher, parent) {
   const control = parent
     .append('nav')
     .attr('id', cfg.id)
@@ -51,6 +51,6 @@ export function appendZoomControl(dispatcher, parent) {
 
   return control;
 }
-export function initControl() {
+export function init() {
   select('#' + cfg.defaultOptionId).dispatch('click');
 }

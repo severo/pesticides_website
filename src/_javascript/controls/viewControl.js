@@ -3,10 +3,10 @@ import {select} from 'd3-selection';
 // TODO: in cfg
 // TODO: i18n
 const cfg = {
-  callbackTypename: 'data-control-changed',
+  callbackTypename: 'view-control-changed',
   class: 'tabs is-centered is-fullwidth',
   defaultOptionId: 'number',
-  id: 'data-control',
+  id: 'view-control',
   isActiveClass: 'is-active',
   options: [
     {
@@ -20,7 +20,7 @@ const cfg = {
   ],
 };
 
-export function appendDataControl(dispatcher, parent) {
+export function append(dispatcher, parent) {
   const control = parent
     .append('div')
     .attr('id', cfg.id)
@@ -51,6 +51,6 @@ export function appendDataControl(dispatcher, parent) {
 
   return control;
 }
-export function initControl() {
+export function init() {
   select('#' + cfg.defaultOptionId).dispatch('click');
 }

@@ -3,14 +3,21 @@ const cfg = {
 };
 
 export function appendContent(dispatcher, parent) {
-  const controls = parent
+  const content = parent
     .append('div')
     .attr('id', cfg.id)
     .classed('is-loading', true);
 
+  const notification = content.append('div').classed('notification', true);
+
   dispatcher.on('data-loaded', data => {
-    controls.classed('is-loading', false);
+    content.classed('is-loading', false);
   });
-  return controls;
+
+  dispatcher.on('view-changed.content', data => {
+    notification.text(JSON.stringify(data, ['view', 'zoom']));
+  });
+
+  return content;
 }
 export function initContent() {}

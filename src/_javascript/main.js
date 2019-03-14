@@ -8,15 +8,28 @@ import {select} from 'd3-selection';
 // TODO: cfg
 const dispatcher = dispatch(
   'data-loaded',
-  'data-control-changed',
+  'view-control-changed',
+  'view-changed',
   'zoom-control-changed'
 );
 
 // Should be useless... We will see
-const state = {};
+const state = {
+  data: {},
+  view: 'number',
+  zoom: 'brazil',
+};
 dispatcher.on('data-loaded.state', data => {
   state.data = data;
   console.log('Data has been loaded');
+});
+dispatcher.on('view-control-changed.state', data => {
+  state.view = data.selected;
+  dispatcher.call('view-changed', this, state);
+});
+dispatcher.on('zoom-control-changed.state', data => {
+  state.zoom = data.selected;
+  dispatcher.call('view-changed', this, state);
 });
 
 // Asynchronous
@@ -36,18 +49,17 @@ loadData()
 createLayout();
 
 // register the data-control-changed callback
-dispatcher.on('data-control-changed', data => {
+/*dispatcher.on('data-control-changed', data => {
   console.log(data.selected);
-});
-
-showDefaultView();
+});*/
 
 // Create the map when data has loaded
 // TODO: create the basis before the data has loaded (with a "loading..."
 // notification)
-/*dispatcher.on('data-loaded.map', data => {
-  createBigMap(data);
-});*/
+dispatcher.on('data-loaded.app', data => {
+  showDefaultView();
+  //createBigMap(data);
+});
 
 function createLayout() {
   // TODO: in cfg

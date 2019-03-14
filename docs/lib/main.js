@@ -860,10 +860,10 @@
   // TODO: i18n
 
   var cfg = {
-    callbackTypename: 'data-control-changed',
+    callbackTypename: 'view-control-changed',
     class: 'tabs is-centered is-fullwidth',
     defaultOptionId: 'number',
-    id: 'data-control',
+    id: 'view-control',
     isActiveClass: 'is-active',
     options: [{
       id: 'number',
@@ -873,7 +873,7 @@
       text: 'Over safe limit'
     }]
   };
-  function appendDataControl(dispatcher, parent) {
+  function append(dispatcher, parent) {
     var control = parent.append('div').attr('id', cfg.id).classed(cfg.class, true);
     var ul = control.append('ul');
     var li = ul.selectAll('li').data(cfg.options).enter().append('li').attr('id', function (opt) {
@@ -894,7 +894,7 @@
     });
     return control;
   }
-  function initControl() {
+  function init() {
     select('#' + cfg.defaultOptionId).dispatch('click');
   }
 
@@ -914,7 +914,7 @@
       text: 'Sao Paolo'
     }]
   };
-  function appendZoomControl(dispatcher, parent) {
+  function append$1(dispatcher, parent) {
     var control = parent.append('nav').attr('id', cfg$1.id).classed(cfg$1.class, true);
     var ul = control.append('ul');
     var li = ul.selectAll('li').data(cfg$1.options).enter().append('li').attr('id', function (opt) {
@@ -935,7 +935,7 @@
     });
     return control;
   }
-  function initControl$1() {
+  function init$1() {
     select('#' + cfg$1.defaultOptionId).dispatch('click');
   }
 
@@ -943,24 +943,28 @@
     // TODO: in cfg
     var controlsId = 'controls';
     var controls = parent.append('div').attr('id', controlsId);
-    appendZoomControl(dispatcher, controls);
-    appendDataControl(dispatcher, controls);
+    append(dispatcher, controls);
+    append$1(dispatcher, controls);
     return controls;
   }
   function initControls() {
-    initControl$1();
-    initControl();
+    init$1();
+    init();
   }
 
   var cfg$2 = {
     id: 'content'
   };
   function appendContent(dispatcher, parent) {
-    var controls = parent.append('div').attr('id', cfg$2.id).classed('is-loading', true);
+    var content = parent.append('div').attr('id', cfg$2.id).classed('is-loading', true);
+    var notification = content.append('div').classed('notification', true);
     dispatcher.on('data-loaded', function (data) {
-      controls.classed('is-loading', false);
+      content.classed('is-loading', false);
     });
-    return controls;
+    dispatcher.on('view-changed.content', function (data) {
+      notification.text(JSON.stringify(data, ['view', 'zoom']));
+    });
+    return content;
   }
 
   var noop = {value: function() {}};
@@ -1768,9 +1772,24 @@
 
   var _this = undefined;
 
-  var dispatcher = dispatch('data-loaded', 'data-control-changed', 'zoom-control-changed'); // Should be useless... We will see
+  var dispatcher = dispatch('data-loaded', 'view-control-changed', 'view-changed', 'zoom-control-changed'); // Should be useless... We will see
+
+  var state = {
+    data: {},
+    view: 'number',
+    zoom: 'brazil'
+  };
   dispatcher.on('data-loaded.state', function (data) {
+    state.data = data;
     console.log('Data has been loaded');
+  });
+  dispatcher.on('view-control-changed.state', function (data) {
+    state.view = data.selected;
+    dispatcher.call('view-changed', _this, state);
+  });
+  dispatcher.on('zoom-control-changed.state', function (data) {
+    state.zoom = data.selected;
+    dispatcher.call('view-changed', _this, state);
   }); // Asynchronous
 
   loadData().then(function (data) {
@@ -1784,16 +1803,16 @@
 
   createLayout(); // register the data-control-changed callback
 
-  dispatcher.on('data-control-changed', function (data) {
+  /*dispatcher.on('data-control-changed', data => {
     console.log(data.selected);
-  });
-  showDefaultView(); // Create the map when data has loaded
+  });*/
+  // Create the map when data has loaded
   // TODO: create the basis before the data has loaded (with a "loading..."
   // notification)
 
-  /*dispatcher.on('data-loaded.map', data => {
-    createBigMap(data);
-  });*/
+  dispatcher.on('data-loaded.app', function (data) {
+    showDefaultView(); //createBigMap(data);
+  });
 
   function createLayout() {
     // TODO: in cfg

@@ -1,22 +1,16 @@
-import {
-  appendDataControl,
-  initControl as initDataControl,
-} from './dataControl.js';
-import {
-  appendZoomControl,
-  initControl as initZoomControl,
-} from './zoomControl.js';
+import * as viewControl from './viewControl.js';
+import * as zoomControl from './zoomControl.js';
 
 export function appendControls(dispatcher, parent) {
   // TODO: in cfg
   const controlsId = 'controls';
   const controls = parent.append('div').attr('id', controlsId);
-  appendZoomControl(dispatcher, controls);
-  appendDataControl(dispatcher, controls);
+  viewControl.append(dispatcher, controls);
+  zoomControl.append(dispatcher, controls);
 
   return controls;
 }
 export function initControls() {
-  initZoomControl();
-  initDataControl();
+  zoomControl.init();
+  viewControl.init();
 }
