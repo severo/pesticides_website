@@ -958,11 +958,10 @@
   function appendContent(dispatcher, parent) {
     var content = parent.append('div').attr('id', cfg$2.id).classed('is-loading', true);
     var notification = content.append('div').classed('notification', true);
-    dispatcher.on('data-loaded', function (data) {
-      content.classed('is-loading', false);
-    });
-    dispatcher.on('view-changed.content', function (data) {
+    dispatcher.on('state-changed.content', function (data) {
+      content.classed('is-loading', true);
       notification.text(JSON.stringify(data, ['view', 'zoom']));
+      content.classed('is-loading', false);
     });
     return content;
   }
@@ -1772,7 +1771,7 @@
 
   var _this = undefined;
 
-  var dispatcher = dispatch('data-loaded', 'view-control-changed', 'view-changed', 'zoom-control-changed'); // Should be useless... We will see
+  var dispatcher = dispatch('data-loaded', 'state-changed', 'view-changed', 'view-control-changed', 'zoom-control-changed'); // Should be useless... We will see
 
   var state = {
     data: {},
@@ -1782,14 +1781,15 @@
   dispatcher.on('data-loaded.state', function (data) {
     state.data = data;
     console.log('Data has been loaded');
+    dispatcher.call('state-changed', _this, data);
   });
   dispatcher.on('view-control-changed.state', function (data) {
     state.view = data.selected;
-    dispatcher.call('view-changed', _this, state);
+    dispatcher.call('state-changed', _this, state);
   });
   dispatcher.on('zoom-control-changed.state', function (data) {
     state.zoom = data.selected;
-    dispatcher.call('view-changed', _this, state);
+    dispatcher.call('state-changed', _this, state);
   }); // Asynchronous
 
   loadData().then(function (data) {

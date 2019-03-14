@@ -10,12 +10,10 @@ export function appendContent(dispatcher, parent) {
 
   const notification = content.append('div').classed('notification', true);
 
-  dispatcher.on('data-loaded', data => {
-    content.classed('is-loading', false);
-  });
-
-  dispatcher.on('view-changed.content', data => {
+  dispatcher.on('state-changed.content', data => {
+    content.classed('is-loading', true);
     notification.text(JSON.stringify(data, ['view', 'zoom']));
+    content.classed('is-loading', false);
   });
 
   return content;

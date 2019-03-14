@@ -8,8 +8,9 @@ import {select} from 'd3-selection';
 // TODO: cfg
 const dispatcher = dispatch(
   'data-loaded',
-  'view-control-changed',
+  'state-changed',
   'view-changed',
+  'view-control-changed',
   'zoom-control-changed'
 );
 
@@ -22,14 +23,15 @@ const state = {
 dispatcher.on('data-loaded.state', data => {
   state.data = data;
   console.log('Data has been loaded');
+  dispatcher.call('state-changed', this, data);
 });
 dispatcher.on('view-control-changed.state', data => {
   state.view = data.selected;
-  dispatcher.call('view-changed', this, state);
+  dispatcher.call('state-changed', this, state);
 });
 dispatcher.on('zoom-control-changed.state', data => {
   state.zoom = data.selected;
-  dispatcher.call('view-changed', this, state);
+  dispatcher.call('state-changed', this, state);
 });
 
 // Asynchronous
