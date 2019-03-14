@@ -1,10 +1,10 @@
-import {addDefsToSvg, createSvg} from './svg';
 import {addShadowAroundGeometry, addShadowFilter} from './shadow';
+import {appendDefs, appendSvg} from './svg';
+import {createCountries, createSeaBackground} from './layers/countries';
 import {createPath, createProjection} from './projection';
 import {cfg} from './cfg';
-import {createCountries} from './countries';
 import {createMap} from './map';
-import {createSeaBackground} from './seaBackground';
+import {select} from 'd3-selection';
 
 export function createBigMap(data) {
   // Height and width are special parameters, they could be variable
@@ -16,8 +16,9 @@ export function createBigMap(data) {
   const mapWidth = width;
 
   // Setup basic DOM elements
-  const svg = createSvg(width, height);
-  const svgDefs = addDefsToSvg(svg);
+  // TODO: use args or configuration instead of hardcoded div#map
+  const svg = appendSvg(select('div#app'), width, height);
+  const svgDefs = appendDefs(svg);
   addShadowFilter(svgDefs, cfg.shadow.svgFilter);
   const map = createMap(svg, mapWidth, mapHeight);
 
@@ -41,8 +42,8 @@ export function createBigMap(data) {
 
   // Path is a function that transforms a geometry (a point, a line, a polygon)
   // into a SVG path (also allows to generate canvas paths, for example)
-  // Note that it takes geographic coordinates, not planar ones
-  // (that's why the projection is passed as an argument)
+  // Note that it takes geographic coordinates as an input, not planar ones
+  // (that's why the projection is passed as an argument to create it)
   const path = createPath(projection);
 
   // Add sub-elements
@@ -50,6 +51,12 @@ export function createBigMap(data) {
   // TODO: add a label for the Atlantic Ocean?
   createSeaBackground(map, mapWidth, mapHeight, cfg.seaBackground);
   createCountries(map, path, data.geojson[level].countries, cfg.countries);
+  createCountriesLabels(
+    map,
+    path,
+    data.geojson[level].countries,
+    cfg.countries
+  );
   addShadowAroundGeometry(map, path, selectedGeometry, cfg.shadow);
 
   // TODO: evaluate if the function should return a value or not
