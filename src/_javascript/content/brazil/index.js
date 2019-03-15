@@ -1,10 +1,23 @@
-import {addShadowAroundGeometry, addShadowFilter} from './shadow';
 import {appendDefs, appendSvg} from './svg';
 import {createPath, createProjection} from './projection';
-import {cfg} from './cfg';
+import {addShadowFilter} from './layers/shadow';
 import {createCountries} from './layers/countries';
 import {createMap} from './map';
+import {createStates} from './layers/states';
 
+const cfg = {
+  countries: {
+    fill: '#DDD',
+    stroke: '#BBB',
+    strokeWidth: 1,
+  },
+  defaultHeight: 500,
+  defaultWidth: 500,
+  projection: {
+    fitMargin: 20,
+    type: 'epsg5530',
+  },
+};
 export function create(state, content) {
   // Clean existing contents
   // TODO: be more clever
@@ -22,7 +35,7 @@ export function create(state, content) {
   // TODO: use args or configuration instead of hardcoded div#map
   const svg = appendSvg(content, width, height);
   const svgDefs = appendDefs(svg);
-  addShadowFilter(svgDefs, cfg.shadow.svgFilter);
+  addShadowFilter(svgDefs);
   const map = createMap(svg, mapWidth, mapHeight);
 
   // TODO: move to the configuration, or to the arguments
@@ -59,9 +72,22 @@ export function create(state, content) {
     width,
     height,
     state.data.geojson[level].countries,
-    svg
+    svg,
+    selectedGeometry,
+    state.zoom === 'brazil'
   );
-  addShadowAroundGeometry(map, path, selectedGeometry, cfg.shadow);
+
+  createStates(
+    map,
+    projection,
+    path,
+    width,
+    height,
+    state.data.geojson[level].states,
+    svg,
+    selectedGeometry,
+    state.zoom !== 'brazil'
+  );
 
   // TODO: evaluate if the function should return a value or not
   return svg;

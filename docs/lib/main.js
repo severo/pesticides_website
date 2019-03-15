@@ -1,13 +1,6 @@
 (function () {
   'use strict';
 
-  function addShadowFilter(parent, cfg) {
-    return parent.append('filter').attr('id', cfg.id).append(cfg.type).attr('stdDeviation', cfg.stdDeviation);
-  }
-  function addShadowAroundGeometry(parent, path, geometry, cfg) {
-    return parent.append('path').attr('fill', cfg.fill).attr('stroke', cfg.stroke).attr('stroke-width', cfg.strokeWidth).attr('d', path(geometry)).attr('filter', 'url(#' + cfg.svgFilter.id + ')');
-  }
-
   function appendSvg(parent, width, height) {
     return parent.append('svg').attr('width', width).attr('height', height).attr('viewBox', '0,0,' + width + ',' + height);
   }
@@ -2088,32 +2081,25 @@
   }
 
   var cfg = {
-    countries: {
-      fill: '#DDD',
-      stroke: '#BBB',
-      strokeWidth: 1
-    },
-    defaultHeight: 500,
-    defaultWidth: 500,
-    projection: {
-      fitMargin: 20,
-      type: 'epsg5530'
-    },
-    seaBackground: {
-      fill: '#e3eef9',
-      stroke: 'none'
-    },
     shadow: {
       fill: '#F8F8F8',
       stroke: '#BBB',
-      strokeWidth: 1,
-      svgFilter: {
-        id: 'filter1',
-        stdDeviation: 3,
-        type: 'feDropShadow'
-      }
+      strokeWidth: 1
+    },
+    svgFilter: {
+      id: 'filter1',
+      stdDeviation: 3,
+      type: 'feDropShadow'
     }
   };
+  function addShadowFilter(parent) {
+    var config = cfg.svgFilter;
+    return parent.append('filter').attr('id', config.id).append(config.type).attr('stdDeviation', config.stdDeviation);
+  }
+  function addShadowAroundGeometry(parent, path, geometry) {
+    var config = cfg.shadow;
+    return parent.append('path').attr('fill', config.fill).attr('stroke', config.stroke).attr('stroke-width', config.strokeWidth).attr('d', path(geometry)).attr('filter', 'url(#' + cfg.svgFilter.id + ')');
+  }
 
   var noop$1 = {value: function() {}};
 
@@ -7615,10 +7601,7 @@
     .attr('text-anchor', 'middle').attr('style', 'text-transform: uppercase;').attr('font-size', cfg$1.fontSize).attr('fill', cfg$1.color).text(name);
   }
 
-  function placeLabelInPolygon(feature, projection, width, height, parent) {
-    var shortLabelText = feature.properties.ISO_A2; // TODO: i18n (there is also a NAME_PT property) - or prepare it before hand
-
-    var labelText = feature.properties.NAME;
+  function placeLabelInPolygon(feature, projection, width, height, parent, shortLabelText, longLabelText) {
     var polygon = projectAndClipFeature(feature, projection, width, height).coordinates; // find the center using https://github.com/mapbox/polylabel/
 
     if (polygon[0].length > 0) {
@@ -7628,7 +7611,7 @@
       if (polygonContains$1(polygon[0], center)) {
         // if the center is inside the map, try to add the label:
         // 1. the long label
-        var label = add$2(labelText, center[0], center[1], parent);
+        var label = add$2(longLabelText, center[0], center[1], parent);
         var bbox = label.node().getBBox(); // 2. if it does not enter, the short label
 
         if (!isBboxInsidePolygon(bbox, polygon[0])) {
@@ -7726,11 +7709,15 @@
       stroke: 'none'
     }
   };
-  function createCountries(parent, projection, path, width, height, data, svg) {
+  function createCountries(parent, projection, path, width, height, data, svg, selectedGeometry, isWithShadow) {
     createSeaBackground(parent, width, height);
-    var countries = createCountriesPolygons(parent, path, data);
+    createCountriesPolygons(parent, path, data);
+
+    if (isWithShadow) {
+      addShadowAroundGeometry(parent, path, selectedGeometry);
+    }
+
     createCountriesLabels(parent, projection, width, height, data, svg);
-    return countries;
   }
 
   function createSeaBackground(parent, width, height) {
@@ -7744,9 +7731,10 @@
   }
 
   function createCountriesLabels(parent, projection, width, height, data) {
-    var countriesLabels = parent.append('g').classed('countries-labels', true);
+    var countriesLabels = parent.append('g').classed('countries-labels', true); // TODO: i18n (there is also a NAME_PT property) - or prepare it before hand
+
     data.features.forEach(function (feature) {
-      return placeLabelInPolygon(feature, projection, width, height, countriesLabels);
+      return placeLabelInPolygon(feature, projection, width, height, countriesLabels, feature.properties.ISO_A2, feature.properties.NAME);
     });
     return countriesLabels;
   }
@@ -7757,6 +7745,53 @@
     return map;
   }
 
+  // TODO: add a label for the Atlantic Ocean? We only have to generate the
+  // geojson polygon, inverting the countries and clipping at the extent
+
+  var cfg$3 = {
+    statesPolygons: {
+      fill: '#F8F8F8',
+      stroke: '#BBB',
+      strokeWidth: 1
+    }
+  };
+  function createStates(parent, projection, path, width, height, data, svg, selectedGeometry, isWithShadow) {
+    createStatesPolygons(parent, path, data);
+
+    if (isWithShadow) {
+      addShadowAroundGeometry(parent, path, selectedGeometry);
+    }
+
+    createStatesLabels(parent, projection, width, height, data, svg);
+  }
+
+  function createStatesPolygons(parent, path, data) {
+    var config = cfg$3.statesPolygons;
+    return parent.append('g').selectAll('path').data(data.features).enter().append('path').attr('fill', config.fill).attr('stroke', config.stroke).attr('stroke-width', config.strokeWidth).attr('d', path);
+  }
+
+  function createStatesLabels(parent, projection, width, height, data) {
+    // TODO: short label, long label, colors
+    var statesLabels = parent.append('g').classed('states-labels', true);
+    data.features.forEach(function (feature) {
+      return placeLabelInPolygon(feature, projection, width, height, statesLabels, feature.properties.sigla, feature.properties.nome);
+    });
+    return statesLabels;
+  }
+
+  var cfg$4 = {
+    countries: {
+      fill: '#DDD',
+      stroke: '#BBB',
+      strokeWidth: 1
+    },
+    defaultHeight: 500,
+    defaultWidth: 500,
+    projection: {
+      fitMargin: 20,
+      type: 'epsg5530'
+    }
+  };
   function create$1(state, content) {
     // Clean existing contents
     // TODO: be more clever
@@ -7764,15 +7799,15 @@
     // in a future version
     // TODO: variable height and width, depending on the screen size and layout
 
-    var height = cfg.defaultHeight;
-    var width = cfg.defaultWidth;
+    var height = cfg$4.defaultHeight;
+    var width = cfg$4.defaultWidth;
     var mapHeight = height;
     var mapWidth = width; // Setup basic DOM elements
     // TODO: use args or configuration instead of hardcoded div#map
 
     var svg = appendSvg(content, width, height);
     var svgDefs = appendDefs(svg);
-    addShadowFilter(svgDefs, cfg.shadow.svgFilter);
+    addShadowFilter(svgDefs);
     var map = createMap(svg, mapWidth, mapHeight); // TODO: move to the configuration, or to the arguments
     // Selected level of simplification, among: original, simplifiedForBrazil,
     // simplifiedForState
@@ -7785,20 +7820,20 @@
     var selectedGeometry = state.data.geojson[level].brazil; // Projection is a function that maps geographic coordinates to planar
     // coordinates in the SVG viewport
 
-    var projection = createProjection(mapWidth, mapHeight, cfg.projection, selectedGeometry); // Path is a function that transforms a geometry (a point, a line, a polygon)
+    var projection = createProjection(mapWidth, mapHeight, cfg$4.projection, selectedGeometry); // Path is a function that transforms a geometry (a point, a line, a polygon)
     // into a SVG path (also allows to generate canvas paths, for example)
     // Note that it takes geographic coordinates as an input, not planar ones
     // (that's why the projection is passed as an argument to create it)
 
     var path = createPath(projection); // Add sub-elements
 
-    createCountries(map, projection, path, width, height, state.data.geojson[level].countries, svg);
-    addShadowAroundGeometry(map, path, selectedGeometry, cfg.shadow); // TODO: evaluate if the function should return a value or not
+    createCountries(map, projection, path, width, height, state.data.geojson[level].countries, svg, selectedGeometry, state.zoom === 'brazil');
+    createStates(map, projection, path, width, height, state.data.geojson[level].states, svg, selectedGeometry, state.zoom !== 'brazil'); // TODO: evaluate if the function should return a value or not
 
     return svg;
   }
 
-  var cfg$3 = {
+  var cfg$5 = {
     id: 'content'
   };
   var create$2 = {
@@ -7812,7 +7847,7 @@
     }
   };
   function appendContent(dispatcher, parent) {
-    var content = parent.append('div').attr('id', cfg$3.id);
+    var content = parent.append('div').attr('id', cfg$5.id);
     startLoading(content);
     dispatcher.on('state-changed.content', function (state) {
       startLoading(content);
@@ -7832,7 +7867,7 @@
 
   // TODO: in cfg
   // TODO: i18n
-  var cfg$4 = {
+  var cfg$6 = {
     callbackTypename: 'view-control-changed',
     class: 'tabs is-centered is-fullwidth',
     defaultOptionId: 'number',
@@ -7847,9 +7882,9 @@
     }]
   };
   function append(dispatcher, parent, defaultState) {
-    var control = parent.append('div').attr('id', cfg$4.id).classed(cfg$4.class, true);
+    var control = parent.append('div').attr('id', cfg$6.id).classed(cfg$6.class, true);
     var ul = control.append('ul');
-    var li = ul.selectAll('li').data(cfg$4.options).enter().append('li').attr('id', function (opt) {
+    var li = ul.selectAll('li').data(cfg$6.options).enter().append('li').attr('id', function (opt) {
       return opt.id;
     });
     li.append('a').text(function (opt) {
@@ -7860,7 +7895,7 @@
     li.on('click', function (data, id, cur) {
       setActiveClass(li, data.id); // invoke callbacks
 
-      dispatcher.call(cfg$4.callbackTypename, null, {
+      dispatcher.call(cfg$6.callbackTypename, null, {
         selected: data.id
       });
     });
@@ -7869,14 +7904,14 @@
 
   function setActiveClass(li, id) {
     // set the isActiveClass to the current tab
-    li.classed(cfg$4.isActiveClass, function (data) {
+    li.classed(cfg$6.isActiveClass, function (data) {
       return data.id === id;
     });
   }
 
   // TODO: in cfg
   // TODO: i18n
-  var cfg$5 = {
+  var cfg$7 = {
     callbackTypename: 'zoom-control-changed',
     class: 'breadcrumb is-toggle',
     defaultOptionId: 'brazil',
@@ -7891,9 +7926,9 @@
     }]
   };
   function append$1(dispatcher, parent, defaultState) {
-    var control = parent.append('nav').attr('id', cfg$5.id).classed(cfg$5.class, true);
+    var control = parent.append('nav').attr('id', cfg$7.id).classed(cfg$7.class, true);
     var ul = control.append('ul');
-    var li = ul.selectAll('li').data(cfg$5.options).enter().append('li').attr('id', function (opt) {
+    var li = ul.selectAll('li').data(cfg$7.options).enter().append('li').attr('id', function (opt) {
       return opt.id;
     });
     li.append('a').text(function (opt) {
@@ -7904,7 +7939,7 @@
     li.on('click', function (data, id, cur) {
       setActiveClass$1(li, data.id); // invoke callbacks
 
-      dispatcher.call(cfg$5.callbackTypename, null, {
+      dispatcher.call(cfg$7.callbackTypename, null, {
         selected: data.id
       });
     });
@@ -7913,7 +7948,7 @@
 
   function setActiveClass$1(li, id) {
     // set the isActiveClass to the current tab
-    li.classed(cfg$5.isActiveClass, function (data) {
+    li.classed(cfg$7.isActiveClass, function (data) {
       return data.id === id;
     });
   }
@@ -7927,7 +7962,7 @@
     return controls;
   }
 
-  var cfg$6 = {
+  var cfg$8 = {
     countries: {
       geometriesNumber: 255,
       integrityHash: 'sha384-5SdXldiqi3bZIJd1lTR03wlr/BcQZtufaPk5GLSD6Pqq4OtYj37y46YgetKdOHHr',
@@ -8419,9 +8454,9 @@
       csv: load,
       topojson: load$1
     };
-    var keys = Object.keys(cfg$6);
+    var keys = Object.keys(cfg$8);
     var promises = keys.map(function (key) {
-      var datasetCfg = cfg$6[key];
+      var datasetCfg = cfg$8[key];
       var load = loadByType[datasetCfg.type];
       return load(datasetCfg);
     });

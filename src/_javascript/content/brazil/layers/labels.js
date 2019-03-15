@@ -35,11 +35,10 @@ export function placeLabelInPolygon(
   projection,
   width,
   height,
-  parent
+  parent,
+  shortLabelText,
+  longLabelText
 ) {
-  const shortLabelText = feature.properties.ISO_A2;
-  // TODO: i18n (there is also a NAME_PT property) - or prepare it before hand
-  const labelText = feature.properties.NAME;
   const polygon = projectAndClipFeature(feature, projection, width, height)
     .coordinates;
 
@@ -52,7 +51,7 @@ export function placeLabelInPolygon(
       // if the center is inside the map, try to add the label:
 
       // 1. the long label
-      let label = add(labelText, center[0], center[1], parent);
+      let label = add(longLabelText, center[0], center[1], parent);
       let bbox = label.node().getBBox();
 
       // 2. if it does not enter, the short label
