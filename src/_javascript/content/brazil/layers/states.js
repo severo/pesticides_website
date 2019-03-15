@@ -5,7 +5,11 @@ import {placeLabelInPolygon} from './labels.js';
 // TODO: add a label for the Atlantic Ocean? We only have to generate the
 // geojson polygon, inverting the countries and clipping at the extent
 export const cfg = {
-  statesPolygons: {
+  labels: {
+    color: '#BBB',
+    fontSize: '10',
+  },
+  polygons: {
     fill: '#F8F8F8',
     stroke: '#BBB',
     strokeWidth: 1,
@@ -31,7 +35,7 @@ export function createStates(
 }
 
 function createStatesPolygons(parent, path, data) {
-  const config = cfg.statesPolygons;
+  const config = cfg.polygons;
   return parent
     .append('g')
     .selectAll('path')
@@ -55,7 +59,8 @@ function createStatesLabels(parent, projection, width, height, data) {
       height,
       statesLabels,
       feature.properties.sigla,
-      feature.properties.nome
+      feature.properties.nome,
+      cfg.labels
     )
   );
   return statesLabels;

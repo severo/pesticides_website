@@ -5,14 +5,19 @@ import {placeLabelInPolygon} from './labels.js';
 // TODO: add a label for the Atlantic Ocean? We only have to generate the
 // geojson polygon, inverting the countries and clipping at the extent
 export const cfg = {
-  countriesPolygons: {
-    fill: '#DDD',
-    stroke: '#BBB',
-    strokeWidth: 1,
-  },
-  seaBackground: {
+  background: {
     fill: '#e3eef9',
+    isCreated: false,
     stroke: 'none',
+  },
+  labels: {
+    color: '#DDD',
+    fontSize: '10',
+  },
+  polygons: {
+    fill: '#DDD3',
+    stroke: '#BBB3',
+    strokeWidth: 1,
   },
 };
 
@@ -27,7 +32,9 @@ export function createCountries(
   selectedGeometry,
   isWithShadow
 ) {
-  createSeaBackground(parent, width, height);
+  if (cfg.background.isCreated) {
+    createBackground(parent, width, height);
+  }
   createCountriesPolygons(parent, path, data);
   if (isWithShadow) {
     addShadowAroundGeometry(parent, path, selectedGeometry);
@@ -35,8 +42,8 @@ export function createCountries(
   createCountriesLabels(parent, projection, width, height, data, svg);
 }
 
-function createSeaBackground(parent, width, height) {
-  const config = cfg.seaBackground;
+function createBackground(parent, width, height) {
+  const config = cfg.background;
   return parent
     .append('rect')
     .attr('x', 0)
@@ -48,7 +55,7 @@ function createSeaBackground(parent, width, height) {
 }
 
 function createCountriesPolygons(parent, path, data) {
-  const config = cfg.countriesPolygons;
+  const config = cfg.polygons;
   return parent
     .append('g')
     .selectAll('path')
@@ -72,7 +79,8 @@ function createCountriesLabels(parent, projection, width, height, data) {
       height,
       countriesLabels,
       feature.properties.ISO_A2,
-      feature.properties.NAME
+      feature.properties.NAME,
+      cfg.labels
     )
   );
   return countriesLabels;

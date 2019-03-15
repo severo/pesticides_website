@@ -1,11 +1,6 @@
 import {polygonContains} from 'd3';
 import {polylabel} from './polylabel';
 
-const cfg = {
-  color: '#BBB',
-  fontSize: '14',
-};
-
 function isBboxInsidePolygon(bbox, polygon) {
   // TODO: ensure that all the text is inside the polygon
   // (the four corners could be inside, whereas the polygon
@@ -18,7 +13,7 @@ function isBboxInsidePolygon(bbox, polygon) {
   );
 }
 
-function add(name, xx, yy, parent) {
+function add(name, xx, yy, parent, cfg) {
   return parent
     .append('text')
     .attr('x', xx)
@@ -37,7 +32,8 @@ export function placeLabelInPolygon(
   height,
   parent,
   shortLabelText,
-  longLabelText
+  longLabelText,
+  cfg
 ) {
   const polygon = projectAndClipFeature(feature, projection, width, height)
     .coordinates;
@@ -51,13 +47,13 @@ export function placeLabelInPolygon(
       // if the center is inside the map, try to add the label:
 
       // 1. the long label
-      let label = add(longLabelText, center[0], center[1], parent);
+      let label = add(longLabelText, center[0], center[1], parent, cfg);
       let bbox = label.node().getBBox();
 
       // 2. if it does not enter, the short label
       if (!isBboxInsidePolygon(bbox, polygon[0])) {
         label.remove();
-        label = add(shortLabelText, center[0], center[1], parent);
+        label = add(shortLabelText, center[0], center[1], parent, cfg);
         bbox = label.node().getBBox();
 
         // 3. if it does not enter either, do not show any label
