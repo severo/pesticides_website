@@ -50,8 +50,8 @@ loadData()
 
 // Create the layout
 // TODO: in cfg
-const appId = 'app';
-const appDiv = select('div#' + appId);
-appendControls(dispatcher, appDiv, state);
-appendContent(dispatcher, appDiv);
-appendDebug(dispatcher, appDiv);
+const appDom = select('section#app');
+const controlsDom = select('div#controls');
+appendControls(dispatcher, controlsDom, state);
+appendContent(dispatcher, appDom);
+appendDebug(dispatcher, controlsDom);

@@ -1,6 +1,7 @@
 (function () {
   'use strict';
 
+  //const cfg = {defaultWidth: '40%'};
   function appendSvg(parent, width, height) {
     return parent.append('svg').attr('width', width).attr('height', height).attr('viewBox', '0,0,' + width + ',' + height);
   }
@@ -8544,10 +8545,10 @@
   }); // Create the layout
   // TODO: in cfg
 
-  var appId = 'app';
-  var appDiv = select('div#' + appId);
-  appendControls(dispatcher, appDiv, state);
-  appendContent(dispatcher, appDiv);
-  appendDebug(dispatcher, appDiv);
+  var appDom = select('section#app');
+  var controlsDom = select('div#controls');
+  appendControls(dispatcher, controlsDom, state);
+  appendContent(dispatcher, appDom);
+  appendDebug(dispatcher, controlsDom);
 
 }());

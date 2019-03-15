@@ -1,3 +1,5 @@
+//const cfg = {defaultWidth: '40%'};
+
 export function appendSvg(parent, width, height) {
   return parent
     .append('svg')
