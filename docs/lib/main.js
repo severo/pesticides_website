@@ -7769,7 +7769,8 @@
     //const level = 'original';
 
     var level = 'simplifiedForBrazil'; // Selected geometry: Brazil
-    // TODO: depend on state.zoom
+    // TODO: depend on state.zoom - note: this is the brazil/index.js, it's
+    // supposed to be only for Brazil zoom level
 
     var selectedGeometry = state.data.geojson[level].brazil; // Projection is a function that maps geographic coordinates to planar
     // coordinates in the SVG viewport
@@ -7782,7 +7783,7 @@
     var path = createPath(projection); // Add sub-elements
 
     createCountries(map, projection, path, mapWidth, mapHeight, state.data.geojson[level].countries, svg, selectedGeometry, state.zoom === 'brazil');
-    createStates(map, projection, path, mapWidth, mapHeight, state.data.geojson[level].states, svg, selectedGeometry, state.zoom !== 'brazil'); // TODO: evaluate if the function should return a value or not
+    createStates(map, projection, path, mapWidth, mapHeight, state.data.geojson[level].states, svg, selectedGeometry, state.zoom !== 'brazil'); // Add values elements
 
     return svg;
   }

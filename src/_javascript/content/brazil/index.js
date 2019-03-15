@@ -1,6 +1,7 @@
 import {appendDefs, appendSvg} from './svg';
 import {createPath, createProjection} from './projection';
 import {addShadowFilter} from './layers/shadow';
+import {createChoropleth} from './layers/choropleth';
 import {createCountries} from './layers/countries';
 import {createMap} from './map';
 import {createStates} from './layers/states';
@@ -41,7 +42,8 @@ export function create(state, content) {
   const level = 'simplifiedForBrazil';
 
   // Selected geometry: Brazil
-  // TODO: depend on state.zoom
+  // TODO: depend on state.zoom - note: this is the brazil/index.js, it's
+  // supposed to be only for Brazil zoom level
   const selectedGeometry = state.data.geojson[level].brazil;
 
   // Projection is a function that maps geographic coordinates to planar
@@ -83,6 +85,9 @@ export function create(state, content) {
     selectedGeometry,
     state.zoom !== 'brazil'
   );
+
+  // Add values elements
+  createChoropleth();
 
   // TODO: evaluate if the function should return a value or not
   return svg;
