@@ -7317,10 +7317,12 @@
     bezierCurveTo: function(x1, y1, x2, y2, x, y) { this._context.bezierCurveTo(y1, x1, y2, x2, y, x); }
   };
 
+  var parameters = ['detected', 'sup_eu', 'eq_br', 'sup_br'];
   var cfg$1 = {
     number: {
       hoverCallbackTypename: 'number-hover',
-      maxValue: 27
+      maxValue: 27,
+      parameter: parameters[1]
     }
   };
   function createChoropleth(parent, geometries, statistics, path, view, dispatcher) {
@@ -7329,7 +7331,7 @@
       return {
         geom: mun.geometry,
         id: mun.properties.geocodigo.slice(0, ibgeCodeLength),
-        value: getValue(statistics, mun.properties.ibgeCode)
+        value: getValue(statistics, mun.properties.ibgeCode, view)
       };
     });
     parent.append('g').classed('choropleth', true).classed(view, true).selectAll('path').data(data).enter().append('path').attr('id', function (mun) {
@@ -7344,9 +7346,9 @@
     });
   }
 
-  function getValue(statistics, ibgeCode) {
+  function getValue(statistics, ibgeCode, view) {
     if (ibgeCode in statistics) {
-      return statistics[ibgeCode].detected;
+      return statistics[ibgeCode][cfg$1[view].parameter];
     }
 
     return null;

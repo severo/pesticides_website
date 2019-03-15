@@ -1,6 +1,14 @@
 import {interpolateYlOrRd} from 'd3';
 
-const cfg = {number: {hoverCallbackTypename: 'number-hover', maxValue: 27}};
+// TODO: add a control to select the parameter?
+const parameters = ['detected', 'sup_eu', 'eq_br', 'sup_br'];
+const cfg = {
+  number: {
+    hoverCallbackTypename: 'number-hover',
+    maxValue: 27,
+    parameter: parameters[1],
+  },
+};
 
 export function createChoropleth(
   parent,
@@ -15,7 +23,7 @@ export function createChoropleth(
     return {
       geom: mun.geometry,
       id: mun.properties.geocodigo.slice(0, ibgeCodeLength),
-      value: getValue(statistics, mun.properties.ibgeCode),
+      value: getValue(statistics, mun.properties.ibgeCode, view),
     };
   });
   parent
@@ -35,9 +43,9 @@ export function createChoropleth(
     });
 }
 
-function getValue(statistics, ibgeCode) {
+function getValue(statistics, ibgeCode, view) {
   if (ibgeCode in statistics) {
-    return statistics[ibgeCode].detected;
+    return statistics[ibgeCode][cfg[view].parameter];
   }
   return null;
 }
