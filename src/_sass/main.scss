@@ -49,3 +49,38 @@ $primary-invert: $pink-invert;
     border-width: 0.25em;
   }
 }
+
+.map {
+  .background {
+    display: none;
+    path {
+      fill: #e3eef9;
+      stroke: none;
+    }
+  }
+  .countries-polygons path {
+    fill: #ddd6;
+    stroke: #bbb6;
+    stroke-width: 1;
+  }
+  .countries-labels text {
+    fill: #ddd;
+    font-size: 10px;
+    text-transform: uppercase;
+  }
+  .shadow path {
+    fill: #f8f8f8;
+    stroke: #bbb;
+    stroke-width: 1;
+  }
+  .states-polygons path {
+    fill: #eef6e6;
+    stroke: #bbb;
+    stroke-width: 1;
+  }
+  .states-labels text {
+    fill: #8b8b8b;
+    font-size: 10px;
+    text-transform: uppercase;
+  }
+}

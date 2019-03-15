@@ -13,16 +13,13 @@ function isBboxInsidePolygon(bbox, polygon) {
   );
 }
 
-function add(name, xx, yy, parent, cfg) {
+function add(name, xx, yy, parent) {
   return parent
     .append('text')
     .attr('x', xx)
     .attr('y', yy)
     .attr('dy', '.3em') // See http://lea.verou.me/2013/03/easily-center-text-vertically-with-svg/
     .attr('text-anchor', 'middle')
-    .attr('style', 'text-transform: uppercase;')
-    .attr('font-size', cfg.fontSize)
-    .attr('fill', cfg.color)
     .text(name);
 }
 export function placeLabelInPolygon(
@@ -32,8 +29,7 @@ export function placeLabelInPolygon(
   height,
   parent,
   shortLabelText,
-  longLabelText,
-  cfg
+  longLabelText
 ) {
   const polygon = projectAndClipFeature(feature, projection, width, height)
     .coordinates;
@@ -47,13 +43,13 @@ export function placeLabelInPolygon(
       // if the center is inside the map, try to add the label:
 
       // 1. the long label
-      let label = add(longLabelText, center[0], center[1], parent, cfg);
+      let label = add(longLabelText, center[0], center[1], parent);
       let bbox = label.node().getBBox();
 
       // 2. if it does not enter, the short label
       if (!isBboxInsidePolygon(bbox, polygon[0])) {
         label.remove();
-        label = add(shortLabelText, center[0], center[1], parent, cfg);
+        label = add(shortLabelText, center[0], center[1], parent);
         bbox = label.node().getBBox();
 
         // 3. if it does not enter either, do not show any label
