@@ -1,5 +1,6 @@
 import {appendContent} from './content';
 import {appendControls} from './controls';
+import {appendDebug} from './debug';
 import {dispatch} from 'd3-dispatch';
 import {loadData} from './data';
 import {select} from 'd3-selection';
@@ -7,6 +8,7 @@ import {select} from 'd3-selection';
 // TODO: cfg
 const dispatcher = dispatch(
   'data-loaded',
+  'number-hover',
   'state-changed',
   'view-changed',
   'view-control-changed',
@@ -52,3 +54,4 @@ const appId = 'app';
 const appDiv = select('div#' + appId);
 appendControls(dispatcher, appDiv, state);
 appendContent(dispatcher, appDiv);
+appendDebug(dispatcher, appDiv);

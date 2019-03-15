@@ -1,7 +1,25 @@
 import {feature, presimplify, simplify} from 'topojson';
 
 export function postProcess(raw) {
-  // TODO: prepare the data and find the better simplification quantiles
+  // TODO: prepare the data before hand
+  const NUM_CHAR_IBGE_CODE = 6;
+  const munG = raw.municipalities.objects.municipios.geometries;
+  const municipalities = raw.municipalities;
+  municipalities.objects.municipios.geometries = munG.map(mun => {
+    // TODO: do immutably
+    mun.properties.ibgeCode = mun.properties.geocodigo.slice(
+      0,
+      NUM_CHAR_IBGE_CODE
+    );
+    return mun;
+  });
+
+  const statistics = raw.statistics.reduce((acc, cur) => {
+    acc[cur.ibge_code] = cur;
+    return acc;
+  }, {});
+
+  // TODO: prepare the data and find the best simplification levels
   // TODO: see if quantification might also help
   // see https://observablehq.com/@lemonnish/minify-topojson-in-the-browser
   // TODO: compress data with gzip
@@ -39,14 +57,14 @@ export function postProcess(raw) {
       original: {
         brazil: selectBrazil(countries),
         countries: selectCountries(countries),
-        municipalities: toGeoJson(raw.municipalities, 'municipios'),
+        municipalities: toGeoJson(municipalities, 'municipios'),
         states: toGeoJson(raw.states, 'estados'),
       },
       simplifiedForBrazil: {
         brazil: selectBrazil(countriesBrazil),
         countries: selectCountries(countriesBrazil),
         municipalities: toSimplGeoJson(
-          raw.municipalities,
+          municipalities,
           simplificationFactors.brazil,
           'municipios'
         ),
@@ -60,7 +78,7 @@ export function postProcess(raw) {
         brazil: selectBrazil(countriesState),
         countries: selectCountries(countriesState),
         municipalities: toSimplGeoJson(
-          raw.municipalities,
+          municipalities,
           simplificationFactors.state,
           'municipios'
         ),
@@ -71,6 +89,9 @@ export function postProcess(raw) {
         ),
       },
     },
+    // TODO: use population?
+    //population: population,
+    statistics: statistics,
   };
   return data;
 }

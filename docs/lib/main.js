@@ -7117,7 +7117,7 @@
     "ffffccffeda0fed976feb24cfd8d3cfc4e2ae31a1cbd0026800026"
   ).map(colors);
 
-  ramp(scheme$k);
+  var interpolateYlOrRd = ramp(scheme$k);
 
   var scheme$l = new Array(3).concat(
     "deebf79ecae13182bd",
@@ -7316,6 +7316,49 @@
     lineTo: function(x, y) { this._context.lineTo(y, x); },
     bezierCurveTo: function(x1, y1, x2, y2, x, y) { this._context.bezierCurveTo(y1, x1, y2, x2, y, x); }
   };
+
+  var cfg$1 = {
+    number: {
+      hoverCallbackTypename: 'number-hover',
+      maxValue: 27
+    }
+  };
+  function createChoropleth(parent, geometries, statistics, path, view, dispatcher) {
+    var ibgeCodeLength = 6;
+    var data = geometries.municipalities.features.map(function (mun) {
+      return {
+        geom: mun.geometry,
+        id: mun.properties.geocodigo.slice(0, ibgeCodeLength),
+        value: getValue(statistics, mun.properties.ibgeCode)
+      };
+    });
+    parent.append('g').classed('choropleth', true).classed(view, true).selectAll('path').data(data).enter().append('path').attr('id', function (mun) {
+      return mun.id;
+    }).attr('d', function (mun) {
+      return path(mun.geom);
+    }).style('fill', function (mun) {
+      return getFill(mun.value, view);
+    }).on('mouseover', function (mun) {
+      // invoke callbacks
+      dispatcher.call(cfg$1[view].hoverCallbackTypename, null, mun);
+    });
+  }
+
+  function getValue(statistics, ibgeCode) {
+    if (ibgeCode in statistics) {
+      return statistics[ibgeCode].detected;
+    }
+
+    return null;
+  }
+
+  function getFill(value, view) {
+    if (value) {
+      return interpolateYlOrRd(value / cfg$1[view].maxValue);
+    }
+
+    return null;
+  }
 
   class TinyQueue {
       constructor(data = [], compare = defaultCompare) {
@@ -7720,7 +7763,8 @@
 
     if (isWithShadow) {
       addShadowAroundGeometry(parent, path, selectedGeometry);
-    }
+    } // TODO: remove labels for the states? Put them above the choropleth?
+
 
     createStatesLabels(parent, projection, width, height, data, svg);
   }
@@ -7738,7 +7782,7 @@
     return statesLabels;
   }
 
-  var cfg$1 = {
+  var cfg$2 = {
     defaultHeight: 500,
     defaultWidth: 500,
     projection: {
@@ -7746,55 +7790,59 @@
       type: 'epsg5530'
     }
   };
-  function create$1(state, content) {
-    // Clean existing contents
-    // TODO: be more clever
-    content.html(null); // Height and width are special parameters, they could be variable
-    // in a future version
-    // TODO: variable height and width, depending on the screen size and layout
+  function create$1(view) {
+    return function (state, content, dispatcher) {
+      // Clean existing contents
+      // TODO: be more clever
+      content.html(null); // Height and width are special parameters, they could be variable
+      // in a future version
+      // TODO: variable height and width, depending on the screen size and layout
 
-    var height = cfg$1.defaultHeight;
-    var width = cfg$1.defaultWidth;
-    var mapHeight = height;
-    var mapWidth = width; // Setup basic DOM elements
-    // TODO: use args or configuration instead of hardcoded div#map
+      var height = cfg$2.defaultHeight;
+      var width = cfg$2.defaultWidth;
+      var mapHeight = height;
+      var mapWidth = width; // Setup basic DOM elements
+      // TODO: use args or configuration instead of hardcoded div#map
 
-    var svg = appendSvg(content, width, height);
-    var svgDefs = appendDefs(svg);
-    addShadowFilter(svgDefs);
-    var map = createMap(svg, mapWidth, mapHeight); // TODO: move to the configuration, or to the arguments
-    // Selected level of simplification, among: original, simplifiedForBrazil,
-    // simplifiedForState
-    // TODO: depend on state.zoom
-    //const level = 'original';
+      var svg = appendSvg(content, width, height);
+      var svgDefs = appendDefs(svg);
+      addShadowFilter(svgDefs);
+      var map = createMap(svg, mapWidth, mapHeight); // TODO: move to the configuration, or to the arguments
+      // Selected level of simplification, among: original, simplifiedForBrazil,
+      // simplifiedForState
+      // TODO: depend on state.zoom
+      //const level = 'original';
 
-    var level = 'simplifiedForBrazil'; // Selected geometry: Brazil
-    // TODO: depend on state.zoom - note: this is the brazil/index.js, it's
-    // supposed to be only for Brazil zoom level
+      var level = 'simplifiedForBrazil'; // Selected geometry: Brazil
+      // TODO: depend on state.zoom - note: this is the brazil/index.js, it's
+      // supposed to be only for Brazil zoom level
 
-    var selectedGeometry = state.data.geojson[level].brazil; // Projection is a function that maps geographic coordinates to planar
-    // coordinates in the SVG viewport
+      var selectedGeometry = state.data.geojson[level].brazil; // Projection is a function that maps geographic coordinates to planar
+      // coordinates in the SVG viewport
 
-    var projection = createProjection(mapWidth, mapHeight, cfg$1.projection, selectedGeometry); // Path is a function that transforms a geometry (a point, a line, a polygon)
-    // into a SVG path (also allows to generate canvas paths, for example)
-    // Note that it takes geographic coordinates as an input, not planar ones
-    // (that's why the projection is passed as an argument to create it)
+      var projection = createProjection(mapWidth, mapHeight, cfg$2.projection, selectedGeometry); // Path is a function that transforms a geometry (a point, a line, a polygon)
+      // into a SVG path (also allows to generate canvas paths, for example)
+      // Note that it takes geographic coordinates as an input, not planar ones
+      // (that's why the projection is passed as an argument to create it)
 
-    var path = createPath(projection); // Add sub-elements
+      var path = createPath(projection); // Add sub-elements
 
-    createCountries(map, projection, path, mapWidth, mapHeight, state.data.geojson[level].countries, svg, selectedGeometry, state.zoom === 'brazil');
-    createStates(map, projection, path, mapWidth, mapHeight, state.data.geojson[level].states, svg, selectedGeometry, state.zoom !== 'brazil'); // Add values elements
+      createCountries(map, projection, path, mapWidth, mapHeight, state.data.geojson[level].countries, svg, selectedGeometry, state.zoom === 'brazil');
+      createStates(map, projection, path, mapWidth, mapHeight, state.data.geojson[level].states, svg, selectedGeometry, state.zoom !== 'brazil'); // Add values elements
 
-    return svg;
+      createChoropleth(map, state.data.geojson[level], state.data.statistics, path, view, dispatcher); // TODO: evaluate if the function should return a value or not
+
+      return svg;
+    };
   }
 
-  var cfg$2 = {
+  var cfg$3 = {
     id: 'content'
   };
   var create$2 = {
     brazil: {
-      concentration: create$1,
-      number: create$1
+      concentration: create$1('concentration'),
+      number: create$1('number')
     },
     saopaolo: {
       concentration: function concentration(state) {},
@@ -7802,11 +7850,11 @@
     }
   };
   function appendContent(dispatcher, parent) {
-    var content = parent.append('div').attr('id', cfg$2.id);
+    var content = parent.append('div').attr('id', cfg$3.id);
     startLoading(content);
     dispatcher.on('state-changed.content', function (state) {
       startLoading(content);
-      create$2[state.zoom][state.view](state, content);
+      create$2[state.zoom][state.view](state, content, dispatcher);
       endLoading(content);
     });
     return content;
@@ -7822,7 +7870,7 @@
 
   // TODO: in cfg
   // TODO: i18n
-  var cfg$3 = {
+  var cfg$4 = {
     callbackTypename: 'view-control-changed',
     class: 'tabs is-centered is-fullwidth',
     defaultOptionId: 'number',
@@ -7837,9 +7885,9 @@
     }]
   };
   function append(dispatcher, parent, defaultState) {
-    var control = parent.append('div').attr('id', cfg$3.id).classed(cfg$3.class, true);
+    var control = parent.append('div').attr('id', cfg$4.id).classed(cfg$4.class, true);
     var ul = control.append('ul');
-    var li = ul.selectAll('li').data(cfg$3.options).enter().append('li').attr('id', function (opt) {
+    var li = ul.selectAll('li').data(cfg$4.options).enter().append('li').attr('id', function (opt) {
       return opt.id;
     });
     li.append('a').text(function (opt) {
@@ -7850,7 +7898,7 @@
     li.on('click', function (data, id, cur) {
       setActiveClass(li, data.id); // invoke callbacks
 
-      dispatcher.call(cfg$3.callbackTypename, null, {
+      dispatcher.call(cfg$4.callbackTypename, null, {
         selected: data.id
       });
     });
@@ -7859,14 +7907,14 @@
 
   function setActiveClass(li, id) {
     // set the isActiveClass to the current tab
-    li.classed(cfg$3.isActiveClass, function (data) {
+    li.classed(cfg$4.isActiveClass, function (data) {
       return data.id === id;
     });
   }
 
   // TODO: in cfg
   // TODO: i18n
-  var cfg$4 = {
+  var cfg$5 = {
     callbackTypename: 'zoom-control-changed',
     class: 'breadcrumb is-toggle',
     defaultOptionId: 'brazil',
@@ -7881,9 +7929,9 @@
     }]
   };
   function append$1(dispatcher, parent, defaultState) {
-    var control = parent.append('nav').attr('id', cfg$4.id).classed(cfg$4.class, true);
+    var control = parent.append('nav').attr('id', cfg$5.id).classed(cfg$5.class, true);
     var ul = control.append('ul');
-    var li = ul.selectAll('li').data(cfg$4.options).enter().append('li').attr('id', function (opt) {
+    var li = ul.selectAll('li').data(cfg$5.options).enter().append('li').attr('id', function (opt) {
       return opt.id;
     });
     li.append('a').text(function (opt) {
@@ -7894,7 +7942,7 @@
     li.on('click', function (data, id, cur) {
       setActiveClass$1(li, data.id); // invoke callbacks
 
-      dispatcher.call(cfg$4.callbackTypename, null, {
+      dispatcher.call(cfg$5.callbackTypename, null, {
         selected: data.id
       });
     });
@@ -7903,7 +7951,7 @@
 
   function setActiveClass$1(li, id) {
     // set the isActiveClass to the current tab
-    li.classed(cfg$4.isActiveClass, function (data) {
+    li.classed(cfg$5.isActiveClass, function (data) {
       return data.id === id;
     });
   }
@@ -7917,7 +7965,22 @@
     return controls;
   }
 
-  var cfg$5 = {
+  function appendDebug(dispatcher, parent) {
+    var debugElement = parent.append('div').classed('debug', true).append('footer').classed('footer', true).append('div').classed('content', true);
+    debugElement.append('h3').text('Debug');
+    var pre = debugElement.append('pre');
+    dispatcher.on('number-hover', function (mun) {
+      return log$1(mun, pre);
+    });
+  }
+
+  function log$1(mun, parent) {
+    parent.html('');
+    parent.append('p').text('Municipality: ' + mun.id);
+    parent.append('p').text('Value: ' + mun.value);
+  }
+
+  var cfg$6 = {
     countries: {
       geometriesNumber: 255,
       integrityHash: 'sha384-5SdXldiqi3bZIJd1lTR03wlr/BcQZtufaPk5GLSD6Pqq4OtYj37y46YgetKdOHHr',
@@ -8248,7 +8311,19 @@
   var pi$6 = Math.PI;
 
   function postProcess(raw) {
-    // TODO: prepare the data and find the better simplification quantiles
+    // TODO: prepare the data before hand
+    var NUM_CHAR_IBGE_CODE = 6;
+    var munG = raw.municipalities.objects.municipios.geometries;
+    var municipalities = raw.municipalities;
+    municipalities.objects.municipios.geometries = munG.map(function (mun) {
+      // TODO: do immutably
+      mun.properties.ibgeCode = mun.properties.geocodigo.slice(0, NUM_CHAR_IBGE_CODE);
+      return mun;
+    });
+    var statistics = raw.statistics.reduce(function (acc, cur) {
+      acc[cur.ibge_code] = cur;
+      return acc;
+    }, {}); // TODO: prepare the data and find the best simplification levels
     // TODO: see if quantification might also help
     // see https://observablehq.com/@lemonnish/minify-topojson-in-the-browser
     // TODO: compress data with gzip
@@ -8256,6 +8331,7 @@
     // See https://bost.ocks.org/mike/simplify/
     // Value between 1 and 4 px^2 seem to be optimal
     // TODO: hardcoded values to cfg
+
     var BRAZIL_MIN_AREA_PX2 = 2.25;
     var STATE_MIN_AREA_PX2 = 1; // TODO: The data are in degrees. We need to project (using
     // the projection we want for the application), for a given level of zoom, and
@@ -8276,22 +8352,25 @@
         original: {
           brazil: selectBrazil(countries),
           countries: selectCountries(countries),
-          municipalities: toGeoJson(raw.municipalities, 'municipios'),
+          municipalities: toGeoJson(municipalities, 'municipios'),
           states: toGeoJson(raw.states, 'estados')
         },
         simplifiedForBrazil: {
           brazil: selectBrazil(countriesBrazil),
           countries: selectCountries(countriesBrazil),
-          municipalities: toSimplGeoJson(raw.municipalities, simplificationFactors.brazil, 'municipios'),
+          municipalities: toSimplGeoJson(municipalities, simplificationFactors.brazil, 'municipios'),
           states: toSimplGeoJson(raw.states, simplificationFactors.brazil, 'estados')
         },
         simplifiedForState: {
           brazil: selectBrazil(countriesState),
           countries: selectCountries(countriesState),
-          municipalities: toSimplGeoJson(raw.municipalities, simplificationFactors.state, 'municipios'),
+          municipalities: toSimplGeoJson(municipalities, simplificationFactors.state, 'municipios'),
           states: toSimplGeoJson(raw.states, simplificationFactors.state, 'estados')
         }
-      }
+      },
+      // TODO: use population?
+      //population: population,
+      statistics: statistics
     };
     return data;
   }
@@ -8409,9 +8488,9 @@
       csv: load,
       topojson: load$1
     };
-    var keys = Object.keys(cfg$5);
+    var keys = Object.keys(cfg$6);
     var promises = keys.map(function (key) {
-      var datasetCfg = cfg$5[key];
+      var datasetCfg = cfg$6[key];
       var load = loadByType[datasetCfg.type];
       return load(datasetCfg);
     });
@@ -8431,7 +8510,7 @@
 
   var _this = undefined;
 
-  var dispatcher = dispatch('data-loaded', 'state-changed', 'view-changed', 'view-control-changed', 'zoom-control-changed');
+  var dispatcher = dispatch('data-loaded', 'number-hover', 'state-changed', 'view-changed', 'view-control-changed', 'zoom-control-changed');
   var state = {
     data: {},
     view: 'number',
@@ -8467,5 +8546,6 @@
   var appDiv = select('div#' + appId);
   appendControls(dispatcher, appDiv, state);
   appendContent(dispatcher, appDiv);
+  appendDebug(dispatcher, appDiv);
 
 }());

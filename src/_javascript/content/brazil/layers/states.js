@@ -18,6 +18,7 @@ export function createStates(
   if (isWithShadow) {
     addShadowAroundGeometry(parent, path, selectedGeometry);
   }
+  // TODO: remove labels for the states? Put them above the choropleth?
   createStatesLabels(parent, projection, width, height, data, svg);
 }
 

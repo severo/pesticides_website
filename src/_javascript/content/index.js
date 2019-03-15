@@ -6,8 +6,8 @@ const cfg = {
 
 const create = {
   brazil: {
-    concentration: brazil.create,
-    number: brazil.create,
+    concentration: brazil.create('concentration'),
+    number: brazil.create('number'),
   },
   saopaolo: {
     concentration: state => {},
@@ -22,7 +22,7 @@ export function appendContent(dispatcher, parent) {
 
   dispatcher.on('state-changed.content', state => {
     startLoading(content);
-    create[state.zoom][state.view](state, content);
+    create[state.zoom][state.view](state, content, dispatcher);
     endLoading(content);
   });
 
