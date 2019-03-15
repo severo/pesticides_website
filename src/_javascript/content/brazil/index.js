@@ -6,11 +6,6 @@ import {createMap} from './map';
 import {createStates} from './layers/states';
 
 const cfg = {
-  countries: {
-    fill: '#DDD',
-    stroke: '#BBB',
-    strokeWidth: 1,
-  },
   defaultHeight: 500,
   defaultWidth: 500,
   projection: {
@@ -69,8 +64,8 @@ export function create(state, content) {
     map,
     projection,
     path,
-    width,
-    height,
+    mapWidth,
+    mapHeight,
     state.data.geojson[level].countries,
     svg,
     selectedGeometry,
@@ -81,8 +76,8 @@ export function create(state, content) {
     map,
     projection,
     path,
-    width,
-    height,
+    mapWidth,
+    mapHeight,
     state.data.geojson[level].states,
     svg,
     selectedGeometry,

@@ -7739,11 +7739,6 @@
   }
 
   var cfg$1 = {
-    countries: {
-      fill: '#DDD',
-      stroke: '#BBB',
-      strokeWidth: 1
-    },
     defaultHeight: 500,
     defaultWidth: 500,
     projection: {
@@ -7786,8 +7781,8 @@
 
     var path = createPath(projection); // Add sub-elements
 
-    createCountries(map, projection, path, width, height, state.data.geojson[level].countries, svg, selectedGeometry, state.zoom === 'brazil');
-    createStates(map, projection, path, width, height, state.data.geojson[level].states, svg, selectedGeometry, state.zoom !== 'brazil'); // TODO: evaluate if the function should return a value or not
+    createCountries(map, projection, path, mapWidth, mapHeight, state.data.geojson[level].countries, svg, selectedGeometry, state.zoom === 'brazil');
+    createStates(map, projection, path, mapWidth, mapHeight, state.data.geojson[level].states, svg, selectedGeometry, state.zoom !== 'brazil'); // TODO: evaluate if the function should return a value or not
 
     return svg;
   }
