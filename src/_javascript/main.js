@@ -1,5 +1,5 @@
 import {appendContent} from './content';
-import {appendControls} from './controls';
+//import {appendControls} from './controls';
 import {appendDebug} from './debug';
 import {dispatch} from 'd3-dispatch';
 import {loadData} from './data';
@@ -52,6 +52,6 @@ loadData()
 // TODO: in cfg
 const appDom = select('section#app');
 const controlsDom = select('div#controls');
-appendControls(dispatcher, controlsDom, state);
+//appendControls(dispatcher, controlsDom, state);
 appendContent(dispatcher, appDom);
 appendDebug(dispatcher, controlsDom);

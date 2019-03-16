@@ -6,12 +6,14 @@ const cfg = {
   },
 };
 
-export function appendSvg(parent, width, height) {
-  return parent
-    .append('svg')
-    .attr('width', width)
-    .attr('height', height)
-    .attr('viewBox', '0,0,' + cfg.viewport.width + ',' + cfg.viewport.height);
+export function appendSvg(parent) {
+  return (
+    parent
+      .append('svg')
+      /*.attr('width', width)
+    .attr('height', height)*/
+      .attr('viewBox', '0,0,' + cfg.viewport.width + ',' + cfg.viewport.height)
+  );
 }
 
 export function appendDefs(parent) {

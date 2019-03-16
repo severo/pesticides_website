@@ -8,8 +8,11 @@
       width: 960
     }
   };
-  function appendSvg(parent, width, height) {
-    return parent.append('svg').attr('width', width).attr('height', height).attr('viewBox', '0,0,' + cfg.viewport.width + ',' + cfg.viewport.height);
+  function appendSvg(parent) {
+    return parent.append('svg')
+    /*.attr('width', width)
+    .attr('height', height)*/
+    .attr('viewBox', '0,0,' + cfg.viewport.width + ',' + cfg.viewport.height);
   }
 
   function ascending(a, b) {
@@ -5883,9 +5886,13 @@
   }
   */
 
-  function createMap(parent, width, height) {
+  function createMap(parent) {
+    //, width, height) {
     var map = parent.append('g') // TODO: pass the class name as a parameter?
-    .classed('map', true).attr('width', width).attr('height', height);
+    .classed('map', true);
+    /*.attr('width', width)
+      .attr('height', height);*/
+
     return map;
   }
 
@@ -5947,10 +5954,11 @@
     return geoPath().projection(projection);
   }
 
-  var cfg$2 = {
+  /*const cfg = {
     defaultHeight: 500,
-    defaultWidth: 500
-  };
+    defaultWidth: 500,
+  };*/
+
   /*projection: {
       fitMargin: 20,
       type: 'epsg5530',
@@ -5964,16 +5972,19 @@
       // in a future version
       // TODO: variable height and width, depending on the screen size and layout
 
-      var height = cfg$2.defaultHeight;
-      var width = cfg$2.defaultWidth;
-      var mapHeight = height;
-      var mapWidth = width; // Setup basic DOM elements
+      /*const height = cfg.defaultHeight;
+      const width = cfg.defaultWidth;
+      const mapHeight = height;
+      const mapWidth = width;*/
+      // Setup basic DOM elements
       // TODO: use args or configuration instead of hardcoded div#map
+      //const svg = appendSvg(content, width, height);
 
-      var svg = appendSvg(content, width, height); //const svgDefs = appendDefs(svg);
+      var svg = appendSvg(content); //const svgDefs = appendDefs(svg);
       //addShadowFilter(svgDefs);
+      //const map = createMap(svg, mapWidth, mapHeight);
 
-      var map = createMap(svg, mapWidth, mapHeight); // TODO: move to the configuration, or to the arguments
+      var map = createMap(svg); // TODO: move to the configuration, or to the arguments
       // Selected level of simplification, among: original, simplifiedForBrazil,
       // simplifiedForState
       // TODO: depend on state.zoom
@@ -6023,7 +6034,7 @@
     };
   }
 
-  var cfg$3 = {
+  var cfg$2 = {
     id: 'content'
   };
   var create$2 = {
@@ -6037,7 +6048,7 @@
     }
   };
   function appendContent(dispatcher, parent) {
-    var content = parent.append('div').attr('id', cfg$3.id);
+    var content = parent.append('div').attr('id', cfg$2.id);
     startLoading(content);
     dispatcher.on('state-changed.content', function (state) {
       startLoading(content);
@@ -6056,101 +6067,8 @@
   }
 
   // TODO: in cfg
-  // TODO: i18n
-  var cfg$4 = {
-    callbackTypename: 'view-control-changed',
-    class: 'tabs is-centered is-fullwidth',
-    defaultOptionId: 'number',
-    id: 'view-control',
-    isActiveClass: 'is-active',
-    options: [{
-      id: 'number',
-      text: 'Number of pesticides'
-    }, {
-      id: 'concentration',
-      text: 'Over safe limit'
-    }]
-  };
-  function append(dispatcher, parent, defaultState) {
-    var control = parent.append('div').attr('id', cfg$4.id).classed(cfg$4.class, true);
-    var ul = control.append('ul');
-    var li = ul.selectAll('li').data(cfg$4.options).enter().append('li').attr('id', function (opt) {
-      return opt.id;
-    });
-    li.append('a').text(function (opt) {
-      return opt.text;
-    });
-    setActiveClass(li, defaultState.view); // TODO: ontouch?
-
-    li.on('click', function (data, id, cur) {
-      setActiveClass(li, data.id); // invoke callbacks
-
-      dispatcher.call(cfg$4.callbackTypename, null, {
-        selected: data.id
-      });
-    });
-    return control;
-  }
-
-  function setActiveClass(li, id) {
-    // set the isActiveClass to the current tab
-    li.classed(cfg$4.isActiveClass, function (data) {
-      return data.id === id;
-    });
-  }
 
   // TODO: in cfg
-  // TODO: i18n
-  var cfg$5 = {
-    callbackTypename: 'zoom-control-changed',
-    class: 'breadcrumb is-toggle',
-    defaultOptionId: 'brazil',
-    id: 'zoom-control',
-    isActiveClass: 'is-active',
-    options: [{
-      id: 'brazil',
-      text: 'Brazil'
-    }, {
-      id: 'saopaolo',
-      text: 'Sao Paolo'
-    }]
-  };
-  function append$1(dispatcher, parent, defaultState) {
-    var control = parent.append('nav').attr('id', cfg$5.id).classed(cfg$5.class, true);
-    var ul = control.append('ul');
-    var li = ul.selectAll('li').data(cfg$5.options).enter().append('li').attr('id', function (opt) {
-      return opt.id;
-    });
-    li.append('a').text(function (opt) {
-      return opt.text;
-    });
-    setActiveClass$1(li, defaultState.zoom); // TODO: ontouch?
-
-    li.on('click', function (data, id, cur) {
-      setActiveClass$1(li, data.id); // invoke callbacks
-
-      dispatcher.call(cfg$5.callbackTypename, null, {
-        selected: data.id
-      });
-    });
-    return control;
-  }
-
-  function setActiveClass$1(li, id) {
-    // set the isActiveClass to the current tab
-    li.classed(cfg$5.isActiveClass, function (data) {
-      return data.id === id;
-    });
-  }
-
-  function appendControls(dispatcher, parent, defaultState) {
-    // TODO: in cfg
-    var controlsId = 'controls';
-    var controls = parent.append('div').attr('id', controlsId);
-    append(dispatcher, controls, defaultState);
-    append$1(dispatcher, controls, defaultState);
-    return controls;
-  }
 
   function appendDebug(dispatcher, parent) {
     var debugElement = parent.append('div').classed('debug', true).append('footer').classed('footer', true).append('div').classed('content', true);
@@ -6273,7 +6191,7 @@
 
   var pi$6 = Math.PI;
 
-  var cfg$6 = {
+  var cfg$3 = {
     topojson: {
       integrityHash: 'sha384-EHOxB3BF2QMvROtvl9UgiCGfI+Lez4J+/CVqtoAhHbv9JsZ7F8FmK5GP5xMzZtsG',
       url: 'data/br-px-topo.2019031601.json'
@@ -6284,10 +6202,10 @@
     }
   };
   function loadData() {
-    var promises = [json(cfg$6.topojson.url, {
-      integrity: cfg$6.topojson.integrityHash
-    }), csv$1(cfg$6.values.url, {
-      integrity: cfg$6.values.integrityHash
+    var promises = [json(cfg$3.topojson.url, {
+      integrity: cfg$3.topojson.integrityHash
+    }), csv$1(cfg$3.values.url, {
+      integrity: cfg$3.values.integrityHash
     }, function (row) {
       return {
         category: {
@@ -6371,8 +6289,8 @@
   // TODO: in cfg
 
   var appDom = select('section#app');
-  var controlsDom = select('div#controls');
-  appendControls(dispatcher, controlsDom, state);
+  var controlsDom = select('div#controls'); //appendControls(dispatcher, controlsDom, state);
+
   appendContent(dispatcher, appDom);
   appendDebug(dispatcher, controlsDom);
 

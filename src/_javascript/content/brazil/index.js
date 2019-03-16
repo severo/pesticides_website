@@ -6,10 +6,10 @@ import {createFuFrontiers} from './layers/fu';
 import {createMap} from './map';
 import {createPath} from './projection';
 
-const cfg = {
+/*const cfg = {
   defaultHeight: 500,
   defaultWidth: 500,
-};
+};*/
 /*projection: {
     fitMargin: 20,
     type: 'epsg5530',
@@ -24,17 +24,19 @@ export function create(view) {
     // Height and width are special parameters, they could be variable
     // in a future version
     // TODO: variable height and width, depending on the screen size and layout
-    const height = cfg.defaultHeight;
+    /*const height = cfg.defaultHeight;
     const width = cfg.defaultWidth;
     const mapHeight = height;
-    const mapWidth = width;
+    const mapWidth = width;*/
 
     // Setup basic DOM elements
     // TODO: use args or configuration instead of hardcoded div#map
-    const svg = appendSvg(content, width, height);
+    //const svg = appendSvg(content, width, height);
+    const svg = appendSvg(content);
     //const svgDefs = appendDefs(svg);
     //addShadowFilter(svgDefs);
-    const map = createMap(svg, mapWidth, mapHeight);
+    //const map = createMap(svg, mapWidth, mapHeight);
+    const map = createMap(svg);
 
     // TODO: move to the configuration, or to the arguments
     // Selected level of simplification, among: original, simplifiedForBrazil,
