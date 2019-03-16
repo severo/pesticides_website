@@ -8,11 +8,11 @@ export function appendDebug(dispatcher, parent) {
     .classed('content', true);
   debugElement.append('h3').text('Debug');
   const pre = debugElement.append('pre');
-  dispatcher.on('number-hover', mun => log(mun, pre));
+  dispatcher.on('number-hover', data => log(data, pre));
 }
 
-function log(mun, parent) {
+function log(data, parent) {
   parent.html('');
-  parent.append('p').text('Municipality: ' + mun.id);
-  parent.append('p').text('Value: ' + mun.value);
+  parent.append('p').text('Municipality: ' + data.id);
+  parent.append('p').text('Value: ' + data.value);
 }
