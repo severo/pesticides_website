@@ -5859,6 +5859,8 @@
       // invoke callbacks
       dispatcher.call(cfg$1[view].hoverCallbackTypename, null, {
         id: ft.properties.ibgeCode,
+        name: ft.properties.name,
+        population: ft.properties.population,
         value: value(ft)
       });
     });
@@ -6066,10 +6068,6 @@
     content.classed('is-loading', false);
   }
 
-  // TODO: in cfg
-
-  // TODO: in cfg
-
   function appendDebug(dispatcher, parent) {
     var debugElement = parent.append('div').classed('debug', true).append('footer').classed('footer', true).append('div').classed('content', true);
     debugElement.append('h3').text('Debug');
@@ -6081,7 +6079,7 @@
 
   function log(data, parent) {
     parent.html('');
-    parent.append('p').text('Municipality: ' + data.id);
+    parent.append('p').text('Municipality: ' + data.name + ' (code ' + data.id + ' - ' + data.population + ' hab.)');
     parent.append('p').text('Value: ' + data.value);
   }
 
@@ -6193,8 +6191,8 @@
 
   var cfg$3 = {
     topojson: {
-      integrityHash: 'sha384-EHOxB3BF2QMvROtvl9UgiCGfI+Lez4J+/CVqtoAhHbv9JsZ7F8FmK5GP5xMzZtsG',
-      url: 'data/br-px-topo.2019031601.json'
+      integrityHash: 'sha384-T57m5+BaBiLe7uyAZrKOU/BqCXtK9t0ZIj+YXAUES8EOxrngeVCKflSzZXnB9kVd',
+      url: 'data/br-px-topo.2019031701.json'
     },
     values: {
       integrityHash: 'sha384-1mMiVJ4KDmhyjlz86hL3dd+AYo/ShdE/2L8iW5nCdsUHlgsMt9ZS/PTVg12LyTZM',

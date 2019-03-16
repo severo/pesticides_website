@@ -13,6 +13,16 @@ export function appendDebug(dispatcher, parent) {
 
 function log(data, parent) {
   parent.html('');
-  parent.append('p').text('Municipality: ' + data.id);
+  parent
+    .append('p')
+    .text(
+      'Municipality: ' +
+        data.name +
+        ' (code ' +
+        data.id +
+        ' - ' +
+        data.population +
+        ' hab.)'
+    );
   parent.append('p').text('Value: ' + data.value);
 }

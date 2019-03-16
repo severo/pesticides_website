@@ -4,8 +4,8 @@ import {feature} from 'topojson';
 export const cfg = {
   topojson: {
     integrityHash:
-      'sha384-EHOxB3BF2QMvROtvl9UgiCGfI+Lez4J+/CVqtoAhHbv9JsZ7F8FmK5GP5xMzZtsG',
-    url: 'data/br-px-topo.2019031601.json',
+      'sha384-T57m5+BaBiLe7uyAZrKOU/BqCXtK9t0ZIj+YXAUES8EOxrngeVCKflSzZXnB9kVd',
+    url: 'data/br-px-topo.2019031701.json',
   },
   values: {
     integrityHash:

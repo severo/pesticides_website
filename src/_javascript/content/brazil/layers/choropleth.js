@@ -53,6 +53,8 @@ export function createChoropleth(parent, data, path, view, dispatcher) {
       // invoke callbacks
       dispatcher.call(cfg[view].hoverCallbackTypename, null, {
         id: ft.properties.ibgeCode,
+        name: ft.properties.name,
+        population: ft.properties.population,
         value: value(ft),
       });
     });
