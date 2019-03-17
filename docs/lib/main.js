@@ -1,58 +1,6 @@
 (function () {
   'use strict';
 
-  // The data is already projected, it's expressed in px, between 0 and 960px
-  var cfg = {
-    viewport: {
-      height: 960,
-      width: 960
-    }
-  };
-  function appendSvg(parent) {
-    return parent.append('svg')
-    /*.attr('width', width)
-    .attr('height', height)*/
-    .attr('viewBox', '0,0,' + cfg.viewport.width + ',' + cfg.viewport.height);
-  }
-
-  function ascending(a, b) {
-    return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
-  }
-
-  function bisector(compare) {
-    if (compare.length === 1) compare = ascendingComparator(compare);
-    return {
-      left: function(a, x, lo, hi) {
-        if (lo == null) lo = 0;
-        if (hi == null) hi = a.length;
-        while (lo < hi) {
-          var mid = lo + hi >>> 1;
-          if (compare(a[mid], x) < 0) lo = mid + 1;
-          else hi = mid;
-        }
-        return lo;
-      },
-      right: function(a, x, lo, hi) {
-        if (lo == null) lo = 0;
-        if (hi == null) hi = a.length;
-        while (lo < hi) {
-          var mid = lo + hi >>> 1;
-          if (compare(a[mid], x) > 0) hi = mid;
-          else lo = mid + 1;
-        }
-        return lo;
-      }
-    };
-  }
-
-  function ascendingComparator(f) {
-    return function(d, x) {
-      return ascending(f(d), x);
-    };
-  }
-
-  var ascendingBisect = bisector(ascending);
-
   var noop = {value: function() {}};
 
   function dispatch() {
@@ -134,6 +82,933 @@
     }
     if (callback != null) type.push({name: name, value: callback});
     return type;
+  }
+
+  var EOL = {},
+      EOF = {},
+      QUOTE = 34,
+      NEWLINE = 10,
+      RETURN = 13;
+
+  function objectConverter(columns) {
+    return new Function("d", "return {" + columns.map(function(name, i) {
+      return JSON.stringify(name) + ": d[" + i + "]";
+    }).join(",") + "}");
+  }
+
+  function customConverter(columns, f) {
+    var object = objectConverter(columns);
+    return function(row, i) {
+      return f(object(row), i, columns);
+    };
+  }
+
+  // Compute unique columns in order of discovery.
+  function inferColumns(rows) {
+    var columnSet = Object.create(null),
+        columns = [];
+
+    rows.forEach(function(row) {
+      for (var column in row) {
+        if (!(column in columnSet)) {
+          columns.push(columnSet[column] = column);
+        }
+      }
+    });
+
+    return columns;
+  }
+
+  function pad(value, width) {
+    var s = value + "", length = s.length;
+    return length < width ? new Array(width - length + 1).join(0) + s : s;
+  }
+
+  function formatYear(year) {
+    return year < 0 ? "-" + pad(-year, 6)
+      : year > 9999 ? "+" + pad(year, 6)
+      : pad(year, 4);
+  }
+
+  function formatDate(date) {
+    var hours = date.getUTCHours(),
+        minutes = date.getUTCMinutes(),
+        seconds = date.getUTCSeconds(),
+        milliseconds = date.getUTCMilliseconds();
+    return isNaN(date) ? "Invalid Date"
+        : formatYear(date.getUTCFullYear(), 4) + "-" + pad(date.getUTCMonth() + 1, 2) + "-" + pad(date.getUTCDate(), 2)
+        + (milliseconds ? "T" + pad(hours, 2) + ":" + pad(minutes, 2) + ":" + pad(seconds, 2) + "." + pad(milliseconds, 3) + "Z"
+        : seconds ? "T" + pad(hours, 2) + ":" + pad(minutes, 2) + ":" + pad(seconds, 2) + "Z"
+        : minutes || hours ? "T" + pad(hours, 2) + ":" + pad(minutes, 2) + "Z"
+        : "");
+  }
+
+  function dsv(delimiter) {
+    var reFormat = new RegExp("[\"" + delimiter + "\n\r]"),
+        DELIMITER = delimiter.charCodeAt(0);
+
+    function parse(text, f) {
+      var convert, columns, rows = parseRows(text, function(row, i) {
+        if (convert) return convert(row, i - 1);
+        columns = row, convert = f ? customConverter(row, f) : objectConverter(row);
+      });
+      rows.columns = columns || [];
+      return rows;
+    }
+
+    function parseRows(text, f) {
+      var rows = [], // output rows
+          N = text.length,
+          I = 0, // current character index
+          n = 0, // current line number
+          t, // current token
+          eof = N <= 0, // current token followed by EOF?
+          eol = false; // current token followed by EOL?
+
+      // Strip the trailing newline.
+      if (text.charCodeAt(N - 1) === NEWLINE) --N;
+      if (text.charCodeAt(N - 1) === RETURN) --N;
+
+      function token() {
+        if (eof) return EOF;
+        if (eol) return eol = false, EOL;
+
+        // Unescape quotes.
+        var i, j = I, c;
+        if (text.charCodeAt(j) === QUOTE) {
+          while (I++ < N && text.charCodeAt(I) !== QUOTE || text.charCodeAt(++I) === QUOTE);
+          if ((i = I) >= N) eof = true;
+          else if ((c = text.charCodeAt(I++)) === NEWLINE) eol = true;
+          else if (c === RETURN) { eol = true; if (text.charCodeAt(I) === NEWLINE) ++I; }
+          return text.slice(j + 1, i - 1).replace(/""/g, "\"");
+        }
+
+        // Find next delimiter or newline.
+        while (I < N) {
+          if ((c = text.charCodeAt(i = I++)) === NEWLINE) eol = true;
+          else if (c === RETURN) { eol = true; if (text.charCodeAt(I) === NEWLINE) ++I; }
+          else if (c !== DELIMITER) continue;
+          return text.slice(j, i);
+        }
+
+        // Return last token before EOF.
+        return eof = true, text.slice(j, N);
+      }
+
+      while ((t = token()) !== EOF) {
+        var row = [];
+        while (t !== EOL && t !== EOF) row.push(t), t = token();
+        if (f && (row = f(row, n++)) == null) continue;
+        rows.push(row);
+      }
+
+      return rows;
+    }
+
+    function preformatBody(rows, columns) {
+      return rows.map(function(row) {
+        return columns.map(function(column) {
+          return formatValue(row[column]);
+        }).join(delimiter);
+      });
+    }
+
+    function format(rows, columns) {
+      if (columns == null) columns = inferColumns(rows);
+      return [columns.map(formatValue).join(delimiter)].concat(preformatBody(rows, columns)).join("\n");
+    }
+
+    function formatBody(rows, columns) {
+      if (columns == null) columns = inferColumns(rows);
+      return preformatBody(rows, columns).join("\n");
+    }
+
+    function formatRows(rows) {
+      return rows.map(formatRow).join("\n");
+    }
+
+    function formatRow(row) {
+      return row.map(formatValue).join(delimiter);
+    }
+
+    function formatValue(value) {
+      return value == null ? ""
+          : value instanceof Date ? formatDate(value)
+          : reFormat.test(value += "") ? "\"" + value.replace(/"/g, "\"\"") + "\""
+          : value;
+    }
+
+    return {
+      parse: parse,
+      parseRows: parseRows,
+      format: format,
+      formatBody: formatBody,
+      formatRows: formatRows
+    };
+  }
+
+  var csv = dsv(",");
+
+  var csvParse = csv.parse;
+  var csvParseRows = csv.parseRows;
+  var csvFormat = csv.format;
+  var csvFormatBody = csv.formatBody;
+  var csvFormatRows = csv.formatRows;
+
+  var tsv = dsv("\t");
+
+  var tsvParse = tsv.parse;
+  var tsvParseRows = tsv.parseRows;
+  var tsvFormat = tsv.format;
+  var tsvFormatBody = tsv.formatBody;
+  var tsvFormatRows = tsv.formatRows;
+
+  function responseText(response) {
+    if (!response.ok) throw new Error(response.status + " " + response.statusText);
+    return response.text();
+  }
+
+  function text(input, init) {
+    return fetch(input, init).then(responseText);
+  }
+
+  function dsvParse(parse) {
+    return function(input, init, row) {
+      if (arguments.length === 2 && typeof init === "function") row = init, init = undefined;
+      return text(input, init).then(function(response) {
+        return parse(response, row);
+      });
+    };
+  }
+
+  var csv$1 = dsvParse(csvParse);
+
+  function responseJson(response) {
+    if (!response.ok) throw new Error(response.status + " " + response.statusText);
+    return response.json();
+  }
+
+  function json(input, init) {
+    return fetch(input, init).then(responseJson);
+  }
+
+  function identity(x) {
+    return x;
+  }
+
+  function transform(transform) {
+    if (transform == null) return identity;
+    var x0,
+        y0,
+        kx = transform.scale[0],
+        ky = transform.scale[1],
+        dx = transform.translate[0],
+        dy = transform.translate[1];
+    return function(input, i) {
+      if (!i) x0 = y0 = 0;
+      var j = 2, n = input.length, output = new Array(n);
+      output[0] = (x0 += input[0]) * kx + dx;
+      output[1] = (y0 += input[1]) * ky + dy;
+      while (j < n) output[j] = input[j], ++j;
+      return output;
+    };
+  }
+
+  function reverse(array, n) {
+    var t, j = array.length, i = j - n;
+    while (i < --j) t = array[i], array[i++] = array[j], array[j] = t;
+  }
+
+  function feature(topology, o) {
+    return o.type === "GeometryCollection"
+        ? {type: "FeatureCollection", features: o.geometries.map(function(o) { return feature$1(topology, o); })}
+        : feature$1(topology, o);
+  }
+
+  function feature$1(topology, o) {
+    var id = o.id,
+        bbox = o.bbox,
+        properties = o.properties == null ? {} : o.properties,
+        geometry = object(topology, o);
+    return id == null && bbox == null ? {type: "Feature", properties: properties, geometry: geometry}
+        : bbox == null ? {type: "Feature", id: id, properties: properties, geometry: geometry}
+        : {type: "Feature", id: id, bbox: bbox, properties: properties, geometry: geometry};
+  }
+
+  function object(topology, o) {
+    var transformPoint = transform(topology.transform),
+        arcs = topology.arcs;
+
+    function arc(i, points) {
+      if (points.length) points.pop();
+      for (var a = arcs[i < 0 ? ~i : i], k = 0, n = a.length; k < n; ++k) {
+        points.push(transformPoint(a[k], k));
+      }
+      if (i < 0) reverse(points, n);
+    }
+
+    function point(p) {
+      return transformPoint(p);
+    }
+
+    function line(arcs) {
+      var points = [];
+      for (var i = 0, n = arcs.length; i < n; ++i) arc(arcs[i], points);
+      if (points.length < 2) points.push(points[0]); // This should never happen per the specification.
+      return points;
+    }
+
+    function ring(arcs) {
+      var points = line(arcs);
+      while (points.length < 4) points.push(points[0]); // This may happen if an arc has only two points.
+      return points;
+    }
+
+    function polygon(arcs) {
+      return arcs.map(ring);
+    }
+
+    function geometry(o) {
+      var type = o.type, coordinates;
+      switch (type) {
+        case "GeometryCollection": return {type: type, geometries: o.geometries.map(geometry)};
+        case "Point": coordinates = point(o.coordinates); break;
+        case "MultiPoint": coordinates = o.coordinates.map(point); break;
+        case "LineString": coordinates = line(o.arcs); break;
+        case "MultiLineString": coordinates = o.arcs.map(line); break;
+        case "Polygon": coordinates = polygon(o.arcs); break;
+        case "MultiPolygon": coordinates = o.arcs.map(polygon); break;
+        default: return null;
+      }
+      return {type: type, coordinates: coordinates};
+    }
+
+    return geometry(o);
+  }
+
+  // Computes the bounding box of the specified hash of GeoJSON objects.
+
+  // TODO if quantized, use simpler Int32 hashing?
+
+  // Given an array of arcs in absolute (but already quantized!) coordinates,
+
+  // Extracts the lines and rings from the specified hash of geometry objects.
+
+  // Given a hash of GeoJSON objects, returns a hash of GeoJSON geometry objects.
+
+  var pi = Math.PI;
+
+  // Adds floating point numbers with twice the normal precision.
+  // Reference: J. R. Shewchuk, Adaptive Precision Floating-Point Arithmetic and
+  // Fast Robust Geometric Predicates, Discrete & Computational Geometry 18(3)
+  // 305–363 (1997).
+  // Code adapted from GeographicLib by Charles F. F. Karney,
+  // http://geographiclib.sourceforge.net/
+
+  function adder() {
+    return new Adder;
+  }
+
+  function Adder() {
+    this.reset();
+  }
+
+  Adder.prototype = {
+    constructor: Adder,
+    reset: function() {
+      this.s = // rounded value
+      this.t = 0; // exact error
+    },
+    add: function(y) {
+      add(temp, y, this.t);
+      add(this, temp.s, this.s);
+      if (this.s) this.t += temp.t;
+      else this.s = temp.t;
+    },
+    valueOf: function() {
+      return this.s;
+    }
+  };
+
+  var temp = new Adder;
+
+  function add(adder, a, b) {
+    var x = adder.s = a + b,
+        bv = x - a,
+        av = x - bv;
+    adder.t = (a - av) + (b - bv);
+  }
+
+  var pi$1 = Math.PI;
+  var tau = pi$1 * 2;
+
+  var abs = Math.abs;
+  var sqrt = Math.sqrt;
+
+  function noop$1() {}
+
+  function streamGeometry(geometry, stream) {
+    if (geometry && streamGeometryType.hasOwnProperty(geometry.type)) {
+      streamGeometryType[geometry.type](geometry, stream);
+    }
+  }
+
+  var streamObjectType = {
+    Feature: function(object, stream) {
+      streamGeometry(object.geometry, stream);
+    },
+    FeatureCollection: function(object, stream) {
+      var features = object.features, i = -1, n = features.length;
+      while (++i < n) streamGeometry(features[i].geometry, stream);
+    }
+  };
+
+  var streamGeometryType = {
+    Sphere: function(object, stream) {
+      stream.sphere();
+    },
+    Point: function(object, stream) {
+      object = object.coordinates;
+      stream.point(object[0], object[1], object[2]);
+    },
+    MultiPoint: function(object, stream) {
+      var coordinates = object.coordinates, i = -1, n = coordinates.length;
+      while (++i < n) object = coordinates[i], stream.point(object[0], object[1], object[2]);
+    },
+    LineString: function(object, stream) {
+      streamLine(object.coordinates, stream, 0);
+    },
+    MultiLineString: function(object, stream) {
+      var coordinates = object.coordinates, i = -1, n = coordinates.length;
+      while (++i < n) streamLine(coordinates[i], stream, 0);
+    },
+    Polygon: function(object, stream) {
+      streamPolygon(object.coordinates, stream);
+    },
+    MultiPolygon: function(object, stream) {
+      var coordinates = object.coordinates, i = -1, n = coordinates.length;
+      while (++i < n) streamPolygon(coordinates[i], stream);
+    },
+    GeometryCollection: function(object, stream) {
+      var geometries = object.geometries, i = -1, n = geometries.length;
+      while (++i < n) streamGeometry(geometries[i], stream);
+    }
+  };
+
+  function streamLine(coordinates, stream, closed) {
+    var i = -1, n = coordinates.length - closed, coordinate;
+    stream.lineStart();
+    while (++i < n) coordinate = coordinates[i], stream.point(coordinate[0], coordinate[1], coordinate[2]);
+    stream.lineEnd();
+  }
+
+  function streamPolygon(coordinates, stream) {
+    var i = -1, n = coordinates.length;
+    stream.polygonStart();
+    while (++i < n) streamLine(coordinates[i], stream, 1);
+    stream.polygonEnd();
+  }
+
+  function geoStream(object, stream) {
+    if (object && streamObjectType.hasOwnProperty(object.type)) {
+      streamObjectType[object.type](object, stream);
+    } else {
+      streamGeometry(object, stream);
+    }
+  }
+
+  var areaRingSum = adder();
+
+  var areaSum = adder();
+
+  var deltaSum = adder();
+
+  var sum = adder();
+
+  function ascending(a, b) {
+    return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
+  }
+
+  function bisector(compare) {
+    if (compare.length === 1) compare = ascendingComparator(compare);
+    return {
+      left: function(a, x, lo, hi) {
+        if (lo == null) lo = 0;
+        if (hi == null) hi = a.length;
+        while (lo < hi) {
+          var mid = lo + hi >>> 1;
+          if (compare(a[mid], x) < 0) lo = mid + 1;
+          else hi = mid;
+        }
+        return lo;
+      },
+      right: function(a, x, lo, hi) {
+        if (lo == null) lo = 0;
+        if (hi == null) hi = a.length;
+        while (lo < hi) {
+          var mid = lo + hi >>> 1;
+          if (compare(a[mid], x) > 0) hi = mid;
+          else lo = mid + 1;
+        }
+        return lo;
+      }
+    };
+  }
+
+  function ascendingComparator(f) {
+    return function(d, x) {
+      return ascending(f(d), x);
+    };
+  }
+
+  var ascendingBisect = bisector(ascending);
+
+  var lengthSum = adder();
+
+  function identity$1(x) {
+    return x;
+  }
+
+  var areaSum$1 = adder(),
+      areaRingSum$1 = adder(),
+      x00,
+      y00,
+      x0,
+      y0;
+
+  var areaStream = {
+    point: noop$1,
+    lineStart: noop$1,
+    lineEnd: noop$1,
+    polygonStart: function() {
+      areaStream.lineStart = areaRingStart;
+      areaStream.lineEnd = areaRingEnd;
+    },
+    polygonEnd: function() {
+      areaStream.lineStart = areaStream.lineEnd = areaStream.point = noop$1;
+      areaSum$1.add(abs(areaRingSum$1));
+      areaRingSum$1.reset();
+    },
+    result: function() {
+      var area = areaSum$1 / 2;
+      areaSum$1.reset();
+      return area;
+    }
+  };
+
+  function areaRingStart() {
+    areaStream.point = areaPointFirst;
+  }
+
+  function areaPointFirst(x, y) {
+    areaStream.point = areaPoint;
+    x00 = x0 = x, y00 = y0 = y;
+  }
+
+  function areaPoint(x, y) {
+    areaRingSum$1.add(y0 * x - x0 * y);
+    x0 = x, y0 = y;
+  }
+
+  function areaRingEnd() {
+    areaPoint(x00, y00);
+  }
+
+  var x0$1 = Infinity,
+      y0$1 = x0$1,
+      x1 = -x0$1,
+      y1 = x1;
+
+  var boundsStream = {
+    point: boundsPoint,
+    lineStart: noop$1,
+    lineEnd: noop$1,
+    polygonStart: noop$1,
+    polygonEnd: noop$1,
+    result: function() {
+      var bounds = [[x0$1, y0$1], [x1, y1]];
+      x1 = y1 = -(y0$1 = x0$1 = Infinity);
+      return bounds;
+    }
+  };
+
+  function boundsPoint(x, y) {
+    if (x < x0$1) x0$1 = x;
+    if (x > x1) x1 = x;
+    if (y < y0$1) y0$1 = y;
+    if (y > y1) y1 = y;
+  }
+
+  // TODO Enforce positive area for exterior, negative area for interior?
+
+  var X0 = 0,
+      Y0 = 0,
+      Z0 = 0,
+      X1 = 0,
+      Y1 = 0,
+      Z1 = 0,
+      X2 = 0,
+      Y2 = 0,
+      Z2 = 0,
+      x00$1,
+      y00$1,
+      x0$2,
+      y0$2;
+
+  var centroidStream = {
+    point: centroidPoint,
+    lineStart: centroidLineStart,
+    lineEnd: centroidLineEnd,
+    polygonStart: function() {
+      centroidStream.lineStart = centroidRingStart;
+      centroidStream.lineEnd = centroidRingEnd;
+    },
+    polygonEnd: function() {
+      centroidStream.point = centroidPoint;
+      centroidStream.lineStart = centroidLineStart;
+      centroidStream.lineEnd = centroidLineEnd;
+    },
+    result: function() {
+      var centroid = Z2 ? [X2 / Z2, Y2 / Z2]
+          : Z1 ? [X1 / Z1, Y1 / Z1]
+          : Z0 ? [X0 / Z0, Y0 / Z0]
+          : [NaN, NaN];
+      X0 = Y0 = Z0 =
+      X1 = Y1 = Z1 =
+      X2 = Y2 = Z2 = 0;
+      return centroid;
+    }
+  };
+
+  function centroidPoint(x, y) {
+    X0 += x;
+    Y0 += y;
+    ++Z0;
+  }
+
+  function centroidLineStart() {
+    centroidStream.point = centroidPointFirstLine;
+  }
+
+  function centroidPointFirstLine(x, y) {
+    centroidStream.point = centroidPointLine;
+    centroidPoint(x0$2 = x, y0$2 = y);
+  }
+
+  function centroidPointLine(x, y) {
+    var dx = x - x0$2, dy = y - y0$2, z = sqrt(dx * dx + dy * dy);
+    X1 += z * (x0$2 + x) / 2;
+    Y1 += z * (y0$2 + y) / 2;
+    Z1 += z;
+    centroidPoint(x0$2 = x, y0$2 = y);
+  }
+
+  function centroidLineEnd() {
+    centroidStream.point = centroidPoint;
+  }
+
+  function centroidRingStart() {
+    centroidStream.point = centroidPointFirstRing;
+  }
+
+  function centroidRingEnd() {
+    centroidPointRing(x00$1, y00$1);
+  }
+
+  function centroidPointFirstRing(x, y) {
+    centroidStream.point = centroidPointRing;
+    centroidPoint(x00$1 = x0$2 = x, y00$1 = y0$2 = y);
+  }
+
+  function centroidPointRing(x, y) {
+    var dx = x - x0$2,
+        dy = y - y0$2,
+        z = sqrt(dx * dx + dy * dy);
+
+    X1 += z * (x0$2 + x) / 2;
+    Y1 += z * (y0$2 + y) / 2;
+    Z1 += z;
+
+    z = y0$2 * x - x0$2 * y;
+    X2 += z * (x0$2 + x);
+    Y2 += z * (y0$2 + y);
+    Z2 += z * 3;
+    centroidPoint(x0$2 = x, y0$2 = y);
+  }
+
+  function PathContext(context) {
+    this._context = context;
+  }
+
+  PathContext.prototype = {
+    _radius: 4.5,
+    pointRadius: function(_) {
+      return this._radius = _, this;
+    },
+    polygonStart: function() {
+      this._line = 0;
+    },
+    polygonEnd: function() {
+      this._line = NaN;
+    },
+    lineStart: function() {
+      this._point = 0;
+    },
+    lineEnd: function() {
+      if (this._line === 0) this._context.closePath();
+      this._point = NaN;
+    },
+    point: function(x, y) {
+      switch (this._point) {
+        case 0: {
+          this._context.moveTo(x, y);
+          this._point = 1;
+          break;
+        }
+        case 1: {
+          this._context.lineTo(x, y);
+          break;
+        }
+        default: {
+          this._context.moveTo(x + this._radius, y);
+          this._context.arc(x, y, this._radius, 0, tau);
+          break;
+        }
+      }
+    },
+    result: noop$1
+  };
+
+  var lengthSum$1 = adder(),
+      lengthRing,
+      x00$2,
+      y00$2,
+      x0$3,
+      y0$3;
+
+  var lengthStream = {
+    point: noop$1,
+    lineStart: function() {
+      lengthStream.point = lengthPointFirst;
+    },
+    lineEnd: function() {
+      if (lengthRing) lengthPoint(x00$2, y00$2);
+      lengthStream.point = noop$1;
+    },
+    polygonStart: function() {
+      lengthRing = true;
+    },
+    polygonEnd: function() {
+      lengthRing = null;
+    },
+    result: function() {
+      var length = +lengthSum$1;
+      lengthSum$1.reset();
+      return length;
+    }
+  };
+
+  function lengthPointFirst(x, y) {
+    lengthStream.point = lengthPoint;
+    x00$2 = x0$3 = x, y00$2 = y0$3 = y;
+  }
+
+  function lengthPoint(x, y) {
+    x0$3 -= x, y0$3 -= y;
+    lengthSum$1.add(sqrt(x0$3 * x0$3 + y0$3 * y0$3));
+    x0$3 = x, y0$3 = y;
+  }
+
+  function PathString() {
+    this._string = [];
+  }
+
+  PathString.prototype = {
+    _radius: 4.5,
+    _circle: circle(4.5),
+    pointRadius: function(_) {
+      if ((_ = +_) !== this._radius) this._radius = _, this._circle = null;
+      return this;
+    },
+    polygonStart: function() {
+      this._line = 0;
+    },
+    polygonEnd: function() {
+      this._line = NaN;
+    },
+    lineStart: function() {
+      this._point = 0;
+    },
+    lineEnd: function() {
+      if (this._line === 0) this._string.push("Z");
+      this._point = NaN;
+    },
+    point: function(x, y) {
+      switch (this._point) {
+        case 0: {
+          this._string.push("M", x, ",", y);
+          this._point = 1;
+          break;
+        }
+        case 1: {
+          this._string.push("L", x, ",", y);
+          break;
+        }
+        default: {
+          if (this._circle == null) this._circle = circle(this._radius);
+          this._string.push("M", x, ",", y, this._circle);
+          break;
+        }
+      }
+    },
+    result: function() {
+      if (this._string.length) {
+        var result = this._string.join("");
+        this._string = [];
+        return result;
+      } else {
+        return null;
+      }
+    }
+  };
+
+  function circle(radius) {
+    return "m0," + radius
+        + "a" + radius + "," + radius + " 0 1,1 0," + -2 * radius
+        + "a" + radius + "," + radius + " 0 1,1 0," + 2 * radius
+        + "z";
+  }
+
+  function geoPath(projection, context) {
+    var pointRadius = 4.5,
+        projectionStream,
+        contextStream;
+
+    function path(object) {
+      if (object) {
+        if (typeof pointRadius === "function") contextStream.pointRadius(+pointRadius.apply(this, arguments));
+        geoStream(object, projectionStream(contextStream));
+      }
+      return contextStream.result();
+    }
+
+    path.area = function(object) {
+      geoStream(object, projectionStream(areaStream));
+      return areaStream.result();
+    };
+
+    path.measure = function(object) {
+      geoStream(object, projectionStream(lengthStream));
+      return lengthStream.result();
+    };
+
+    path.bounds = function(object) {
+      geoStream(object, projectionStream(boundsStream));
+      return boundsStream.result();
+    };
+
+    path.centroid = function(object) {
+      geoStream(object, projectionStream(centroidStream));
+      return centroidStream.result();
+    };
+
+    path.projection = function(_) {
+      return arguments.length ? (projectionStream = _ == null ? (projection = null, identity$1) : (projection = _).stream, path) : projection;
+    };
+
+    path.context = function(_) {
+      if (!arguments.length) return context;
+      contextStream = _ == null ? (context = null, new PathString) : new PathContext(context = _);
+      if (typeof pointRadius !== "function") contextStream.pointRadius(pointRadius);
+      return path;
+    };
+
+    path.pointRadius = function(_) {
+      if (!arguments.length) return pointRadius;
+      pointRadius = typeof _ === "function" ? _ : (contextStream.pointRadius(+_), +_);
+      return path;
+    };
+
+    return path.projection(projection).context(context);
+  }
+
+  var cfg = {
+    topojson: {
+      integrityHash: 'sha384-T57m5+BaBiLe7uyAZrKOU/BqCXtK9t0ZIj+YXAUES8EOxrngeVCKflSzZXnB9kVd',
+      url: 'data/br-px-topo.2019031701.json'
+    },
+    values: {
+      integrityHash: 'sha384-1mMiVJ4KDmhyjlz86hL3dd+AYo/ShdE/2L8iW5nCdsUHlgsMt9ZS/PTVg12LyTZM',
+      url: 'https://raw.githubusercontent.com/severo/data_brazil/master/data_by_municipality_for_maps.csv'
+    }
+  };
+  function loadData() {
+    var promises = [json(cfg.topojson.url, {
+      integrity: cfg.topojson.integrityHash
+    }), csv$1(cfg.values.url, {
+      integrity: cfg.values.integrityHash
+    }, function (row) {
+      return {
+        category: {
+          atrAvgCat: row.atrazine_average_category,
+          atrMaxCat: row.atrazine_category,
+          simAvgCat: row.simazine_average_category,
+          simMaxCat: row.simazine_category
+        },
+        ibgeCode: row.ibge_code,
+        number: {
+          detected: +row.detected,
+          eqBr: +row.eq_br,
+          supBr: +row.sup_br,
+          supEu: +row.sup_eu
+        }
+      };
+    })];
+    return Promise.all(promises).then(function (results) {
+      // All datasets have been loaded and checked successfully
+      var topo = results[0];
+      var values = results[1].reduce(function (acc, cur) {
+        acc[cur.ibgeCode] = cur;
+        return acc;
+      }, {});
+      var data = {
+        brazil: toFeatures(topo, 'republic'),
+        fu: toFeatures(topo, 'federative-units'),
+        internalFu: toFeatures(topo, 'internal-federative-units'),
+        mun: toFeatures(topo, 'municipalities')
+      };
+      data.mun.features = data.mun.features.map(function (ft) {
+        if (ft.properties.ibgeCode in values) {
+          ft.properties.category = values[ft.properties.ibgeCode].category;
+          ft.properties.number = values[ft.properties.ibgeCode].number;
+        } else {
+          ft.properties.values = {};
+        }
+
+        return ft;
+      });
+      return data;
+    });
+  }
+
+  function toFeatures(topojson, key) {
+    // TODO: do the following computation at build time
+    var path = geoPath();
+    var features = feature(topojson, topojson.objects[key]);
+    features.features.map(function (ft) {
+      if (!('properties' in ft)) {
+        ft.properties = {};
+      }
+
+      ft.properties.centroid = path.centroid(ft.geometry);
+      ft.properties.bounds = path.bounds(ft.geometry);
+      ft.properties.height = ft.properties.bounds[1][1] - ft.properties.bounds[0][1];
+      ft.properties.width = ft.properties.bounds[1][0] - ft.properties.bounds[0][0];
+      ft.properties.radius = Math.sqrt(ft.properties.height * ft.properties.height + ft.properties.width * ft.properties.width) / 2; // eslint-disable-line no-magic-numbers
+
+      return ft;
+    });
+    return features;
   }
 
   var xhtml = "http://www.w3.org/1999/xhtml";
@@ -1689,7 +2564,7 @@
 
   var degrees = 180 / Math.PI;
 
-  var identity = {
+  var identity$2 = {
     translateX: 0,
     translateY: 0,
     rotate: 0,
@@ -1720,7 +2595,7 @@
       svgNode;
 
   function parseCss(value) {
-    if (value === "none") return identity;
+    if (value === "none") return identity$2;
     if (!cssNode) cssNode = document.createElement("DIV"), cssRoot = document.documentElement, cssView = document.defaultView;
     cssNode.style.transform = value;
     value = cssView.getComputedStyle(cssRoot.appendChild(cssNode), null).getPropertyValue("transform");
@@ -1730,10 +2605,10 @@
   }
 
   function parseSvg(value) {
-    if (value == null) return identity;
+    if (value == null) return identity$2;
     if (!svgNode) svgNode = document.createElementNS("http://www.w3.org/2000/svg", "g");
     svgNode.setAttribute("transform", value);
-    if (!(value = svgNode.transform.baseVal.consolidate())) return identity;
+    if (!(value = svgNode.transform.baseVal.consolidate())) return identity$2;
     value = value.matrix;
     return decompose(value.a, value.b, value.c, value.d, value.e, value.f);
   }
@@ -2733,9 +3608,9 @@
     return ((t *= 2) <= 1 ? t * t * t : (t -= 2) * t * t + 2) / 2;
   }
 
-  var pi = Math.PI;
+  var pi$2 = Math.PI;
 
-  var tau = 2 * Math.PI;
+  var tau$1 = 2 * Math.PI;
 
   var defaultTiming = {
     time: null, // Set on use.
@@ -2778,12 +3653,12 @@
   selection.prototype.interrupt = selection_interrupt;
   selection.prototype.transition = selection_transition;
 
-  var pi$1 = Math.PI;
+  var pi$3 = Math.PI;
 
-  var pi$2 = Math.PI,
-      tau$1 = 2 * pi$2,
+  var pi$4 = Math.PI,
+      tau$2 = 2 * pi$4,
       epsilon = 1e-6,
-      tauEpsilon = tau$1 - epsilon;
+      tauEpsilon = tau$2 - epsilon;
 
   function Path() {
     this._x0 = this._y0 = // start of current subpath
@@ -2851,7 +3726,7 @@
             l20_2 = x20 * x20 + y20 * y20,
             l21 = Math.sqrt(l21_2),
             l01 = Math.sqrt(l01_2),
-            l = r * Math.tan((pi$2 - Math.acos((l21_2 + l01_2 - l20_2) / (2 * l21 * l01))) / 2),
+            l = r * Math.tan((pi$4 - Math.acos((l21_2 + l01_2 - l20_2) / (2 * l21 * l01))) / 2),
             t01 = l / l01,
             t21 = l / l21;
 
@@ -2889,7 +3764,7 @@
       if (!r) return;
 
       // Does the angle go the wrong way? Flip the direction.
-      if (da < 0) da = da % tau$1 + tau$1;
+      if (da < 0) da = da % tau$2 + tau$2;
 
       // Is this a complete circle? Draw two arcs to complete the circle.
       if (da > tauEpsilon) {
@@ -2898,7 +3773,7 @@
 
       // Is this arc non-empty? Draw an arc!
       else if (da > epsilon) {
-        this._ += "A" + r + "," + r + ",0," + (+(da >= pi$2)) + "," + cw + "," + (this._x1 = x + r * Math.cos(a1)) + "," + (this._y1 = y + r * Math.sin(a1));
+        this._ += "A" + r + "," + r + ",0," + (+(da >= pi$4)) + "," + cw + "," + (this._x1 = x + r * Math.cos(a1)) + "," + (this._y1 = y + r * Math.sin(a1));
       }
     },
     rect: function(x, y, w, h) {
@@ -3021,221 +3896,13 @@
 
   // TODO Optimize edge cases.
 
-  var EOL = {},
-      EOF = {},
-      QUOTE = 34,
-      NEWLINE = 10,
-      RETURN = 13;
-
-  function objectConverter(columns) {
-    return new Function("d", "return {" + columns.map(function(name, i) {
-      return JSON.stringify(name) + ": d[" + i + "]";
-    }).join(",") + "}");
-  }
-
-  function customConverter(columns, f) {
-    var object = objectConverter(columns);
-    return function(row, i) {
-      return f(object(row), i, columns);
-    };
-  }
-
-  // Compute unique columns in order of discovery.
-  function inferColumns(rows) {
-    var columnSet = Object.create(null),
-        columns = [];
-
-    rows.forEach(function(row) {
-      for (var column in row) {
-        if (!(column in columnSet)) {
-          columns.push(columnSet[column] = column);
-        }
-      }
-    });
-
-    return columns;
-  }
-
-  function pad(value, width) {
-    var s = value + "", length = s.length;
-    return length < width ? new Array(width - length + 1).join(0) + s : s;
-  }
-
-  function formatYear(year) {
-    return year < 0 ? "-" + pad(-year, 6)
-      : year > 9999 ? "+" + pad(year, 6)
-      : pad(year, 4);
-  }
-
-  function formatDate(date) {
-    var hours = date.getUTCHours(),
-        minutes = date.getUTCMinutes(),
-        seconds = date.getUTCSeconds(),
-        milliseconds = date.getUTCMilliseconds();
-    return isNaN(date) ? "Invalid Date"
-        : formatYear(date.getUTCFullYear(), 4) + "-" + pad(date.getUTCMonth() + 1, 2) + "-" + pad(date.getUTCDate(), 2)
-        + (milliseconds ? "T" + pad(hours, 2) + ":" + pad(minutes, 2) + ":" + pad(seconds, 2) + "." + pad(milliseconds, 3) + "Z"
-        : seconds ? "T" + pad(hours, 2) + ":" + pad(minutes, 2) + ":" + pad(seconds, 2) + "Z"
-        : minutes || hours ? "T" + pad(hours, 2) + ":" + pad(minutes, 2) + "Z"
-        : "");
-  }
-
-  function dsv(delimiter) {
-    var reFormat = new RegExp("[\"" + delimiter + "\n\r]"),
-        DELIMITER = delimiter.charCodeAt(0);
-
-    function parse(text, f) {
-      var convert, columns, rows = parseRows(text, function(row, i) {
-        if (convert) return convert(row, i - 1);
-        columns = row, convert = f ? customConverter(row, f) : objectConverter(row);
-      });
-      rows.columns = columns || [];
-      return rows;
-    }
-
-    function parseRows(text, f) {
-      var rows = [], // output rows
-          N = text.length,
-          I = 0, // current character index
-          n = 0, // current line number
-          t, // current token
-          eof = N <= 0, // current token followed by EOF?
-          eol = false; // current token followed by EOL?
-
-      // Strip the trailing newline.
-      if (text.charCodeAt(N - 1) === NEWLINE) --N;
-      if (text.charCodeAt(N - 1) === RETURN) --N;
-
-      function token() {
-        if (eof) return EOF;
-        if (eol) return eol = false, EOL;
-
-        // Unescape quotes.
-        var i, j = I, c;
-        if (text.charCodeAt(j) === QUOTE) {
-          while (I++ < N && text.charCodeAt(I) !== QUOTE || text.charCodeAt(++I) === QUOTE);
-          if ((i = I) >= N) eof = true;
-          else if ((c = text.charCodeAt(I++)) === NEWLINE) eol = true;
-          else if (c === RETURN) { eol = true; if (text.charCodeAt(I) === NEWLINE) ++I; }
-          return text.slice(j + 1, i - 1).replace(/""/g, "\"");
-        }
-
-        // Find next delimiter or newline.
-        while (I < N) {
-          if ((c = text.charCodeAt(i = I++)) === NEWLINE) eol = true;
-          else if (c === RETURN) { eol = true; if (text.charCodeAt(I) === NEWLINE) ++I; }
-          else if (c !== DELIMITER) continue;
-          return text.slice(j, i);
-        }
-
-        // Return last token before EOF.
-        return eof = true, text.slice(j, N);
-      }
-
-      while ((t = token()) !== EOF) {
-        var row = [];
-        while (t !== EOL && t !== EOF) row.push(t), t = token();
-        if (f && (row = f(row, n++)) == null) continue;
-        rows.push(row);
-      }
-
-      return rows;
-    }
-
-    function preformatBody(rows, columns) {
-      return rows.map(function(row) {
-        return columns.map(function(column) {
-          return formatValue(row[column]);
-        }).join(delimiter);
-      });
-    }
-
-    function format(rows, columns) {
-      if (columns == null) columns = inferColumns(rows);
-      return [columns.map(formatValue).join(delimiter)].concat(preformatBody(rows, columns)).join("\n");
-    }
-
-    function formatBody(rows, columns) {
-      if (columns == null) columns = inferColumns(rows);
-      return preformatBody(rows, columns).join("\n");
-    }
-
-    function formatRows(rows) {
-      return rows.map(formatRow).join("\n");
-    }
-
-    function formatRow(row) {
-      return row.map(formatValue).join(delimiter);
-    }
-
-    function formatValue(value) {
-      return value == null ? ""
-          : value instanceof Date ? formatDate(value)
-          : reFormat.test(value += "") ? "\"" + value.replace(/"/g, "\"\"") + "\""
-          : value;
-    }
-
-    return {
-      parse: parse,
-      parseRows: parseRows,
-      format: format,
-      formatBody: formatBody,
-      formatRows: formatRows
-    };
-  }
-
-  var csv = dsv(",");
-
-  var csvParse = csv.parse;
-  var csvParseRows = csv.parseRows;
-  var csvFormat = csv.format;
-  var csvFormatBody = csv.formatBody;
-  var csvFormatRows = csv.formatRows;
-
-  var tsv = dsv("\t");
-
-  var tsvParse = tsv.parse;
-  var tsvParseRows = tsv.parseRows;
-  var tsvFormat = tsv.format;
-  var tsvFormatBody = tsv.formatBody;
-  var tsvFormatRows = tsv.formatRows;
-
-  function responseText(response) {
-    if (!response.ok) throw new Error(response.status + " " + response.statusText);
-    return response.text();
-  }
-
-  function text(input, init) {
-    return fetch(input, init).then(responseText);
-  }
-
-  function dsvParse(parse) {
-    return function(input, init, row) {
-      if (arguments.length === 2 && typeof init === "function") row = init, init = undefined;
-      return text(input, init).then(function(response) {
-        return parse(response, row);
-      });
-    };
-  }
-
-  var csv$1 = dsvParse(csvParse);
-
-  function responseJson(response) {
-    if (!response.ok) throw new Error(response.status + " " + response.statusText);
-    return response.json();
-  }
-
-  function json(input, init) {
-    return fetch(input, init).then(responseJson);
-  }
-
   function tree_add(d) {
     var x = +this._x.call(null, d),
         y = +this._y.call(null, d);
-    return add(this.cover(x, y), x, y, d);
+    return add$1(this.cover(x, y), x, y, d);
   }
 
-  function add(tree, x, y, d) {
+  function add$1(tree, x, y, d) {
     if (isNaN(x) || isNaN(y)) return tree; // ignore invalid points
 
     var parent,
@@ -3308,7 +3975,7 @@
 
     // Add the new points.
     for (i = 0; i < n; ++i) {
-      add(this, xz[i], yz[i], data[i]);
+      add$1(this, xz[i], yz[i], data[i]);
     }
 
     return this;
@@ -3774,17 +4441,17 @@
     "x": function(x) { return Math.round(x).toString(16); }
   };
 
-  function identity$1(x) {
+  function identity$3(x) {
     return x;
   }
 
   var prefixes = ["y","z","a","f","p","n","µ","m","","k","M","G","T","P","E","Z","Y"];
 
   function formatLocale(locale) {
-    var group = locale.grouping && locale.thousands ? formatGroup(locale.grouping, locale.thousands) : identity$1,
+    var group = locale.grouping && locale.thousands ? formatGroup(locale.grouping, locale.thousands) : identity$3,
         currency = locale.currency,
         decimal = locale.decimal,
-        numerals = locale.numerals ? formatNumerals(locale.numerals) : identity$1,
+        numerals = locale.numerals ? formatNumerals(locale.numerals) : identity$3,
         percent = locale.percent || "%";
 
     function newFormat(specifier) {
@@ -3928,502 +4595,6 @@
     format = locale.format;
     formatPrefix = locale.formatPrefix;
     return locale;
-  }
-
-  // Adds floating point numbers with twice the normal precision.
-  // Reference: J. R. Shewchuk, Adaptive Precision Floating-Point Arithmetic and
-  // Fast Robust Geometric Predicates, Discrete & Computational Geometry 18(3)
-  // 305–363 (1997).
-  // Code adapted from GeographicLib by Charles F. F. Karney,
-  // http://geographiclib.sourceforge.net/
-
-  function adder() {
-    return new Adder;
-  }
-
-  function Adder() {
-    this.reset();
-  }
-
-  Adder.prototype = {
-    constructor: Adder,
-    reset: function() {
-      this.s = // rounded value
-      this.t = 0; // exact error
-    },
-    add: function(y) {
-      add$1(temp, y, this.t);
-      add$1(this, temp.s, this.s);
-      if (this.s) this.t += temp.t;
-      else this.s = temp.t;
-    },
-    valueOf: function() {
-      return this.s;
-    }
-  };
-
-  var temp = new Adder;
-
-  function add$1(adder, a, b) {
-    var x = adder.s = a + b,
-        bv = x - a,
-        av = x - bv;
-    adder.t = (a - av) + (b - bv);
-  }
-
-  var pi$3 = Math.PI;
-  var tau$2 = pi$3 * 2;
-
-  var abs = Math.abs;
-  var sqrt = Math.sqrt;
-
-  function noop$1() {}
-
-  function streamGeometry(geometry, stream) {
-    if (geometry && streamGeometryType.hasOwnProperty(geometry.type)) {
-      streamGeometryType[geometry.type](geometry, stream);
-    }
-  }
-
-  var streamObjectType = {
-    Feature: function(object, stream) {
-      streamGeometry(object.geometry, stream);
-    },
-    FeatureCollection: function(object, stream) {
-      var features = object.features, i = -1, n = features.length;
-      while (++i < n) streamGeometry(features[i].geometry, stream);
-    }
-  };
-
-  var streamGeometryType = {
-    Sphere: function(object, stream) {
-      stream.sphere();
-    },
-    Point: function(object, stream) {
-      object = object.coordinates;
-      stream.point(object[0], object[1], object[2]);
-    },
-    MultiPoint: function(object, stream) {
-      var coordinates = object.coordinates, i = -1, n = coordinates.length;
-      while (++i < n) object = coordinates[i], stream.point(object[0], object[1], object[2]);
-    },
-    LineString: function(object, stream) {
-      streamLine(object.coordinates, stream, 0);
-    },
-    MultiLineString: function(object, stream) {
-      var coordinates = object.coordinates, i = -1, n = coordinates.length;
-      while (++i < n) streamLine(coordinates[i], stream, 0);
-    },
-    Polygon: function(object, stream) {
-      streamPolygon(object.coordinates, stream);
-    },
-    MultiPolygon: function(object, stream) {
-      var coordinates = object.coordinates, i = -1, n = coordinates.length;
-      while (++i < n) streamPolygon(coordinates[i], stream);
-    },
-    GeometryCollection: function(object, stream) {
-      var geometries = object.geometries, i = -1, n = geometries.length;
-      while (++i < n) streamGeometry(geometries[i], stream);
-    }
-  };
-
-  function streamLine(coordinates, stream, closed) {
-    var i = -1, n = coordinates.length - closed, coordinate;
-    stream.lineStart();
-    while (++i < n) coordinate = coordinates[i], stream.point(coordinate[0], coordinate[1], coordinate[2]);
-    stream.lineEnd();
-  }
-
-  function streamPolygon(coordinates, stream) {
-    var i = -1, n = coordinates.length;
-    stream.polygonStart();
-    while (++i < n) streamLine(coordinates[i], stream, 1);
-    stream.polygonEnd();
-  }
-
-  function geoStream(object, stream) {
-    if (object && streamObjectType.hasOwnProperty(object.type)) {
-      streamObjectType[object.type](object, stream);
-    } else {
-      streamGeometry(object, stream);
-    }
-  }
-
-  var areaRingSum = adder();
-
-  var areaSum = adder();
-
-  var deltaSum = adder();
-
-  var sum = adder();
-
-  var lengthSum = adder();
-
-  function identity$2(x) {
-    return x;
-  }
-
-  var areaSum$1 = adder(),
-      areaRingSum$1 = adder(),
-      x00,
-      y00,
-      x0,
-      y0;
-
-  var areaStream = {
-    point: noop$1,
-    lineStart: noop$1,
-    lineEnd: noop$1,
-    polygonStart: function() {
-      areaStream.lineStart = areaRingStart;
-      areaStream.lineEnd = areaRingEnd;
-    },
-    polygonEnd: function() {
-      areaStream.lineStart = areaStream.lineEnd = areaStream.point = noop$1;
-      areaSum$1.add(abs(areaRingSum$1));
-      areaRingSum$1.reset();
-    },
-    result: function() {
-      var area = areaSum$1 / 2;
-      areaSum$1.reset();
-      return area;
-    }
-  };
-
-  function areaRingStart() {
-    areaStream.point = areaPointFirst;
-  }
-
-  function areaPointFirst(x, y) {
-    areaStream.point = areaPoint;
-    x00 = x0 = x, y00 = y0 = y;
-  }
-
-  function areaPoint(x, y) {
-    areaRingSum$1.add(y0 * x - x0 * y);
-    x0 = x, y0 = y;
-  }
-
-  function areaRingEnd() {
-    areaPoint(x00, y00);
-  }
-
-  var x0$1 = Infinity,
-      y0$1 = x0$1,
-      x1 = -x0$1,
-      y1 = x1;
-
-  var boundsStream = {
-    point: boundsPoint,
-    lineStart: noop$1,
-    lineEnd: noop$1,
-    polygonStart: noop$1,
-    polygonEnd: noop$1,
-    result: function() {
-      var bounds = [[x0$1, y0$1], [x1, y1]];
-      x1 = y1 = -(y0$1 = x0$1 = Infinity);
-      return bounds;
-    }
-  };
-
-  function boundsPoint(x, y) {
-    if (x < x0$1) x0$1 = x;
-    if (x > x1) x1 = x;
-    if (y < y0$1) y0$1 = y;
-    if (y > y1) y1 = y;
-  }
-
-  // TODO Enforce positive area for exterior, negative area for interior?
-
-  var X0 = 0,
-      Y0 = 0,
-      Z0 = 0,
-      X1 = 0,
-      Y1 = 0,
-      Z1 = 0,
-      X2 = 0,
-      Y2 = 0,
-      Z2 = 0,
-      x00$1,
-      y00$1,
-      x0$2,
-      y0$2;
-
-  var centroidStream = {
-    point: centroidPoint,
-    lineStart: centroidLineStart,
-    lineEnd: centroidLineEnd,
-    polygonStart: function() {
-      centroidStream.lineStart = centroidRingStart;
-      centroidStream.lineEnd = centroidRingEnd;
-    },
-    polygonEnd: function() {
-      centroidStream.point = centroidPoint;
-      centroidStream.lineStart = centroidLineStart;
-      centroidStream.lineEnd = centroidLineEnd;
-    },
-    result: function() {
-      var centroid = Z2 ? [X2 / Z2, Y2 / Z2]
-          : Z1 ? [X1 / Z1, Y1 / Z1]
-          : Z0 ? [X0 / Z0, Y0 / Z0]
-          : [NaN, NaN];
-      X0 = Y0 = Z0 =
-      X1 = Y1 = Z1 =
-      X2 = Y2 = Z2 = 0;
-      return centroid;
-    }
-  };
-
-  function centroidPoint(x, y) {
-    X0 += x;
-    Y0 += y;
-    ++Z0;
-  }
-
-  function centroidLineStart() {
-    centroidStream.point = centroidPointFirstLine;
-  }
-
-  function centroidPointFirstLine(x, y) {
-    centroidStream.point = centroidPointLine;
-    centroidPoint(x0$2 = x, y0$2 = y);
-  }
-
-  function centroidPointLine(x, y) {
-    var dx = x - x0$2, dy = y - y0$2, z = sqrt(dx * dx + dy * dy);
-    X1 += z * (x0$2 + x) / 2;
-    Y1 += z * (y0$2 + y) / 2;
-    Z1 += z;
-    centroidPoint(x0$2 = x, y0$2 = y);
-  }
-
-  function centroidLineEnd() {
-    centroidStream.point = centroidPoint;
-  }
-
-  function centroidRingStart() {
-    centroidStream.point = centroidPointFirstRing;
-  }
-
-  function centroidRingEnd() {
-    centroidPointRing(x00$1, y00$1);
-  }
-
-  function centroidPointFirstRing(x, y) {
-    centroidStream.point = centroidPointRing;
-    centroidPoint(x00$1 = x0$2 = x, y00$1 = y0$2 = y);
-  }
-
-  function centroidPointRing(x, y) {
-    var dx = x - x0$2,
-        dy = y - y0$2,
-        z = sqrt(dx * dx + dy * dy);
-
-    X1 += z * (x0$2 + x) / 2;
-    Y1 += z * (y0$2 + y) / 2;
-    Z1 += z;
-
-    z = y0$2 * x - x0$2 * y;
-    X2 += z * (x0$2 + x);
-    Y2 += z * (y0$2 + y);
-    Z2 += z * 3;
-    centroidPoint(x0$2 = x, y0$2 = y);
-  }
-
-  function PathContext(context) {
-    this._context = context;
-  }
-
-  PathContext.prototype = {
-    _radius: 4.5,
-    pointRadius: function(_) {
-      return this._radius = _, this;
-    },
-    polygonStart: function() {
-      this._line = 0;
-    },
-    polygonEnd: function() {
-      this._line = NaN;
-    },
-    lineStart: function() {
-      this._point = 0;
-    },
-    lineEnd: function() {
-      if (this._line === 0) this._context.closePath();
-      this._point = NaN;
-    },
-    point: function(x, y) {
-      switch (this._point) {
-        case 0: {
-          this._context.moveTo(x, y);
-          this._point = 1;
-          break;
-        }
-        case 1: {
-          this._context.lineTo(x, y);
-          break;
-        }
-        default: {
-          this._context.moveTo(x + this._radius, y);
-          this._context.arc(x, y, this._radius, 0, tau$2);
-          break;
-        }
-      }
-    },
-    result: noop$1
-  };
-
-  var lengthSum$1 = adder(),
-      lengthRing,
-      x00$2,
-      y00$2,
-      x0$3,
-      y0$3;
-
-  var lengthStream = {
-    point: noop$1,
-    lineStart: function() {
-      lengthStream.point = lengthPointFirst;
-    },
-    lineEnd: function() {
-      if (lengthRing) lengthPoint(x00$2, y00$2);
-      lengthStream.point = noop$1;
-    },
-    polygonStart: function() {
-      lengthRing = true;
-    },
-    polygonEnd: function() {
-      lengthRing = null;
-    },
-    result: function() {
-      var length = +lengthSum$1;
-      lengthSum$1.reset();
-      return length;
-    }
-  };
-
-  function lengthPointFirst(x, y) {
-    lengthStream.point = lengthPoint;
-    x00$2 = x0$3 = x, y00$2 = y0$3 = y;
-  }
-
-  function lengthPoint(x, y) {
-    x0$3 -= x, y0$3 -= y;
-    lengthSum$1.add(sqrt(x0$3 * x0$3 + y0$3 * y0$3));
-    x0$3 = x, y0$3 = y;
-  }
-
-  function PathString() {
-    this._string = [];
-  }
-
-  PathString.prototype = {
-    _radius: 4.5,
-    _circle: circle(4.5),
-    pointRadius: function(_) {
-      if ((_ = +_) !== this._radius) this._radius = _, this._circle = null;
-      return this;
-    },
-    polygonStart: function() {
-      this._line = 0;
-    },
-    polygonEnd: function() {
-      this._line = NaN;
-    },
-    lineStart: function() {
-      this._point = 0;
-    },
-    lineEnd: function() {
-      if (this._line === 0) this._string.push("Z");
-      this._point = NaN;
-    },
-    point: function(x, y) {
-      switch (this._point) {
-        case 0: {
-          this._string.push("M", x, ",", y);
-          this._point = 1;
-          break;
-        }
-        case 1: {
-          this._string.push("L", x, ",", y);
-          break;
-        }
-        default: {
-          if (this._circle == null) this._circle = circle(this._radius);
-          this._string.push("M", x, ",", y, this._circle);
-          break;
-        }
-      }
-    },
-    result: function() {
-      if (this._string.length) {
-        var result = this._string.join("");
-        this._string = [];
-        return result;
-      } else {
-        return null;
-      }
-    }
-  };
-
-  function circle(radius) {
-    return "m0," + radius
-        + "a" + radius + "," + radius + " 0 1,1 0," + -2 * radius
-        + "a" + radius + "," + radius + " 0 1,1 0," + 2 * radius
-        + "z";
-  }
-
-  function geoPath(projection, context) {
-    var pointRadius = 4.5,
-        projectionStream,
-        contextStream;
-
-    function path(object) {
-      if (object) {
-        if (typeof pointRadius === "function") contextStream.pointRadius(+pointRadius.apply(this, arguments));
-        geoStream(object, projectionStream(contextStream));
-      }
-      return contextStream.result();
-    }
-
-    path.area = function(object) {
-      geoStream(object, projectionStream(areaStream));
-      return areaStream.result();
-    };
-
-    path.measure = function(object) {
-      geoStream(object, projectionStream(lengthStream));
-      return lengthStream.result();
-    };
-
-    path.bounds = function(object) {
-      geoStream(object, projectionStream(boundsStream));
-      return boundsStream.result();
-    };
-
-    path.centroid = function(object) {
-      geoStream(object, projectionStream(centroidStream));
-      return centroidStream.result();
-    };
-
-    path.projection = function(_) {
-      return arguments.length ? (projectionStream = _ == null ? (projection = null, identity$2) : (projection = _).stream, path) : projection;
-    };
-
-    path.context = function(_) {
-      if (!arguments.length) return context;
-      contextStream = _ == null ? (context = null, new PathString) : new PathContext(context = _);
-      if (typeof pointRadius !== "function") contextStream.pointRadius(pointRadius);
-      return path;
-    };
-
-    path.pointRadius = function(_) {
-      if (!arguments.length) return pointRadius;
-      pointRadius = typeof _ === "function" ? _ : (contextStream.pointRadius(+_), +_);
-      return path;
-    };
-
-    return path.projection(projection).context(context);
   }
 
   // Returns the 2D cross product of AB and AC vectors, i.e., the z-component of
@@ -4590,8 +4761,6 @@
   var saturday = weekday(6);
 
   var sundays = sunday.range;
-  var mondays = monday.range;
-  var thursdays = thursday.range;
 
   var month = newInterval(function(date) {
     date.setDate(1);
@@ -4681,8 +4850,6 @@
   var utcSaturday = utcWeekday(6);
 
   var utcSundays = utcSunday.range;
-  var utcMondays = utcMonday.range;
-  var utcThursdays = utcThursday.range;
 
   var utcMonth = newInterval(function(date) {
     date.setUTCDate(1);
@@ -5789,7 +5956,7 @@
 
   var plasma = ramp$1(colors("0d088710078813078916078a19068c1b068d1d068e20068f2206902406912605912805922a05932c05942e05952f059631059733059735049837049938049a3a049a3c049b3e049c3f049c41049d43039e44039e46039f48039f4903a04b03a14c02a14e02a25002a25102a35302a35502a45601a45801a45901a55b01a55c01a65e01a66001a66100a76300a76400a76600a76700a86900a86a00a86c00a86e00a86f00a87100a87201a87401a87501a87701a87801a87a02a87b02a87d03a87e03a88004a88104a78305a78405a78606a68707a68808a68a09a58b0aa58d0ba58e0ca48f0da4910ea3920fa39410a29511a19613a19814a099159f9a169f9c179e9d189d9e199da01a9ca11b9ba21d9aa31e9aa51f99a62098a72197a82296aa2395ab2494ac2694ad2793ae2892b02991b12a90b22b8fb32c8eb42e8db52f8cb6308bb7318ab83289ba3388bb3488bc3587bd3786be3885bf3984c03a83c13b82c23c81c33d80c43e7fc5407ec6417dc7427cc8437bc9447aca457acb4679cc4778cc4977cd4a76ce4b75cf4c74d04d73d14e72d24f71d35171d45270d5536fd5546ed6556dd7566cd8576bd9586ada5a6ada5b69db5c68dc5d67dd5e66de5f65de6164df6263e06363e16462e26561e26660e3685fe4695ee56a5de56b5de66c5ce76e5be76f5ae87059e97158e97257ea7457eb7556eb7655ec7754ed7953ed7a52ee7b51ef7c51ef7e50f07f4ff0804ef1814df1834cf2844bf3854bf3874af48849f48948f58b47f58c46f68d45f68f44f79044f79143f79342f89441f89540f9973ff9983ef99a3efa9b3dfa9c3cfa9e3bfb9f3afba139fba238fca338fca537fca636fca835fca934fdab33fdac33fdae32fdaf31fdb130fdb22ffdb42ffdb52efeb72dfeb82cfeba2cfebb2bfebd2afebe2afec029fdc229fdc328fdc527fdc627fdc827fdca26fdcb26fccd25fcce25fcd025fcd225fbd324fbd524fbd724fad824fada24f9dc24f9dd25f8df25f8e125f7e225f7e425f6e626f6e826f5e926f5eb27f4ed27f3ee27f3f027f2f227f1f426f1f525f0f724f0f921"));
 
-  var pi$4 = Math.PI;
+  var pi$5 = Math.PI;
 
   function sign(x) {
     return x < 0 ? -1 : 1;
@@ -5905,77 +6072,48 @@
   */
 
   var cfg$1 = {
-    number: {
-      field: 'supEu',
-      max: 27,
-      mouseoutCallbackTypename: 'choropleth-mouseout',
-      mouseoverCallbackTypename: 'choropleth-mouseover'
+    field: 'supEu',
+    max: 27,
+    typename: {
+      click: 'mun-click',
+      mouseout: 'mun-mouseout',
+      mouseover: 'mun-mouseover'
     }
   };
-  function createChoropleth(parent, data, path, view, dispatcher) {
-    var field = cfg$1[view].field;
-    var max = cfg$1[view].max;
-
-    function value(ft) {
-      if (view in ft.properties) {
-        return ft.properties[view][field];
-      }
-
-      return null;
-    }
-
-    parent.append('g').classed('choropleth', true).classed(view, true).selectAll('path').data(data.mun.features).enter().append('path').attr('id', function (ft) {
+  function createChoropleth(parent, path, data, dispatcher) {
+    parent.append('g').classed('choropleth', true).selectAll('path').data(data.mun.features).enter().append('path').attr('id', function (ft) {
       return 'id-' + ft.properties.ibgeCode;
-    }).attr('d', function (ft) {
-      return path(ft.geometry);
-    }).style('fill', function (ft) {
+    }).attr('d', path).style('fill', function (ft) {
       if (Number.isInteger(value(ft))) {
-        return interpolateYlOrRd(value(ft) / max);
+        return interpolateYlOrRd(value(ft) / cfg$1.max);
       }
 
       return null;
     }).on('mouseover', function (ft, element) {
       // invoke callbacks
-      dispatcher.call(cfg$1[view].mouseoverCallbackTypename, null, {
+      dispatcher.call(cfg$1.typename.mouseover, null, {
         properties: ft.properties,
         value: value(ft)
       });
     }).on('mouseout', function (ft, element) {
       // invoke callbacks
-      dispatcher.call(cfg$1[view].mouseoutCallbackTypename);
+      dispatcher.call(cfg$1.typename.mouseout);
+    }).on('click', function (ft, element) {
+      // invoke callbacks
+      dispatcher.call(cfg$1.typename.click);
     });
   }
 
-  //import {addShadowAroundGeometry} from './shadow';
+  function value(ft) {
+    if ('number' in ft.properties) {
+      return ft.properties.number[cfg$1.field];
+    }
+
+    return null;
+  }
+
   function createFuFrontiers(parent, path, data) {
     return parent.append('g').classed('fu-frontiers', true).selectAll('path').data(data.internalFu.features).enter().append('path').attr('d', path);
-  }
-  /*function createStatesLabels(parent, projection, width, height, data) {
-    // TODO: short label, long label, colors
-    const statesLabels = parent.append('g').classed('states-labels', true);
-    data.features.forEach(feature =>
-      placeLabelInPolygon(
-        feature,
-        projection,
-        width,
-        height,
-        statesLabels,
-        feature.properties.sigla,
-        feature.properties.nome
-      )
-    );
-    return statesLabels;
-  }
-  */
-
-  function createMap(parent) {
-    //, width, height) {
-    var map = parent.append('g') // TODO: pass the class name as a parameter?
-    .classed('map', true);
-    /*.attr('width', width)
-      .attr('height', height);*/
-
-    return map;
   }
 
   var xhtml$1 = "http://www.w3.org/1999/xhtml";
@@ -7168,9 +7306,9 @@
   }
 
   var epsilon$1 = 1e-12;
-  var pi$5 = Math.PI;
-  var halfPi = pi$5 / 2;
-  var tau$3 = 2 * pi$5;
+  var pi$6 = Math.PI;
+  var halfPi = pi$6 / 2;
+  var tau$3 = 2 * pi$6;
 
   function arcInnerRadius(d) {
     return d.innerRadius;
@@ -7323,7 +7461,7 @@
               y00 = r0 * Math.sin(a00);
 
           // Restrict the corner radius according to the sector angle.
-          if (da < pi$5) {
+          if (da < pi$6) {
             var oc = da0 > epsilon$1 ? intersect(x01, y01, x00, y00, x11, y11, x10, y10) : [x10, y10],
                 ax = x01 - oc[0],
                 ay = y01 - oc[1],
@@ -7393,7 +7531,7 @@
 
     arc.centroid = function() {
       var r = (+innerRadius.apply(this, arguments) + +outerRadius.apply(this, arguments)) / 2,
-          a = (+startAngle.apply(this, arguments) + +endAngle.apply(this, arguments)) / 2 - pi$5 / 2;
+          a = (+startAngle.apply(this, arguments) + +endAngle.apply(this, arguments)) / 2 - pi$6 / 2;
       return [Math.cos(a) * r, Math.sin(a) * r];
     };
 
@@ -9886,20 +10024,16 @@
   }
 
   var cfg$2 = {
-    center: [480, 480],
-    // eslint-disable-line no-magic-numbers
-    //dx: 80,
-    //dy: 30,
     nx: 200,
     ny: 700
   };
   function createTooltip(parent, path, dispatcher) {
     // create a container for tooltips
     var tooltip = parent.append('g').classed('tooltip', true);
-    dispatcher.on('choropleth-mouseover.tooltip', function (data) {
+    dispatcher.on('mun-mouseover.tooltip', function (data) {
       tooltip.call(createAnnotation(data));
     });
-    dispatcher.on('choropleth-mouseout.tooltip', function (data) {
+    dispatcher.on('mun-mouseout.tooltip', function (data) {
       tooltip.html('');
     });
   } // this function will call d3.annotation when a tooltip has to be drawn
@@ -9907,19 +10041,12 @@
   function createAnnotation(data) {
     return annotation().type(d3CalloutElbow).annotations([{
       data: data,
-      //dx: data.properties.centroid[0] > cfg.center[0] ? -cfg.dx : cfg.dx,
-      //dy: data.properties.centroid[1] > cfg.center[1] ? -cfg.dy : cfg.dy,
       note: {
         label: Number.isInteger(data.value) ? data.value + ' pesticide(s) found in the drinking water.' : 'Never tested.',
         title: data.properties.name + ' (' + data.properties.fu + ')'
       },
       nx: cfg$2.nx,
       ny: cfg$2.ny,
-      subject: {//radius: data.properties.radius,
-        //radiusPadding: 2,
-        //height: data.properties.height,
-        //width: data.properties.width,
-      },
       x: data.properties.centroid[0],
       // eslint-disable-line id-length
       y: data.properties.centroid[1] // eslint-disable-line id-length
@@ -9927,340 +10054,63 @@
     }]);
   }
 
-  /*const cfg = {
-    defaultHeight: 500,
-    defaultWidth: 500,
-  };*/
-
-  /*projection: {
-      fitMargin: 20,
-      type: 'epsg5530',
-    },*/
-
-  function create$1(view) {
-    return function (state, content, dispatcher) {
-      // Clean existing contents
-      // TODO: be more clever
-      content.html(null); // Height and width are special parameters, they could be variable
-      // in a future version
-      // TODO: variable height and width, depending on the screen size and layout
-
-      /*const height = cfg.defaultHeight;
-      const width = cfg.defaultWidth;
-      const mapHeight = height;
-      const mapWidth = width;*/
-      // Setup basic DOM elements
-      // TODO: use args or configuration instead of hardcoded div#map
-      //const svg = appendSvg(content, width, height);
-
-      var svg = appendSvg(content); //const svgDefs = appendDefs(svg);
-      //addShadowFilter(svgDefs);
-      //const map = createMap(svg, mapWidth, mapHeight);
-
-      var map = createMap(svg); // TODO: move to the configuration, or to the arguments
-      // Selected level of simplification, among: original, simplifiedForBrazil,
-      // simplifiedForState
-      // TODO: depend on state.zoom
-      //const level = 'original';
-      //const level = 'simplifiedForBrazil';
-      // Selected geometry: Brazil
-      // TODO: depend on state.zoom - note: this is the brazil/index.js, it's
-      // supposed to be only for Brazil zoom level
-      //const selectedGeometry = state.data.geojson[level].states;
-      // Projection is a function that maps geographic coordinates to planar
-      // coordinates in the SVG viewport
-      // The data is already projected - it's in px, between 0 and 960 px, both
-      // in x and y.
-
-      /*const projection = createProjection(
-        mapWidth,
-        mapHeight,
-        cfg.projection,
-        selectedGeometry
-      );*/
-      // Path is a function that transforms a geometry (a point, a line, a polygon)
-      // into a SVG path (also allows to generate canvas paths, for example)
-      // Note that it takes geographic coordinates as an input, not planar ones
-      // (that's why the projection is passed as an argument to create it)
-      //const path = createPath(projection);
-      // As the data is already expressed in px, in 960x960 viewport, no need to
-      // pass a projection
-
-      var path = geoPath(); // Add sub-elements
-
-      /*createCountries(
-        map,
-        path,
-        mapWidth,
-        mapHeight,
-        state.data.geojson[level].countries,
-        svg,
-        selectedGeometry,
-        state.zoom === 'brazil'
-      );*/
-      // Add values elements
-
-      createChoropleth(map, state.data, path, view, dispatcher);
-      createFuFrontiers(map, path, state.data);
-      createTooltip(map, path, dispatcher); // TODO: evaluate if the function should return a value or not
-
-      return svg;
-    };
-  }
-
   var cfg$3 = {
-    id: 'content'
-  };
-  var create$2 = {
-    brazil: {
-      concentration: create$1('concentration'),
-      number: create$1('number')
-    },
-    saopaolo: {
-      concentration: function concentration(state) {},
-      number: function number(state) {}
+    viewport: {
+      height: 960,
+      width: 960
     }
   };
-  function appendContent(dispatcher, parent) {
-    var content = parent.append('div').attr('id', cfg$3.id);
-    startLoading(content);
-    dispatcher.on('state-changed.content', function (state) {
-      startLoading(content);
-      create$2[state.zoom][state.view](state, content, dispatcher);
-      endLoading(content);
-    });
-    return content;
-  }
+  function makeMap(parent, dispatcher, state) {
+    startLoading(parent); // Clean existing contents
+    // TODO: be more clever?
 
-  function startLoading(content) {
-    content.classed('is-loading', true);
-  }
+    parent.html(null);
+    var svg = parent.append('svg').attr('viewBox', '0,0,' + cfg$3.viewport.width + ',' + cfg$3.viewport.height); // Path is a function that transforms a geometry (a point, a line, a
+    // polygon) into a SVG path (also allows to generate canvas paths, for
+    // example)
+    // Note that it takes geographic coordinates as an input, not planar ones
+    // But as the data is already expressed in px, in 960x960 viewport, no need
+    // to pass it a projection as an argument
 
-  function endLoading(content) {
-    content.classed('is-loading', false);
-  }
-
-  function appendDebug(dispatcher, parent) {
-    var debugElement = parent.append('div').classed('debug', true).append('footer').classed('footer', true).append('div').classed('content', true);
-    debugElement.append('h3').text('Debug');
-    var pre = debugElement.append('pre');
-    dispatcher.on('choropleth-mouseover.debug', function (data) {
-      return log(data, pre);
-    });
-  }
-
-  function log(data, parent) {
-    parent.html('');
-    parent.append('p').text('Municipality: ' + data.properties.name + ' (code ' + data.properties.ibgeCode + ' - ' + data.properties.population + ' hab.)');
-    parent.append('p').text('Value: ' + data.value);
-  }
-
-  function identity$3(x) {
-    return x;
-  }
-
-  function transform(transform) {
-    if (transform == null) return identity$3;
-    var x0,
-        y0,
-        kx = transform.scale[0],
-        ky = transform.scale[1],
-        dx = transform.translate[0],
-        dy = transform.translate[1];
-    return function(input, i) {
-      if (!i) x0 = y0 = 0;
-      var j = 2, n = input.length, output = new Array(n);
-      output[0] = (x0 += input[0]) * kx + dx;
-      output[1] = (y0 += input[1]) * ky + dy;
-      while (j < n) output[j] = input[j], ++j;
-      return output;
-    };
-  }
-
-  function reverse(array, n) {
-    var t, j = array.length, i = j - n;
-    while (i < --j) t = array[i], array[i++] = array[j], array[j] = t;
-  }
-
-  function feature(topology, o) {
-    return o.type === "GeometryCollection"
-        ? {type: "FeatureCollection", features: o.geometries.map(function(o) { return feature$1(topology, o); })}
-        : feature$1(topology, o);
-  }
-
-  function feature$1(topology, o) {
-    var id = o.id,
-        bbox = o.bbox,
-        properties = o.properties == null ? {} : o.properties,
-        geometry = object(topology, o);
-    return id == null && bbox == null ? {type: "Feature", properties: properties, geometry: geometry}
-        : bbox == null ? {type: "Feature", id: id, properties: properties, geometry: geometry}
-        : {type: "Feature", id: id, bbox: bbox, properties: properties, geometry: geometry};
-  }
-
-  function object(topology, o) {
-    var transformPoint = transform(topology.transform),
-        arcs = topology.arcs;
-
-    function arc(i, points) {
-      if (points.length) points.pop();
-      for (var a = arcs[i < 0 ? ~i : i], k = 0, n = a.length; k < n; ++k) {
-        points.push(transformPoint(a[k], k));
-      }
-      if (i < 0) reverse(points, n);
-    }
-
-    function point(p) {
-      return transformPoint(p);
-    }
-
-    function line(arcs) {
-      var points = [];
-      for (var i = 0, n = arcs.length; i < n; ++i) arc(arcs[i], points);
-      if (points.length < 2) points.push(points[0]); // This should never happen per the specification.
-      return points;
-    }
-
-    function ring(arcs) {
-      var points = line(arcs);
-      while (points.length < 4) points.push(points[0]); // This may happen if an arc has only two points.
-      return points;
-    }
-
-    function polygon(arcs) {
-      return arcs.map(ring);
-    }
-
-    function geometry(o) {
-      var type = o.type, coordinates;
-      switch (type) {
-        case "GeometryCollection": return {type: type, geometries: o.geometries.map(geometry)};
-        case "Point": coordinates = point(o.coordinates); break;
-        case "MultiPoint": coordinates = o.coordinates.map(point); break;
-        case "LineString": coordinates = line(o.arcs); break;
-        case "MultiLineString": coordinates = o.arcs.map(line); break;
-        case "Polygon": coordinates = polygon(o.arcs); break;
-        case "MultiPolygon": coordinates = o.arcs.map(polygon); break;
-        default: return null;
-      }
-      return {type: type, coordinates: coordinates};
-    }
-
-    return geometry(o);
-  }
-
-  // Computes the bounding box of the specified hash of GeoJSON objects.
-
-  // TODO if quantized, use simpler Int32 hashing?
-
-  // Given an array of arcs in absolute (but already quantized!) coordinates,
-
-  // Extracts the lines and rings from the specified hash of geometry objects.
-
-  // Given a hash of GeoJSON objects, returns a hash of GeoJSON geometry objects.
-
-  var pi$6 = Math.PI;
-
-  var cfg$4 = {
-    topojson: {
-      integrityHash: 'sha384-T57m5+BaBiLe7uyAZrKOU/BqCXtK9t0ZIj+YXAUES8EOxrngeVCKflSzZXnB9kVd',
-      url: 'data/br-px-topo.2019031701.json'
-    },
-    values: {
-      integrityHash: 'sha384-1mMiVJ4KDmhyjlz86hL3dd+AYo/ShdE/2L8iW5nCdsUHlgsMt9ZS/PTVg12LyTZM',
-      url: 'https://raw.githubusercontent.com/severo/data_brazil/master/data_by_municipality_for_maps.csv'
-    }
-  };
-  function loadData() {
-    var promises = [json(cfg$4.topojson.url, {
-      integrity: cfg$4.topojson.integrityHash
-    }), csv$1(cfg$4.values.url, {
-      integrity: cfg$4.values.integrityHash
-    }, function (row) {
-      return {
-        category: {
-          atrAvgCat: row.atrazine_average_category,
-          atrMaxCat: row.atrazine_category,
-          simAvgCat: row.simazine_average_category,
-          simMaxCat: row.simazine_category
-        },
-        ibgeCode: row.ibge_code,
-        number: {
-          detected: +row.detected,
-          eqBr: +row.eq_br,
-          supBr: +row.sup_br,
-          supEu: +row.sup_eu
-        }
-      };
-    })];
-    return Promise.all(promises).then(function (results) {
-      // All datasets have been loaded and checked successfully
-      var topo = results[0];
-      var values = results[1].reduce(function (acc, cur) {
-        acc[cur.ibgeCode] = cur;
-        return acc;
-      }, {});
-      var data = {
-        brazil: toFeatures(topo, 'republic'),
-        fu: toFeatures(topo, 'federative-units'),
-        internalFu: toFeatures(topo, 'internal-federative-units'),
-        mun: toFeatures(topo, 'municipalities')
-      };
-      data.mun.features = data.mun.features.map(function (ft) {
-        if (ft.properties.ibgeCode in values) {
-          ft.properties.category = values[ft.properties.ibgeCode].category;
-          ft.properties.number = values[ft.properties.ibgeCode].number;
-        } else {
-          ft.properties.values = {};
-        }
-
-        return ft;
-      });
-      return data;
-    });
-  }
-
-  function toFeatures(topojson, key) {
-    // TODO: do the following computation at build time
     var path = geoPath();
-    var features = feature(topojson, topojson.objects[key]);
-    features.features.map(function (ft) {
-      if (!('properties' in ft)) {
-        ft.properties = {};
-      }
+    createChoropleth(svg, path, state.data, dispatcher);
+    createFuFrontiers(svg, path, state.data);
+    createTooltip(svg, path, dispatcher);
+    endLoading(parent);
+  }
 
-      ft.properties.centroid = path.centroid(ft.geometry);
-      ft.properties.bounds = path.bounds(ft.geometry);
-      ft.properties.height = ft.properties.bounds[1][1] - ft.properties.bounds[0][1];
-      ft.properties.width = ft.properties.bounds[1][0] - ft.properties.bounds[0][0];
-      ft.properties.radius = Math.sqrt(ft.properties.height * ft.properties.height + ft.properties.width * ft.properties.width) / 2; // eslint-disable-line no-magic-numbers
+  function startLoading(element) {
+    element.classed('is-loading', true);
+  }
 
-      return ft;
-    });
-    return features;
+  function endLoading(element) {
+    element.classed('is-loading', false);
   }
 
   var _this = undefined;
 
-  var dispatcher = dispatch('data-loaded', 'choropleth-mouseover', 'choropleth-mouseout', 'state-changed', 'view-changed', 'view-control-changed', 'zoom-control-changed');
+  var dispatcher = dispatch('data-loaded', 'mun-click', 'mun-mouseover', 'mun-mouseout', 'state-changed'
+  /*'view-changed',
+  'view-control-changed',
+  'zoom-control-changed'*/
+  );
   var state = {
-    data: {},
-    view: 'number',
-    zoom: 'brazil'
+    data: {}
   };
   dispatcher.on('data-loaded.state', function (data) {
     state.data = data;
     console.log('Data has been loaded');
     dispatcher.call('state-changed', _this, state);
   });
-  dispatcher.on('view-control-changed.state', function (data) {
+  /*dispatcher.on('view-control-changed.state', data => {
     state.view = data.selected;
-    dispatcher.call('state-changed', _this, state);
+    dispatcher.call('state-changed', this, state);
   });
-  dispatcher.on('zoom-control-changed.state', function (data) {
+  dispatcher.on('zoom-control-changed.state', data => {
     state.zoom = data.selected;
-    dispatcher.call('state-changed', _this, state);
-  }); // Asynchronous
+    dispatcher.call('state-changed', this, state);
+  });*/
+  // Asynchronous
   // TODO: reduce the amount of code - put the dispatcher in the loadData
   // function?
 
@@ -10274,10 +10124,10 @@
   }); // Create the layout
   // TODO: in cfg
 
-  var appDom = select('section#app');
-  var controlsDom = select('div#controls'); //appendControls(dispatcher, controlsDom, state);
-
-  appendContent(dispatcher, appDom);
-  appendDebug(dispatcher, controlsDom);
+  var mapDom = select('section#map');
+  dispatcher.on('state-changed.map', function (newState) {
+    makeMap(mapDom, dispatcher, newState);
+  }); //const controlsDom = select('div#controls');
+  //appendControls(dispatcher, controlsDom, state);
 
 }());

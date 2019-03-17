@@ -17,48 +17,51 @@ number: {
 },
 */
 const cfg = {
-  number: {
-    field: 'supEu',
-    max: 27,
-    mouseoutCallbackTypename: 'choropleth-mouseout',
-    mouseoverCallbackTypename: 'choropleth-mouseover',
+  field: 'supEu',
+  max: 27,
+  typename: {
+    click: 'mun-click',
+    mouseout: 'mun-mouseout',
+    mouseover: 'mun-mouseover',
   },
 };
 
-export function createChoropleth(parent, data, path, view, dispatcher) {
-  const field = cfg[view].field;
-  const max = cfg[view].max;
-  function value(ft) {
-    if (view in ft.properties) {
-      return ft.properties[view][field];
-    }
-    return null;
-  }
+export function createChoropleth(parent, path, data, dispatcher) {
   parent
     .append('g')
     .classed('choropleth', true)
-    .classed(view, true)
     .selectAll('path')
     .data(data.mun.features)
     .enter()
     .append('path')
     .attr('id', ft => 'id-' + ft.properties.ibgeCode)
-    .attr('d', ft => path(ft.geometry))
+    .attr('d', path)
     .style('fill', ft => {
       if (Number.isInteger(value(ft))) {
-        return interpolateYlOrRd(value(ft) / max);
+        return interpolateYlOrRd(value(ft) / cfg.max);
       }
       return null;
     })
     .on('mouseover', (ft, element) => {
       // invoke callbacks
-      dispatcher.call(cfg[view].mouseoverCallbackTypename, null, {
+      dispatcher.call(cfg.typename.mouseover, null, {
         properties: ft.properties,
         value: value(ft),
       });
     })
     .on('mouseout', (ft, element) => {
       // invoke callbacks
-      dispatcher.call(cfg[view].mouseoutCallbackTypename);
+      dispatcher.call(cfg.typename.mouseout);
+    })
+    .on('click', (ft, element) => {
+      // invoke callbacks
+      dispatcher.call(cfg.typename.click);
     });
+}
+
+function value(ft) {
+  if ('number' in ft.properties) {
+    return ft.properties.number[cfg.field];
+  }
+  return null;
 }

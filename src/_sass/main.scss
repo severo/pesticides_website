@@ -28,10 +28,8 @@ $primary-invert: $pink-invert;
 
 @import '../../node_modules/bulma/bulma';
 
-#app {
-  #content {
-    min-height: 500px;
-  }
+#map {
+  min-height: 500px;
 }
 
 // See https://github.com/jgthms/bulma/issues/847#issuecomment-314110630
@@ -50,34 +48,31 @@ $primary-invert: $pink-invert;
   }
 }
 
-#app {
+#map {
   svg {
     width: 100%;
 
-    .map {
-      .background {
-        display: none;
-        path {
-          fill: #e3eef9;
-          stroke: none;
-        }
+    /*.background {
+      display: none;
+      path {
+        fill: #e3eef9;
+        stroke: none;
       }
-      .choropleth {
-        &.number {
-          path {
-            stroke: none;
-            fill-opacity: 0.8;
-            fill: #eee;
+    }*/
+    .choropleth {
+      path {
+        stroke: none;
+        fill-opacity: 0.8;
+        fill: #eee;
 
-            &:hover {
-              stroke: #e8336d;
-              stroke-width: 1;
-              stroke-opacity: 1;
-            }
-          }
+        &:hover {
+          stroke: #e8336d;
+          stroke-width: 1;
+          stroke-opacity: 1;
         }
       }
-      /*.countries-polygons path {
+    }
+    /*.countries-polygons path {
     fill: #ddd6;
     stroke: #bbb6;
     stroke-width: 1;
@@ -92,21 +87,20 @@ $primary-invert: $pink-invert;
     stroke: #bbb;
     stroke-width: 1;
   }*/
-      .fu-polygons path {
-        fill: none; //#eef6e6;
-        stroke: #bbb;
-        stroke-width: 1;
-      }
-      .fu-frontiers path {
-        fill: none; //#eef6e6;
-        stroke: #bbb;
-        stroke-width: 1;
-      }
-      /*.states-labels text {
+    .fu-polygons path {
+      fill: none; //#eef6e6;
+      stroke: #bbb;
+      stroke-width: 1;
+    }
+    .fu-frontiers path {
+      fill: none; //#eef6e6;
+      stroke: #bbb;
+      stroke-width: 1;
+    }
+    /*.states-labels text {
     fill: #8b8b8b;
     font-size: 10px;
     text-transform: uppercase;
   }*/
-    }
   }
 }
