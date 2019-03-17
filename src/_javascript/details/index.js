@@ -5,7 +5,8 @@ export function makeDetails(parent, dispatcher, mun) {
   // TODO: be more clever?
   parent.html(null);
 
-  parent.append('p').text(mun.properties.name);
+  parent.append('h3').text(mun.properties.name);
+  parent.append('h4').text(mun.properties.fu);
   endLoading(parent);
 }
 

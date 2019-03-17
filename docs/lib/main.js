@@ -1023,7 +1023,8 @@
     // TODO: be more clever?
 
     parent.html(null);
-    parent.append('p').text(mun.properties.name);
+    parent.append('h3').text(mun.properties.name);
+    parent.append('h4').text(mun.properties.fu);
     endLoading(parent);
   }
 
@@ -10111,28 +10112,11 @@
     element.classed('is-loading', false);
   }
 
-  function makeSearch(parent, dispatcher, data) {
-    startLoading$2(parent); // Clean existing contents
-    // TODO: be more clever?
-
-    parent.html(null);
-    endLoading$2(parent);
-  }
-
-  function startLoading$2(element) {
-    element.classed('is-loading', true);
-  }
-
-  function endLoading$2(element) {
-    element.classed('is-loading', false);
-  }
-
   var dispatcher = dispatch('data-loaded', 'mun-click', 'mun-mouseover', 'mun-mouseout'); // Asynchronous (promise)
 
   loadData(dispatcher); // Create the layout
 
-  dispatcher.on('data-loaded.search', function (data) {
-    makeSearch(select('section#search'), dispatcher, data);
+  dispatcher.on('data-loaded.search', function (data) {//makeSearch(select('section#search'), dispatcher, data);
   });
   dispatcher.on('data-loaded.map', function (data) {
     makeMap(select('section#map'), dispatcher, data);
