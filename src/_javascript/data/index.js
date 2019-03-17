@@ -16,7 +16,7 @@ export const cfg = {
   },
 };
 
-export function loadData() {
+export function loadData(dispatcher) {
   const promises = [
     json(cfg.topojson.url, {integrity: cfg.topojson.integrityHash}),
     csv(cfg.values.url, {integrity: cfg.values.integrityHash}, row => {
@@ -38,32 +38,39 @@ export function loadData() {
     }),
   ];
 
-  return Promise.all(promises).then(results => {
-    // All datasets have been loaded and checked successfully
-    const topo = results[0];
-    const values = results[1].reduce((acc, cur) => {
-      acc[cur.ibgeCode] = cur;
-      return acc;
-    }, {});
+  return Promise.all(promises)
+    .then(results => {
+      // All datasets have been loaded and checked successfully
+      const topo = results[0];
+      const values = results[1].reduce((acc, cur) => {
+        acc[cur.ibgeCode] = cur;
+        return acc;
+      }, {});
 
-    const data = {
-      brazil: toFeatures(topo, 'republic'),
-      fu: toFeatures(topo, 'federative-units'),
-      internalFu: toFeatures(topo, 'internal-federative-units'),
-      mun: toFeatures(topo, 'municipalities'),
-    };
-    data.mun.features = data.mun.features.map(ft => {
-      if (ft.properties.ibgeCode in values) {
-        ft.properties.category = values[ft.properties.ibgeCode].category;
-        ft.properties.number = values[ft.properties.ibgeCode].number;
-      } else {
-        ft.properties.values = {};
-      }
-      return ft;
+      const data = {
+        brazil: toFeatures(topo, 'republic'),
+        fu: toFeatures(topo, 'federative-units'),
+        internalFu: toFeatures(topo, 'internal-federative-units'),
+        mun: toFeatures(topo, 'municipalities'),
+      };
+      data.mun.features = data.mun.features.map(ft => {
+        if (ft.properties.ibgeCode in values) {
+          ft.properties.category = values[ft.properties.ibgeCode].category;
+          ft.properties.number = values[ft.properties.ibgeCode].number;
+        } else {
+          ft.properties.values = {};
+        }
+        return ft;
+      });
+
+      // Publish the data with the "data-loaded" event
+      dispatcher.call('data-loaded', this, data);
+    })
+    .catch(error => {
+      /* TODO: decide what to do if the init has failed.
+       * Meanwhile, it prints the error in the console. */
+      console.log(error);
     });
-
-    return data;
-  });
 }
 
 function toFeatures(topojson, key) {

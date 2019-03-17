@@ -11,7 +11,7 @@ const cfg = {
   },
 };
 
-export function makeMap(parent, dispatcher, state) {
+export function makeMap(parent, dispatcher, data) {
   startLoading(parent);
 
   // Clean existing contents
@@ -30,8 +30,8 @@ export function makeMap(parent, dispatcher, state) {
   // to pass it a projection as an argument
   const path = geoPath();
 
-  createChoropleth(svg, path, state.data, dispatcher);
-  createFuFrontiers(svg, path, state.data);
+  createChoropleth(svg, path, data, dispatcher);
+  createFuFrontiers(svg, path, data);
   createTooltip(svg, path, dispatcher);
 
   endLoading(parent);

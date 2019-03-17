@@ -55,7 +55,7 @@ export function createChoropleth(parent, path, data, dispatcher) {
     })
     .on('click', (ft, element) => {
       // invoke callbacks
-      dispatcher.call(cfg.typename.click);
+      dispatcher.call(cfg.typename.click, null, ft);
     });
 }
 

@@ -942,7 +942,9 @@
       url: 'https://raw.githubusercontent.com/severo/data_brazil/master/data_by_municipality_for_maps.csv'
     }
   };
-  function loadData() {
+  function loadData(dispatcher) {
+    var _this = this;
+
     var promises = [json(cfg.topojson.url, {
       integrity: cfg.topojson.integrityHash
     }), csv$1(cfg.values.url, {
@@ -986,8 +988,13 @@
         }
 
         return ft;
-      });
-      return data;
+      }); // Publish the data with the "data-loaded" event
+
+      dispatcher.call('data-loaded', _this, data);
+    }).catch(function (error) {
+      /* TODO: decide what to do if the init has failed.
+       * Meanwhile, it prints the error in the console. */
+      console.log(error);
     });
   }
 
@@ -1009,6 +1016,23 @@
       return ft;
     });
     return features;
+  }
+
+  function makeDetails(parent, dispatcher, mun) {
+    startLoading(parent); // Clean existing contents
+    // TODO: be more clever?
+
+    parent.html(null);
+    parent.append('p').text(mun.properties.name);
+    endLoading(parent);
+  }
+
+  function startLoading(element) {
+    element.classed('is-loading', true);
+  }
+
+  function endLoading(element) {
+    element.classed('is-loading', false);
   }
 
   var xhtml = "http://www.w3.org/1999/xhtml";
@@ -6100,7 +6124,7 @@
       dispatcher.call(cfg$1.typename.mouseout);
     }).on('click', function (ft, element) {
       // invoke callbacks
-      dispatcher.call(cfg$1.typename.click);
+      dispatcher.call(cfg$1.typename.click, null, ft);
     });
   }
 
@@ -10060,8 +10084,8 @@
       width: 960
     }
   };
-  function makeMap(parent, dispatcher, state) {
-    startLoading(parent); // Clean existing contents
+  function makeMap(parent, dispatcher, data) {
+    startLoading$1(parent); // Clean existing contents
     // TODO: be more clever?
 
     parent.html(null);
@@ -10073,25 +10097,9 @@
     // to pass it a projection as an argument
 
     var path = geoPath();
-    createChoropleth(svg, path, state.data, dispatcher);
-    createFuFrontiers(svg, path, state.data);
+    createChoropleth(svg, path, data, dispatcher);
+    createFuFrontiers(svg, path, data);
     createTooltip(svg, path, dispatcher);
-    endLoading(parent);
-  }
-
-  function startLoading(element) {
-    element.classed('is-loading', true);
-  }
-
-  function endLoading(element) {
-    element.classed('is-loading', false);
-  }
-
-  function makeSearch(parent, dispatcher, state) {
-    startLoading$1(parent); // Clean existing contents
-    // TODO: be more clever?
-
-    parent.html(null);
     endLoading$1(parent);
   }
 
@@ -10103,47 +10111,35 @@
     element.classed('is-loading', false);
   }
 
-  var _this = undefined;
+  function makeSearch(parent, dispatcher, data) {
+    startLoading$2(parent); // Clean existing contents
+    // TODO: be more clever?
 
-  var dispatcher = dispatch('data-loaded', 'mun-click', 'mun-mouseover', 'mun-mouseout', 'state-changed'
-  /*'view-changed',
-  'view-control-changed',
-  'zoom-control-changed'*/
-  );
-  var state = {
-    data: {}
-  };
-  dispatcher.on('data-loaded.state', function (data) {
-    state.data = data;
-    console.log('Data has been loaded');
-    dispatcher.call('state-changed', _this, state);
-  });
-  /*dispatcher.on('view-control-changed.state', data => {
-    state.view = data.selected;
-    dispatcher.call('state-changed', this, state);
-  });
-  dispatcher.on('zoom-control-changed.state', data => {
-    state.zoom = data.selected;
-    dispatcher.call('state-changed', this, state);
-  });*/
-  // Asynchronous
-  // TODO: reduce the amount of code - put the dispatcher in the loadData
-  // function?
+    parent.html(null);
+    endLoading$2(parent);
+  }
 
-  loadData().then(function (data) {
-    // Publish the data with the "data-loaded" event
-    dispatcher.call('data-loaded', _this, data);
-  }).catch(function (error) {
-    /* TODO: decide what to do if the init has failed.
-     * Meanwhile, it prints the error in the console. */
-    console.log(error);
-  }); // Create the layout
+  function startLoading$2(element) {
+    element.classed('is-loading', true);
+  }
 
-  dispatcher.on('state-changed.search', function (newState) {
-    makeSearch(select('section#search'), dispatcher, newState);
+  function endLoading$2(element) {
+    element.classed('is-loading', false);
+  }
+
+  var dispatcher = dispatch('data-loaded', 'mun-click', 'mun-mouseover', 'mun-mouseout'); // Asynchronous (promise)
+
+  loadData(dispatcher); // Create the layout
+
+  dispatcher.on('data-loaded.search', function (data) {
+    makeSearch(select('section#search'), dispatcher, data);
   });
-  dispatcher.on('state-changed.map', function (newState) {
-    makeMap(select('section#map'), dispatcher, newState);
+  dispatcher.on('data-loaded.map', function (data) {
+    makeMap(select('section#map'), dispatcher, data);
+  }); //
+
+  dispatcher.on('mun-click.details', function (mun) {
+    makeDetails(select('section#details'), dispatcher, mun);
   });
 
 }());
