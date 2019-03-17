@@ -28,21 +28,23 @@
       <div class="container">
         <div class="columns is-desktop">
           <section class="column is-half-desktop content">
-            <section id="search" class="section">
-              <h3>{{search.title}}</h3>
+            <section id="search">
+              <div class="field">
+                <label class="label">{{search.title}}</label>
+                <div class="control has-icons-left">
+                  <input
+                    class="input is-medium"
+                    type="text"
+                    placeholder="{{search.placeholder}}"
+                  />
+                  <span class="icon is-medium is-left">
+                    <i class="fas fa-search-location"></i>
+                  </span>
+                </div>
+              </div>
               <p>
                 {{search.firstParagraph}}
               </p>
-              <div class="control has-icons-left">
-                <input
-                  class="input is-medium"
-                  type="text"
-                  placeholder="{{search.placeholder}}"
-                />
-                <span class="icon is-medium is-left">
-                  <i class="fas fa-search-location"></i>
-                </span>
-              </div>
             </section>
             <section id="details" class="section"></section>
           </section>
