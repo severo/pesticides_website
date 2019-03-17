@@ -8,7 +8,7 @@ export function appendDebug(dispatcher, parent) {
     .classed('content', true);
   debugElement.append('h3').text('Debug');
   const pre = debugElement.append('pre');
-  dispatcher.on('number-hover', data => log(data, pre));
+  dispatcher.on('choropleth-mouseover.debug', data => log(data, pre));
 }
 
 function log(data, parent) {
@@ -17,11 +17,11 @@ function log(data, parent) {
     .append('p')
     .text(
       'Municipality: ' +
-        data.name +
+        data.properties.name +
         ' (code ' +
-        data.id +
+        data.properties.ibgeCode +
         ' - ' +
-        data.population +
+        data.properties.population +
         ' hab.)'
     );
   parent.append('p').text('Value: ' + data.value);

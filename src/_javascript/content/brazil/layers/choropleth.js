@@ -19,8 +19,9 @@ number: {
 const cfg = {
   number: {
     field: 'supEu',
-    hoverCallbackTypename: 'number-hover',
     max: 27,
+    mouseoutCallbackTypename: 'choropleth-mouseout',
+    mouseoverCallbackTypename: 'choropleth-mouseover',
   },
 };
 
@@ -41,21 +42,23 @@ export function createChoropleth(parent, data, path, view, dispatcher) {
     .data(data.mun.features)
     .enter()
     .append('path')
-    .attr('id', ft => ft.properties.ibgeCode)
+    .attr('id', ft => 'id-' + ft.properties.ibgeCode)
     .attr('d', ft => path(ft.geometry))
     .style('fill', ft => {
-      if (value(ft)) {
+      if (Number.isInteger(value(ft))) {
         return interpolateYlOrRd(value(ft) / max);
       }
       return null;
     })
-    .on('mouseover', ft => {
+    .on('mouseover', (ft, element) => {
       // invoke callbacks
-      dispatcher.call(cfg[view].hoverCallbackTypename, null, {
-        id: ft.properties.ibgeCode,
-        name: ft.properties.name,
-        population: ft.properties.population,
+      dispatcher.call(cfg[view].mouseoverCallbackTypename, null, {
+        properties: ft.properties,
         value: value(ft),
       });
+    })
+    .on('mouseout', (ft, element) => {
+      // invoke callbacks
+      dispatcher.call(cfg[view].mouseoutCallbackTypename);
     });
 }

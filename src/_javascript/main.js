@@ -8,7 +8,8 @@ import {select} from 'd3-selection';
 // TODO: cfg
 const dispatcher = dispatch(
   'data-loaded',
-  'number-hover',
+  'choropleth-mouseover',
+  'choropleth-mouseout',
   'state-changed',
   'view-changed',
   'view-control-changed',

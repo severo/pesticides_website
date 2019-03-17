@@ -54,6 +54,7 @@
     "d3": "^5.9.2",
     "d3-fetch": "^1.1.2",
     "d3-geo-projection": "^2.6.0",
+    "d3-svg-annotation": "^2.3.1",
     "eslint": "^5.15.2",
     "eslint-config-prettier": "^4.1.0",
     "eslint-plugin-prettier": "^3.0.1",

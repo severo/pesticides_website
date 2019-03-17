@@ -4,7 +4,9 @@ import {appendSvg} from './svg';
 import {createChoropleth} from './layers/choropleth';
 import {createFuFrontiers} from './layers/fu';
 import {createMap} from './map';
-import {createPath} from './projection';
+import {createTooltip} from './layers/tooltip';
+//import {createPath} from './projection';
+import {geoPath} from 'd3-geo';
 
 /*const cfg = {
   defaultHeight: 500,
@@ -68,7 +70,7 @@ export function create(view) {
     //const path = createPath(projection);
     // As the data is already expressed in px, in 960x960 viewport, no need to
     // pass a projection
-    const path = createPath();
+    const path = geoPath();
 
     // Add sub-elements
     /*createCountries(
@@ -86,6 +88,8 @@ export function create(view) {
     createChoropleth(map, state.data, path, view, dispatcher);
 
     createFuFrontiers(map, path, state.data);
+
+    createTooltip(map, path, dispatcher);
 
     // TODO: evaluate if the function should return a value or not
     return svg;

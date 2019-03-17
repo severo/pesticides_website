@@ -1,5 +1,6 @@
 import {csv, json} from 'd3-fetch';
 import {feature} from 'topojson';
+import {geoPath} from 'd3-geo';
 
 export const cfg = {
   topojson: {
@@ -46,10 +47,10 @@ export function loadData() {
     }, {});
 
     const data = {
-      brazil: toGeoJson(topo, 'republic'),
-      fu: toGeoJson(topo, 'federative-units'),
-      internalFu: toGeoJson(topo, 'internal-federative-units'),
-      mun: toGeoJson(topo, 'municipalities'),
+      brazil: toFeatures(topo, 'republic'),
+      fu: toFeatures(topo, 'federative-units'),
+      internalFu: toFeatures(topo, 'internal-federative-units'),
+      mun: toFeatures(topo, 'municipalities'),
     };
     data.mun.features = data.mun.features.map(ft => {
       if (ft.properties.ibgeCode in values) {
@@ -65,6 +66,26 @@ export function loadData() {
   });
 }
 
-function toGeoJson(topojson, key) {
-  return feature(topojson, topojson.objects[key]);
+function toFeatures(topojson, key) {
+  // TODO: do the following computation at build time
+  const path = geoPath();
+  const features = feature(topojson, topojson.objects[key]);
+  features.features.map(ft => {
+    if (!('properties' in ft)) {
+      ft.properties = {};
+    }
+    ft.properties.centroid = path.centroid(ft.geometry);
+    ft.properties.bounds = path.bounds(ft.geometry);
+    ft.properties.height =
+      ft.properties.bounds[1][1] - ft.properties.bounds[0][1];
+    ft.properties.width =
+      ft.properties.bounds[1][0] - ft.properties.bounds[0][0];
+    ft.properties.radius =
+      Math.sqrt(
+        ft.properties.height * ft.properties.height +
+          ft.properties.width * ft.properties.width
+      ) / 2; // eslint-disable-line no-magic-numbers
+    return ft;
+  });
+  return features;
 }

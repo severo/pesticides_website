@@ -65,11 +65,15 @@ $primary-invert: $pink-invert;
       .choropleth {
         &.number {
           path {
-            stroke: none; //#555;
-            stroke-width: 0.2;
-            stroke-opacity: 0.9;
+            stroke: none;
             fill-opacity: 0.8;
             fill: #eee;
+
+            &:hover {
+              stroke: #e8336d;
+              stroke-width: 1;
+              stroke-opacity: 1;
+            }
           }
         }
       }
