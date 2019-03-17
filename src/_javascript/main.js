@@ -2,6 +2,7 @@
 import {dispatch} from 'd3-dispatch';
 import {loadData} from './data';
 import {makeMap} from './map';
+import {makeSearch} from './search';
 import {select} from 'd3-selection';
 
 // TODO: cfg
@@ -48,10 +49,10 @@ loadData()
   });
 
 // Create the layout
-// TODO: in cfg
-const mapDom = select('section#map');
-dispatcher.on('state-changed.map', newState => {
-  makeMap(mapDom, dispatcher, newState);
+dispatcher.on('state-changed.search', newState => {
+  makeSearch(select('section#search'), dispatcher, newState);
 });
-//const controlsDom = select('div#controls');
-//appendControls(dispatcher, controlsDom, state);
+
+dispatcher.on('state-changed.map', newState => {
+  makeMap(select('section#map'), dispatcher, newState);
+});

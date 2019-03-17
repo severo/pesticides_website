@@ -10087,6 +10087,22 @@
     element.classed('is-loading', false);
   }
 
+  function makeSearch(parent, dispatcher, state) {
+    startLoading$1(parent); // Clean existing contents
+    // TODO: be more clever?
+
+    parent.html(null);
+    endLoading$1(parent);
+  }
+
+  function startLoading$1(element) {
+    element.classed('is-loading', true);
+  }
+
+  function endLoading$1(element) {
+    element.classed('is-loading', false);
+  }
+
   var _this = undefined;
 
   var dispatcher = dispatch('data-loaded', 'mun-click', 'mun-mouseover', 'mun-mouseout', 'state-changed'
@@ -10122,12 +10138,12 @@
      * Meanwhile, it prints the error in the console. */
     console.log(error);
   }); // Create the layout
-  // TODO: in cfg
 
-  var mapDom = select('section#map');
+  dispatcher.on('state-changed.search', function (newState) {
+    makeSearch(select('section#search'), dispatcher, newState);
+  });
   dispatcher.on('state-changed.map', function (newState) {
-    makeMap(mapDom, dispatcher, newState);
-  }); //const controlsDom = select('div#controls');
-  //appendControls(dispatcher, controlsDom, state);
+    makeMap(select('section#map'), dispatcher, newState);
+  });
 
 }());

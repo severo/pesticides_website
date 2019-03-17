@@ -1,12 +1,12 @@
 {
-  "content": {
-    "firstParagraph": "Paragraph in the content section",
-    "title": "Title of the content section"
-  },
   "hero": {
     "subtitle": "Pesticidas in drinking water in Brazil",
     "title": "Quem bebe agrotóxicos?"
   },
   "lang": "pt",
+  "search": {
+    "firstParagraph": "Search it by its name, or click on the map.",
+    "title": "Check your municipality"
+  },
   "title": "Quem bebe agrotóxicos?"
 }
