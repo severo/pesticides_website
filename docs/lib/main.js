@@ -10695,7 +10695,25 @@
 
   loadData(dispatcher); // Create the layout
 
-  dispatcher.on('data-loaded.search', function (data) {//makeSearch(select('section#search'), dispatcher, data);
+  dispatcher.on('data-loaded.search', function (data) {
+    // Selectr is loaded from a <script> tag in the index.html file, not from a
+    // module
+    var selectrData = data.fu.features.map(function (fu) {
+      return {
+        children: data.mun.features.filter(function (mun) {
+          return mun.properties.fuCode === fu.properties.fuCode;
+        }).map(function (ft) {
+          return {
+            text: ft.properties.name,
+            value: ft.properties.ibgeCode
+          };
+        }),
+        text: fu.properties.fu
+      };
+    });
+    new window.Selectr('#mun-search', {
+      data: selectrData
+    }); //makeSearch(select('section#search'), dispatcher, data);
   });
   dispatcher.on('data-loaded.map', function (data) {
     makeMap(select('section#map'), dispatcher, data);

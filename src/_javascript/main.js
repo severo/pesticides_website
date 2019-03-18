@@ -17,6 +17,21 @@ loadData(dispatcher);
 
 // Create the layout
 dispatcher.on('data-loaded.search', data => {
+  // Selectr is loaded from a <script> tag in the index.html file, not from a
+  // module
+  const selectrData = data.fu.features.map(fu => {
+    return {
+      children: data.mun.features
+        .filter(mun => mun.properties.fuCode === fu.properties.fuCode)
+        .map(ft => {
+          return {text: ft.properties.name, value: ft.properties.ibgeCode};
+        }),
+      text: fu.properties.fu,
+    };
+  });
+  new window.Selectr('#mun-search', {
+    data: selectrData,
+  });
   //makeSearch(select('section#search'), dispatcher, data);
 });
 dispatcher.on('data-loaded.map', data => {

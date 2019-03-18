@@ -31,16 +31,7 @@
             <section id="search">
               <div class="field">
                 <label class="label">Check your municipality</label>
-                <div class="control has-icons-left">
-                  <input
-                    class="input is-medium"
-                    type="text"
-                    placeholder="São Paulo [work in progress...]"
-                  />
-                  <span class="icon is-medium is-left">
-                    <i class="fas fa-search-location"></i>
-                  </span>
-                </div>
+                <select id="mun-search"></select>
               </div>
               <p class="click-on-map-text">
                 Or click on the map
@@ -78,6 +69,15 @@
     <script
       defer
       src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"
+    ></script>
+    <link
+      href="https://unpkg.com/mobius1-selectr@latest/dist/selectr.min.css"
+      rel="stylesheet"
+      type="text/css"
+    />
+    <script
+      src="https://unpkg.com/mobius1-selectr@latest/dist/selectr.min.js"
+      type="text/javascript"
     ></script>
     <script src="lib/main.js"></script>
   </body>

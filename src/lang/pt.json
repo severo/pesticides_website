@@ -5,8 +5,9 @@
   },
   "lang": "pt",
   "search": {
+    "aria-label": "Search a municipality of Brazil by its name",
     "click-on-map": "Or click on the map",
-    "placeholder": "São Paulo [work in progress...]",
+    "placeholder": "Search the municipalities, eg. São Paulo [work in progress...]",
     "title": "Check your municipality"
   },
   "title": "Quem bebe agrotóxicos?"
