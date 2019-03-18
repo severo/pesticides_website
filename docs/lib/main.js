@@ -10691,14 +10691,14 @@
     element.classed('is-loading', false);
   }
 
-  var dispatcher = dispatch('data-loaded', 'mun-click', 'mun-mouseover', 'mun-mouseout'); // Asynchronous (promise)
+  var dispatcher = dispatch('data-loaded', 'mun-click', 'mun-mouseover', 'mun-mouseout', 'mun-search-change', 'mun-search-select'); // Asynchronous (promise)
 
   loadData(dispatcher); // Create the layout
 
   dispatcher.on('data-loaded.search', function (data) {
     // Selectr is loaded from a <script> tag in the index.html file, not from a
     // module
-    var selectrData = data.fu.features.map(function (fu) {
+    var munSearchData = data.fu.features.map(function (fu) {
       return {
         children: data.mun.features.filter(function (mun) {
           return mun.properties.fuCode === fu.properties.fuCode;
@@ -10711,8 +10711,17 @@
         text: fu.properties.fu
       };
     });
-    new window.Selectr('#mun-search', {
-      data: selectrData
+    var munSearch = new window.Selectr('#mun-search', {
+      clearable: true,
+      data: munSearchData,
+      placeholder: null
+    });
+    munSearch.on('selectr.select', function (option) {
+      // TODO: get the data more efficiently through a lookup table?
+      var mun = data.mun.features.filter(function (ft) {
+        return ft.properties.ibgeCode === option.value;
+      })[0];
+      dispatcher.call('mun-search-select', null, mun);
     }); //makeSearch(select('section#search'), dispatcher, data);
   });
   dispatcher.on('data-loaded.map', function (data) {
@@ -10720,6 +10729,9 @@
   }); //
 
   dispatcher.on('mun-click.details', function (mun) {
+    makeDetails(select('section#details'), dispatcher, mun);
+  });
+  dispatcher.on('mun-search-select.details', function (mun) {
     makeDetails(select('section#details'), dispatcher, mun);
   });
 

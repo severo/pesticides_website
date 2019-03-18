@@ -9,7 +9,9 @@ const dispatcher = dispatch(
   'data-loaded',
   'mun-click',
   'mun-mouseover',
-  'mun-mouseout'
+  'mun-mouseout',
+  'mun-search-change',
+  'mun-search-select'
 );
 
 // Asynchronous (promise)
@@ -19,7 +21,7 @@ loadData(dispatcher);
 dispatcher.on('data-loaded.search', data => {
   // Selectr is loaded from a <script> tag in the index.html file, not from a
   // module
-  const selectrData = data.fu.features.map(fu => {
+  const munSearchData = data.fu.features.map(fu => {
     return {
       children: data.mun.features
         .filter(mun => mun.properties.fuCode === fu.properties.fuCode)
@@ -29,8 +31,18 @@ dispatcher.on('data-loaded.search', data => {
       text: fu.properties.fu,
     };
   });
-  new window.Selectr('#mun-search', {
-    data: selectrData,
+  const munSearch = new window.Selectr('#mun-search', {
+    clearable: true,
+    data: munSearchData,
+    placeholder: null,
+  });
+
+  munSearch.on('selectr.select', option => {
+    // TODO: get the data more efficiently through a lookup table?
+    const mun = data.mun.features.filter(
+      ft => ft.properties.ibgeCode === option.value
+    )[0];
+    dispatcher.call('mun-search-select', null, mun);
   });
   //makeSearch(select('section#search'), dispatcher, data);
 });
@@ -40,5 +52,8 @@ dispatcher.on('data-loaded.map', data => {
 
 //
 dispatcher.on('mun-click.details', mun => {
+  makeDetails(select('section#details'), dispatcher, mun);
+});
+dispatcher.on('mun-search-select.details', mun => {
   makeDetails(select('section#details'), dispatcher, mun);
 });
