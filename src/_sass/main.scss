@@ -28,8 +28,13 @@ $primary-invert: $pink-invert;
 
 @import '../../node_modules/bulma/bulma';
 
-#map {
-  min-height: 500px;
+#search {
+  .click-on-map-text {
+    text-align: right;
+  }
+}
+
+#details {
 }
 
 // See https://github.com/jgthms/bulma/issues/847#issuecomment-314110630
@@ -49,6 +54,7 @@ $primary-invert: $pink-invert;
 }
 
 #map {
+  min-height: 500px;
   svg {
     width: 100%;
 
