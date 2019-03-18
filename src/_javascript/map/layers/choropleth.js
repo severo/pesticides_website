@@ -1,4 +1,4 @@
-import {interpolateYlOrRd} from 'd3';
+import {axisBottom, interpolateYlOrRd, range, scaleLinear} from 'd3';
 
 // TODO: add a control to select the parameter?
 /* Reminder of the data available from the CSV
@@ -18,6 +18,13 @@ number: {
 */
 const cfg = {
   field: 'supEu',
+  legend: {
+    height: 10,
+    subtitleOffset: 8,
+    tickSize: 15,
+    titleOffset: 22,
+    width: 10,
+  },
   max: 27,
   typename: {
     click: 'mun-click',
@@ -38,7 +45,7 @@ export function createChoropleth(parent, path, data, dispatcher) {
     .attr('d', path)
     .style('fill', ft => {
       if (Number.isInteger(value(ft))) {
-        return interpolateYlOrRd(value(ft) / cfg.max);
+        return color(value(ft));
       }
       return null;
     })
@@ -57,6 +64,7 @@ export function createChoropleth(parent, path, data, dispatcher) {
       // invoke callbacks
       dispatcher.call(cfg.typename.click, null, ft);
     });
+  makeLegend(parent);
 }
 
 function value(ft) {
@@ -64,4 +72,56 @@ function value(ft) {
     return ft.properties.number[cfg.field];
   }
   return null;
+}
+
+const color = scaleLinear()
+  .domain([0, cfg.max])
+  .interpolate(() => interpolateYlOrRd);
+
+function makeLegend(parent) {
+  // TODO: should be a scheme (27 colors), not a continuous scale
+  const xx = scaleLinear()
+    .domain(color.domain())
+    .rangeRound([0, cfg.legend.width * cfg.max]);
+
+  const legend = parent
+    .append('g')
+    //.style('font-size', '0.8rem')
+    //.style('font-family', 'sans-serif')
+    .attr('transform', 'translate(550,50)');
+
+  legend
+    .selectAll('rect')
+    .data(range(0, cfg.max, 1))
+    .enter()
+    .append('rect')
+    .attr('height', cfg.legend.height)
+    .attr('x', el => xx(el))
+    .attr('width', cfg.legend.width)
+    .attr('fill', el => color(el));
+
+  const label = legend
+    .append('g')
+    .attr('fill', '#000')
+    .attr('text-anchor', 'start');
+
+  // TODO: i18n
+  label
+    .append('text')
+    .attr('y', -cfg.legend.titleOffset)
+    .attr('font-weight', 'bold')
+    .text('Number of pesticides detected in drinking water');
+
+  // TODO: i18n
+  label
+    .append('text')
+    .attr('y', -cfg.legend.subtitleOffset)
+    .text('(white: no pesticide, purple: 27 different pesticides)');
+
+  // Scale
+  legend
+    .append('g')
+    .call(axisBottom(xx).tickSize(cfg.legend.tickSize))
+    .select('.domain')
+    .remove();
 }

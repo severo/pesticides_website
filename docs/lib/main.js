@@ -562,6 +562,73 @@
   }
 
   var ascendingBisect = bisector(ascending);
+  var bisectRight = ascendingBisect.right;
+
+  function sequence(start, stop, step) {
+    start = +start, stop = +stop, step = (n = arguments.length) < 2 ? (stop = start, start = 0, 1) : n < 3 ? 1 : +step;
+
+    var i = -1,
+        n = Math.max(0, Math.ceil((stop - start) / step)) | 0,
+        range = new Array(n);
+
+    while (++i < n) {
+      range[i] = start + i * step;
+    }
+
+    return range;
+  }
+
+  var e10 = Math.sqrt(50),
+      e5 = Math.sqrt(10),
+      e2 = Math.sqrt(2);
+
+  function ticks(start, stop, count) {
+    var reverse,
+        i = -1,
+        n,
+        ticks,
+        step;
+
+    stop = +stop, start = +start, count = +count;
+    if (start === stop && count > 0) return [start];
+    if (reverse = stop < start) n = start, start = stop, stop = n;
+    if ((step = tickIncrement(start, stop, count)) === 0 || !isFinite(step)) return [];
+
+    if (step > 0) {
+      start = Math.ceil(start / step);
+      stop = Math.floor(stop / step);
+      ticks = new Array(n = Math.ceil(stop - start + 1));
+      while (++i < n) ticks[i] = (start + i) * step;
+    } else {
+      start = Math.floor(start * step);
+      stop = Math.ceil(stop * step);
+      ticks = new Array(n = Math.ceil(start - stop + 1));
+      while (++i < n) ticks[i] = (start - i) / step;
+    }
+
+    if (reverse) ticks.reverse();
+
+    return ticks;
+  }
+
+  function tickIncrement(start, stop, count) {
+    var step = (stop - start) / Math.max(0, count),
+        power = Math.floor(Math.log(step) / Math.LN10),
+        error = step / Math.pow(10, power);
+    return power >= 0
+        ? (error >= e10 ? 10 : error >= e5 ? 5 : error >= e2 ? 2 : 1) * Math.pow(10, power)
+        : -Math.pow(10, -power) / (error >= e10 ? 10 : error >= e5 ? 5 : error >= e2 ? 2 : 1);
+  }
+
+  function tickStep(start, stop, count) {
+    var step0 = Math.abs(stop - start) / Math.max(0, count),
+        step1 = Math.pow(10, Math.floor(Math.log(step0) / Math.LN10)),
+        error = step0 / step1;
+    if (error >= e10) step1 *= 10;
+    else if (error >= e5) step1 *= 5;
+    else if (error >= e2) step1 *= 2;
+    return stop < start ? -step1 : step1;
+  }
 
   var lengthSum = adder();
 
@@ -1034,6 +1101,172 @@
 
   function endLoading(element) {
     element.classed('is-loading', false);
+  }
+
+  var slice = Array.prototype.slice;
+
+  function identity$2(x) {
+    return x;
+  }
+
+  var top = 1,
+      right = 2,
+      bottom = 3,
+      left = 4,
+      epsilon = 1e-6;
+
+  function translateX(x) {
+    return "translate(" + (x + 0.5) + ",0)";
+  }
+
+  function translateY(y) {
+    return "translate(0," + (y + 0.5) + ")";
+  }
+
+  function number(scale) {
+    return function(d) {
+      return +scale(d);
+    };
+  }
+
+  function center(scale) {
+    var offset = Math.max(0, scale.bandwidth() - 1) / 2; // Adjust for 0.5px offset.
+    if (scale.round()) offset = Math.round(offset);
+    return function(d) {
+      return +scale(d) + offset;
+    };
+  }
+
+  function entering() {
+    return !this.__axis;
+  }
+
+  function axis(orient, scale) {
+    var tickArguments = [],
+        tickValues = null,
+        tickFormat = null,
+        tickSizeInner = 6,
+        tickSizeOuter = 6,
+        tickPadding = 3,
+        k = orient === top || orient === left ? -1 : 1,
+        x = orient === left || orient === right ? "x" : "y",
+        transform = orient === top || orient === bottom ? translateX : translateY;
+
+    function axis(context) {
+      var values = tickValues == null ? (scale.ticks ? scale.ticks.apply(scale, tickArguments) : scale.domain()) : tickValues,
+          format = tickFormat == null ? (scale.tickFormat ? scale.tickFormat.apply(scale, tickArguments) : identity$2) : tickFormat,
+          spacing = Math.max(tickSizeInner, 0) + tickPadding,
+          range = scale.range(),
+          range0 = +range[0] + 0.5,
+          range1 = +range[range.length - 1] + 0.5,
+          position = (scale.bandwidth ? center : number)(scale.copy()),
+          selection = context.selection ? context.selection() : context,
+          path = selection.selectAll(".domain").data([null]),
+          tick = selection.selectAll(".tick").data(values, scale).order(),
+          tickExit = tick.exit(),
+          tickEnter = tick.enter().append("g").attr("class", "tick"),
+          line = tick.select("line"),
+          text = tick.select("text");
+
+      path = path.merge(path.enter().insert("path", ".tick")
+          .attr("class", "domain")
+          .attr("stroke", "currentColor"));
+
+      tick = tick.merge(tickEnter);
+
+      line = line.merge(tickEnter.append("line")
+          .attr("stroke", "currentColor")
+          .attr(x + "2", k * tickSizeInner));
+
+      text = text.merge(tickEnter.append("text")
+          .attr("fill", "currentColor")
+          .attr(x, k * spacing)
+          .attr("dy", orient === top ? "0em" : orient === bottom ? "0.71em" : "0.32em"));
+
+      if (context !== selection) {
+        path = path.transition(context);
+        tick = tick.transition(context);
+        line = line.transition(context);
+        text = text.transition(context);
+
+        tickExit = tickExit.transition(context)
+            .attr("opacity", epsilon)
+            .attr("transform", function(d) { return isFinite(d = position(d)) ? transform(d) : this.getAttribute("transform"); });
+
+        tickEnter
+            .attr("opacity", epsilon)
+            .attr("transform", function(d) { var p = this.parentNode.__axis; return transform(p && isFinite(p = p(d)) ? p : position(d)); });
+      }
+
+      tickExit.remove();
+
+      path
+          .attr("d", orient === left || orient == right
+              ? (tickSizeOuter ? "M" + k * tickSizeOuter + "," + range0 + "H0.5V" + range1 + "H" + k * tickSizeOuter : "M0.5," + range0 + "V" + range1)
+              : (tickSizeOuter ? "M" + range0 + "," + k * tickSizeOuter + "V0.5H" + range1 + "V" + k * tickSizeOuter : "M" + range0 + ",0.5H" + range1));
+
+      tick
+          .attr("opacity", 1)
+          .attr("transform", function(d) { return transform(position(d)); });
+
+      line
+          .attr(x + "2", k * tickSizeInner);
+
+      text
+          .attr(x, k * spacing)
+          .text(format);
+
+      selection.filter(entering)
+          .attr("fill", "none")
+          .attr("font-size", 10)
+          .attr("font-family", "sans-serif")
+          .attr("text-anchor", orient === right ? "start" : orient === left ? "end" : "middle");
+
+      selection
+          .each(function() { this.__axis = position; });
+    }
+
+    axis.scale = function(_) {
+      return arguments.length ? (scale = _, axis) : scale;
+    };
+
+    axis.ticks = function() {
+      return tickArguments = slice.call(arguments), axis;
+    };
+
+    axis.tickArguments = function(_) {
+      return arguments.length ? (tickArguments = _ == null ? [] : slice.call(_), axis) : tickArguments.slice();
+    };
+
+    axis.tickValues = function(_) {
+      return arguments.length ? (tickValues = _ == null ? null : slice.call(_), axis) : tickValues && tickValues.slice();
+    };
+
+    axis.tickFormat = function(_) {
+      return arguments.length ? (tickFormat = _, axis) : tickFormat;
+    };
+
+    axis.tickSize = function(_) {
+      return arguments.length ? (tickSizeInner = tickSizeOuter = +_, axis) : tickSizeInner;
+    };
+
+    axis.tickSizeInner = function(_) {
+      return arguments.length ? (tickSizeInner = +_, axis) : tickSizeInner;
+    };
+
+    axis.tickSizeOuter = function(_) {
+      return arguments.length ? (tickSizeOuter = +_, axis) : tickSizeOuter;
+    };
+
+    axis.tickPadding = function(_) {
+      return arguments.length ? (tickPadding = +_, axis) : tickPadding;
+    };
+
+    return axis;
+  }
+
+  function axisBottom(scale) {
+    return axis(bottom, scale);
   }
 
   var xhtml = "http://www.w3.org/1999/xhtml";
@@ -2518,9 +2751,54 @@
 
   var rgbBasis = rgbSpline(basis$1);
 
+  function array(a, b) {
+    var nb = b ? b.length : 0,
+        na = a ? Math.min(nb, a.length) : 0,
+        x = new Array(na),
+        c = new Array(nb),
+        i;
+
+    for (i = 0; i < na; ++i) x[i] = interpolateValue(a[i], b[i]);
+    for (; i < nb; ++i) c[i] = b[i];
+
+    return function(t) {
+      for (i = 0; i < na; ++i) c[i] = x[i](t);
+      return c;
+    };
+  }
+
+  function date(a, b) {
+    var d = new Date;
+    return a = +a, b -= a, function(t) {
+      return d.setTime(a + b * t), d;
+    };
+  }
+
   function interpolateNumber(a, b) {
     return a = +a, b -= a, function(t) {
       return a + b * t;
+    };
+  }
+
+  function object$1(a, b) {
+    var i = {},
+        c = {},
+        k;
+
+    if (a === null || typeof a !== "object") a = {};
+    if (b === null || typeof b !== "object") b = {};
+
+    for (k in b) {
+      if (k in a) {
+        i[k] = interpolateValue(a[k], b[k]);
+      } else {
+        c[k] = b[k];
+      }
+    }
+
+    return function(t) {
+      for (k in i) c[k] = i[k](t);
+      return c;
     };
   }
 
@@ -2587,9 +2865,27 @@
           });
   }
 
+  function interpolateValue(a, b) {
+    var t = typeof b, c;
+    return b == null || t === "boolean" ? constant$1(b)
+        : (t === "number" ? interpolateNumber
+        : t === "string" ? ((c = color(b)) ? (b = c, interpolateRgb) : interpolateString)
+        : b instanceof color ? interpolateRgb
+        : b instanceof Date ? date
+        : Array.isArray(b) ? array
+        : typeof b.valueOf !== "function" && typeof b.toString !== "function" || isNaN(b) ? object$1
+        : interpolateNumber)(a, b);
+  }
+
+  function interpolateRound(a, b) {
+    return a = +a, b -= a, function(t) {
+      return Math.round(a + b * t);
+    };
+  }
+
   var degrees = 180 / Math.PI;
 
-  var identity$2 = {
+  var identity$3 = {
     translateX: 0,
     translateY: 0,
     rotate: 0,
@@ -2620,7 +2916,7 @@
       svgNode;
 
   function parseCss(value) {
-    if (value === "none") return identity$2;
+    if (value === "none") return identity$3;
     if (!cssNode) cssNode = document.createElement("DIV"), cssRoot = document.documentElement, cssView = document.defaultView;
     cssNode.style.transform = value;
     value = cssView.getComputedStyle(cssRoot.appendChild(cssNode), null).getPropertyValue("transform");
@@ -2630,10 +2926,10 @@
   }
 
   function parseSvg(value) {
-    if (value == null) return identity$2;
+    if (value == null) return identity$3;
     if (!svgNode) svgNode = document.createElementNS("http://www.w3.org/2000/svg", "g");
     svgNode.setAttribute("transform", value);
-    if (!(value = svgNode.transform.baseVal.consolidate())) return identity$2;
+    if (!(value = svgNode.transform.baseVal.consolidate())) return identity$3;
     value = value.matrix;
     return decompose(value.a, value.b, value.c, value.d, value.e, value.f);
   }
@@ -3682,8 +3978,8 @@
 
   var pi$4 = Math.PI,
       tau$2 = 2 * pi$4,
-      epsilon = 1e-6,
-      tauEpsilon = tau$2 - epsilon;
+      epsilon$1 = 1e-6,
+      tauEpsilon = tau$2 - epsilon$1;
 
   function Path() {
     this._x0 = this._y0 = // start of current subpath
@@ -3734,12 +4030,12 @@
       }
 
       // Or, is (x1,y1) coincident with (x0,y0)? Do nothing.
-      else if (!(l01_2 > epsilon));
+      else if (!(l01_2 > epsilon$1));
 
       // Or, are (x0,y0), (x1,y1) and (x2,y2) collinear?
       // Equivalently, is (x1,y1) coincident with (x2,y2)?
       // Or, is the radius zero? Line to (x1,y1).
-      else if (!(Math.abs(y01 * x21 - y21 * x01) > epsilon) || !r) {
+      else if (!(Math.abs(y01 * x21 - y21 * x01) > epsilon$1) || !r) {
         this._ += "L" + (this._x1 = x1) + "," + (this._y1 = y1);
       }
 
@@ -3756,7 +4052,7 @@
             t21 = l / l21;
 
         // If the start tangent is not coincident with (x0,y0), line to.
-        if (Math.abs(t01 - 1) > epsilon) {
+        if (Math.abs(t01 - 1) > epsilon$1) {
           this._ += "L" + (x1 + t01 * x01) + "," + (y1 + t01 * y01);
         }
 
@@ -3781,7 +4077,7 @@
       }
 
       // Or, is (x0,y0) not coincident with the previous point? Line to (x0,y0).
-      else if (Math.abs(this._x1 - x0) > epsilon || Math.abs(this._y1 - y0) > epsilon) {
+      else if (Math.abs(this._x1 - x0) > epsilon$1 || Math.abs(this._y1 - y0) > epsilon$1) {
         this._ += "L" + x0 + "," + y0;
       }
 
@@ -3797,7 +4093,7 @@
       }
 
       // Is this arc non-empty? Draw an arc!
-      else if (da > epsilon) {
+      else if (da > epsilon$1) {
         this._ += "A" + r + "," + r + ",0," + (+(da >= pi$4)) + "," + cw + "," + (this._x1 = x + r * Math.cos(a1)) + "," + (this._y1 = y + r * Math.sin(a1));
       }
     },
@@ -4466,17 +4762,17 @@
     "x": function(x) { return Math.round(x).toString(16); }
   };
 
-  function identity$3(x) {
+  function identity$4(x) {
     return x;
   }
 
   var prefixes = ["y","z","a","f","p","n","µ","m","","k","M","G","T","P","E","Z","Y"];
 
   function formatLocale(locale) {
-    var group = locale.grouping && locale.thousands ? formatGroup(locale.grouping, locale.thousands) : identity$3,
+    var group = locale.grouping && locale.thousands ? formatGroup(locale.grouping, locale.thousands) : identity$4,
         currency = locale.currency,
         decimal = locale.decimal,
-        numerals = locale.numerals ? formatNumerals(locale.numerals) : identity$3,
+        numerals = locale.numerals ? formatNumerals(locale.numerals) : identity$4,
         percent = locale.percent || "%";
 
     function newFormat(specifier) {
@@ -4622,7 +4918,258 @@
     return locale;
   }
 
+  function precisionFixed(step) {
+    return Math.max(0, -exponent(Math.abs(step)));
+  }
+
+  function precisionPrefix(step, value) {
+    return Math.max(0, Math.max(-8, Math.min(8, Math.floor(exponent(value) / 3))) * 3 - exponent(Math.abs(step)));
+  }
+
+  function precisionRound(step, max) {
+    step = Math.abs(step), max = Math.abs(max) - step;
+    return Math.max(0, exponent(max) - exponent(step)) + 1;
+  }
+
   // Returns the 2D cross product of AB and AC vectors, i.e., the z-component of
+
+  function initRange(domain, range) {
+    switch (arguments.length) {
+      case 0: break;
+      case 1: this.range(domain); break;
+      default: this.range(range).domain(domain); break;
+    }
+    return this;
+  }
+
+  var array$1 = Array.prototype;
+
+  var map$1 = array$1.map;
+  var slice$1 = array$1.slice;
+
+  function constant$2(x) {
+    return function() {
+      return x;
+    };
+  }
+
+  function number$1(x) {
+    return +x;
+  }
+
+  var unit = [0, 1];
+
+  function identity$5(x) {
+    return x;
+  }
+
+  function normalize(a, b) {
+    return (b -= (a = +a))
+        ? function(x) { return (x - a) / b; }
+        : constant$2(isNaN(b) ? NaN : 0.5);
+  }
+
+  function clamper(domain) {
+    var a = domain[0], b = domain[domain.length - 1], t;
+    if (a > b) t = a, a = b, b = t;
+    return function(x) { return Math.max(a, Math.min(b, x)); };
+  }
+
+  // normalize(a, b)(x) takes a domain value x in [a,b] and returns the corresponding parameter t in [0,1].
+  // interpolate(a, b)(t) takes a parameter t in [0,1] and returns the corresponding range value x in [a,b].
+  function bimap(domain, range, interpolate) {
+    var d0 = domain[0], d1 = domain[1], r0 = range[0], r1 = range[1];
+    if (d1 < d0) d0 = normalize(d1, d0), r0 = interpolate(r1, r0);
+    else d0 = normalize(d0, d1), r0 = interpolate(r0, r1);
+    return function(x) { return r0(d0(x)); };
+  }
+
+  function polymap(domain, range, interpolate) {
+    var j = Math.min(domain.length, range.length) - 1,
+        d = new Array(j),
+        r = new Array(j),
+        i = -1;
+
+    // Reverse descending domains.
+    if (domain[j] < domain[0]) {
+      domain = domain.slice().reverse();
+      range = range.slice().reverse();
+    }
+
+    while (++i < j) {
+      d[i] = normalize(domain[i], domain[i + 1]);
+      r[i] = interpolate(range[i], range[i + 1]);
+    }
+
+    return function(x) {
+      var i = bisectRight(domain, x, 1, j) - 1;
+      return r[i](d[i](x));
+    };
+  }
+
+  function copy(source, target) {
+    return target
+        .domain(source.domain())
+        .range(source.range())
+        .interpolate(source.interpolate())
+        .clamp(source.clamp())
+        .unknown(source.unknown());
+  }
+
+  function transformer() {
+    var domain = unit,
+        range = unit,
+        interpolate = interpolateValue,
+        transform,
+        untransform,
+        unknown,
+        clamp = identity$5,
+        piecewise,
+        output,
+        input;
+
+    function rescale() {
+      piecewise = Math.min(domain.length, range.length) > 2 ? polymap : bimap;
+      output = input = null;
+      return scale;
+    }
+
+    function scale(x) {
+      return isNaN(x = +x) ? unknown : (output || (output = piecewise(domain.map(transform), range, interpolate)))(transform(clamp(x)));
+    }
+
+    scale.invert = function(y) {
+      return clamp(untransform((input || (input = piecewise(range, domain.map(transform), interpolateNumber)))(y)));
+    };
+
+    scale.domain = function(_) {
+      return arguments.length ? (domain = map$1.call(_, number$1), clamp === identity$5 || (clamp = clamper(domain)), rescale()) : domain.slice();
+    };
+
+    scale.range = function(_) {
+      return arguments.length ? (range = slice$1.call(_), rescale()) : range.slice();
+    };
+
+    scale.rangeRound = function(_) {
+      return range = slice$1.call(_), interpolate = interpolateRound, rescale();
+    };
+
+    scale.clamp = function(_) {
+      return arguments.length ? (clamp = _ ? clamper(domain) : identity$5, scale) : clamp !== identity$5;
+    };
+
+    scale.interpolate = function(_) {
+      return arguments.length ? (interpolate = _, rescale()) : interpolate;
+    };
+
+    scale.unknown = function(_) {
+      return arguments.length ? (unknown = _, scale) : unknown;
+    };
+
+    return function(t, u) {
+      transform = t, untransform = u;
+      return rescale();
+    };
+  }
+
+  function continuous(transform, untransform) {
+    return transformer()(transform, untransform);
+  }
+
+  function tickFormat(start, stop, count, specifier) {
+    var step = tickStep(start, stop, count),
+        precision;
+    specifier = formatSpecifier(specifier == null ? ",f" : specifier);
+    switch (specifier.type) {
+      case "s": {
+        var value = Math.max(Math.abs(start), Math.abs(stop));
+        if (specifier.precision == null && !isNaN(precision = precisionPrefix(step, value))) specifier.precision = precision;
+        return formatPrefix(specifier, value);
+      }
+      case "":
+      case "e":
+      case "g":
+      case "p":
+      case "r": {
+        if (specifier.precision == null && !isNaN(precision = precisionRound(step, Math.max(Math.abs(start), Math.abs(stop))))) specifier.precision = precision - (specifier.type === "e");
+        break;
+      }
+      case "f":
+      case "%": {
+        if (specifier.precision == null && !isNaN(precision = precisionFixed(step))) specifier.precision = precision - (specifier.type === "%") * 2;
+        break;
+      }
+    }
+    return format(specifier);
+  }
+
+  function linearish(scale) {
+    var domain = scale.domain;
+
+    scale.ticks = function(count) {
+      var d = domain();
+      return ticks(d[0], d[d.length - 1], count == null ? 10 : count);
+    };
+
+    scale.tickFormat = function(count, specifier) {
+      var d = domain();
+      return tickFormat(d[0], d[d.length - 1], count == null ? 10 : count, specifier);
+    };
+
+    scale.nice = function(count) {
+      if (count == null) count = 10;
+
+      var d = domain(),
+          i0 = 0,
+          i1 = d.length - 1,
+          start = d[i0],
+          stop = d[i1],
+          step;
+
+      if (stop < start) {
+        step = start, start = stop, stop = step;
+        step = i0, i0 = i1, i1 = step;
+      }
+
+      step = tickIncrement(start, stop, count);
+
+      if (step > 0) {
+        start = Math.floor(start / step) * step;
+        stop = Math.ceil(stop / step) * step;
+        step = tickIncrement(start, stop, count);
+      } else if (step < 0) {
+        start = Math.ceil(start * step) / step;
+        stop = Math.floor(stop * step) / step;
+        step = tickIncrement(start, stop, count);
+      }
+
+      if (step > 0) {
+        d[i0] = Math.floor(start / step) * step;
+        d[i1] = Math.ceil(stop / step) * step;
+        domain(d);
+      } else if (step < 0) {
+        d[i0] = Math.ceil(start * step) / step;
+        d[i1] = Math.floor(stop * step) / step;
+        domain(d);
+      }
+
+      return scale;
+    };
+
+    return scale;
+  }
+
+  function linear$1() {
+    var scale = continuous(identity$5, identity$5);
+
+    scale.copy = function() {
+      return copy(scale, linear$1());
+    };
+
+    initRange.apply(scale, arguments);
+
+    return linearish(scale);
+  }
 
   var t0$1 = new Date,
       t1$1 = new Date;
@@ -6098,6 +6645,13 @@
 
   var cfg$1 = {
     field: 'supEu',
+    legend: {
+      height: 10,
+      subtitleOffset: 8,
+      tickSize: 15,
+      titleOffset: 22,
+      width: 10
+    },
     max: 27,
     typename: {
       click: 'mun-click',
@@ -6110,7 +6664,7 @@
       return 'id-' + ft.properties.ibgeCode;
     }).attr('d', path).style('fill', function (ft) {
       if (Number.isInteger(value(ft))) {
-        return interpolateYlOrRd(value(ft) / cfg$1.max);
+        return color$1(value(ft));
       }
 
       return null;
@@ -6127,6 +6681,7 @@
       // invoke callbacks
       dispatcher.call(cfg$1.typename.click, null, ft);
     });
+    makeLegend(parent);
   }
 
   function value(ft) {
@@ -6135,6 +6690,30 @@
     }
 
     return null;
+  }
+
+  var color$1 = linear$1().domain([0, cfg$1.max]).interpolate(function () {
+    return interpolateYlOrRd;
+  });
+
+  function makeLegend(parent) {
+    // TODO: should be a scheme (27 colors), not a continuous scale
+    var xx = linear$1().domain(color$1.domain()).rangeRound([0, cfg$1.legend.width * cfg$1.max]);
+    var legend = parent.append('g') //.style('font-size', '0.8rem')
+    //.style('font-family', 'sans-serif')
+    .attr('transform', 'translate(550,50)');
+    legend.selectAll('rect').data(sequence(0, cfg$1.max, 1)).enter().append('rect').attr('height', cfg$1.legend.height).attr('x', function (el) {
+      return xx(el);
+    }).attr('width', cfg$1.legend.width).attr('fill', function (el) {
+      return color$1(el);
+    });
+    var label = legend.append('g').attr('fill', '#000').attr('text-anchor', 'start'); // TODO: i18n
+
+    label.append('text').attr('y', -cfg$1.legend.titleOffset).attr('font-weight', 'bold').text('Number of pesticides detected in drinking water'); // TODO: i18n
+
+    label.append('text').attr('y', -cfg$1.legend.subtitleOffset).text('(white: no pesticide, purple: 27 different pesticides)'); // Scale
+
+    legend.append('g').call(axisBottom(xx).tickSize(cfg$1.legend.tickSize)).select('.domain').remove();
   }
 
   function createFuFrontiers(parent, path, data) {
@@ -6423,7 +7002,7 @@
     querySelectorAll: function(selector) { return this._parent.querySelectorAll(selector); }
   };
 
-  function constant$2(x) {
+  function constant$3(x) {
     return function() {
       return x;
     };
@@ -6512,7 +7091,7 @@
         parents = this._parents,
         groups = this._groups;
 
-    if (typeof value !== "function") value = constant$2(value);
+    if (typeof value !== "function") value = constant$3(value);
 
     for (var m = groups.length, update = new Array(m), enter = new Array(m), exit = new Array(m), j = 0; j < m; ++j) {
       var parent = parents[j],
@@ -7162,7 +7741,7 @@
     }
   }
 
-  function constant$3(x) {
+  function constant$4(x) {
     return function() {
       return x;
     };
@@ -7305,15 +7884,15 @@
     }
 
     drag.filter = function(_) {
-      return arguments.length ? (filter = typeof _ === "function" ? _ : constant$3(!!_), drag) : filter;
+      return arguments.length ? (filter = typeof _ === "function" ? _ : constant$4(!!_), drag) : filter;
     };
 
     drag.container = function(_) {
-      return arguments.length ? (container = typeof _ === "function" ? _ : constant$3(_), drag) : container;
+      return arguments.length ? (container = typeof _ === "function" ? _ : constant$4(_), drag) : container;
     };
 
     drag.subject = function(_) {
-      return arguments.length ? (subject = typeof _ === "function" ? _ : constant$3(_), drag) : subject;
+      return arguments.length ? (subject = typeof _ === "function" ? _ : constant$4(_), drag) : subject;
     };
 
     drag.on = function() {
@@ -7324,13 +7903,13 @@
     return drag;
   }
 
-  function constant$4(x) {
+  function constant$5(x) {
     return function constant() {
       return x;
     };
   }
 
-  var epsilon$1 = 1e-12;
+  var epsilon$2 = 1e-12;
   var pi$6 = Math.PI;
   var halfPi = pi$6 / 2;
   var tau$3 = 2 * pi$6;
@@ -7412,7 +7991,7 @@
   function arc() {
     var innerRadius = arcInnerRadius,
         outerRadius = arcOuterRadius,
-        cornerRadius = constant$4(0),
+        cornerRadius = constant$5(0),
         padRadius = null,
         startAngle = arcStartAngle,
         endAngle = arcEndAngle,
@@ -7435,13 +8014,13 @@
       if (r1 < r0) r = r1, r1 = r0, r0 = r;
 
       // Is it a point?
-      if (!(r1 > epsilon$1)) context.moveTo(0, 0);
+      if (!(r1 > epsilon$2)) context.moveTo(0, 0);
 
       // Or is it a circle or annulus?
-      else if (da > tau$3 - epsilon$1) {
+      else if (da > tau$3 - epsilon$2) {
         context.moveTo(r1 * Math.cos(a0), r1 * Math.sin(a0));
         context.arc(0, 0, r1, a0, a1, !cw);
-        if (r0 > epsilon$1) {
+        if (r0 > epsilon$2) {
           context.moveTo(r0 * Math.cos(a1), r0 * Math.sin(a1));
           context.arc(0, 0, r0, a1, a0, cw);
         }
@@ -7456,7 +8035,7 @@
             da0 = da,
             da1 = da,
             ap = padAngle.apply(this, arguments) / 2,
-            rp = (ap > epsilon$1) && (padRadius ? +padRadius.apply(this, arguments) : Math.sqrt(r0 * r0 + r1 * r1)),
+            rp = (ap > epsilon$2) && (padRadius ? +padRadius.apply(this, arguments) : Math.sqrt(r0 * r0 + r1 * r1)),
             rc = Math.min(Math.abs(r1 - r0) / 2, +cornerRadius.apply(this, arguments)),
             rc0 = rc,
             rc1 = rc,
@@ -7464,12 +8043,12 @@
             t1;
 
         // Apply padding? Note that since r1 ≥ r0, da1 ≥ da0.
-        if (rp > epsilon$1) {
+        if (rp > epsilon$2) {
           var p0 = asin(rp / r0 * Math.sin(ap)),
               p1 = asin(rp / r1 * Math.sin(ap));
-          if ((da0 -= p0 * 2) > epsilon$1) p0 *= (cw ? 1 : -1), a00 += p0, a10 -= p0;
+          if ((da0 -= p0 * 2) > epsilon$2) p0 *= (cw ? 1 : -1), a00 += p0, a10 -= p0;
           else da0 = 0, a00 = a10 = (a0 + a1) / 2;
-          if ((da1 -= p1 * 2) > epsilon$1) p1 *= (cw ? 1 : -1), a01 += p1, a11 -= p1;
+          if ((da1 -= p1 * 2) > epsilon$2) p1 *= (cw ? 1 : -1), a01 += p1, a11 -= p1;
           else da1 = 0, a01 = a11 = (a0 + a1) / 2;
         }
 
@@ -7479,7 +8058,7 @@
             y10 = r0 * Math.sin(a10);
 
         // Apply rounded corners?
-        if (rc > epsilon$1) {
+        if (rc > epsilon$2) {
           var x11 = r1 * Math.cos(a11),
               y11 = r1 * Math.sin(a11),
               x00 = r0 * Math.cos(a00),
@@ -7487,7 +8066,7 @@
 
           // Restrict the corner radius according to the sector angle.
           if (da < pi$6) {
-            var oc = da0 > epsilon$1 ? intersect(x01, y01, x00, y00, x11, y11, x10, y10) : [x10, y10],
+            var oc = da0 > epsilon$2 ? intersect(x01, y01, x00, y00, x11, y11, x10, y10) : [x10, y10],
                 ax = x01 - oc[0],
                 ay = y01 - oc[1],
                 bx = x11 - oc[0],
@@ -7500,10 +8079,10 @@
         }
 
         // Is the sector collapsed to a line?
-        if (!(da1 > epsilon$1)) context.moveTo(x01, y01);
+        if (!(da1 > epsilon$2)) context.moveTo(x01, y01);
 
         // Does the sector’s outer ring have rounded corners?
-        else if (rc1 > epsilon$1) {
+        else if (rc1 > epsilon$2) {
           t0 = cornerTangents(x00, y00, x01, y01, r1, rc1, cw);
           t1 = cornerTangents(x11, y11, x10, y10, r1, rc1, cw);
 
@@ -7525,10 +8104,10 @@
 
         // Is there no inner ring, and it’s a circular sector?
         // Or perhaps it’s an annular sector collapsed due to padding?
-        if (!(r0 > epsilon$1) || !(da0 > epsilon$1)) context.lineTo(x10, y10);
+        if (!(r0 > epsilon$2) || !(da0 > epsilon$2)) context.lineTo(x10, y10);
 
         // Does the sector’s inner ring (or point) have rounded corners?
-        else if (rc0 > epsilon$1) {
+        else if (rc0 > epsilon$2) {
           t0 = cornerTangents(x10, y10, x11, y11, r0, -rc0, cw);
           t1 = cornerTangents(x01, y01, x00, y00, r0, -rc0, cw);
 
@@ -7561,31 +8140,31 @@
     };
 
     arc.innerRadius = function(_) {
-      return arguments.length ? (innerRadius = typeof _ === "function" ? _ : constant$4(+_), arc) : innerRadius;
+      return arguments.length ? (innerRadius = typeof _ === "function" ? _ : constant$5(+_), arc) : innerRadius;
     };
 
     arc.outerRadius = function(_) {
-      return arguments.length ? (outerRadius = typeof _ === "function" ? _ : constant$4(+_), arc) : outerRadius;
+      return arguments.length ? (outerRadius = typeof _ === "function" ? _ : constant$5(+_), arc) : outerRadius;
     };
 
     arc.cornerRadius = function(_) {
-      return arguments.length ? (cornerRadius = typeof _ === "function" ? _ : constant$4(+_), arc) : cornerRadius;
+      return arguments.length ? (cornerRadius = typeof _ === "function" ? _ : constant$5(+_), arc) : cornerRadius;
     };
 
     arc.padRadius = function(_) {
-      return arguments.length ? (padRadius = _ == null ? null : typeof _ === "function" ? _ : constant$4(+_), arc) : padRadius;
+      return arguments.length ? (padRadius = _ == null ? null : typeof _ === "function" ? _ : constant$5(+_), arc) : padRadius;
     };
 
     arc.startAngle = function(_) {
-      return arguments.length ? (startAngle = typeof _ === "function" ? _ : constant$4(+_), arc) : startAngle;
+      return arguments.length ? (startAngle = typeof _ === "function" ? _ : constant$5(+_), arc) : startAngle;
     };
 
     arc.endAngle = function(_) {
-      return arguments.length ? (endAngle = typeof _ === "function" ? _ : constant$4(+_), arc) : endAngle;
+      return arguments.length ? (endAngle = typeof _ === "function" ? _ : constant$5(+_), arc) : endAngle;
     };
 
     arc.padAngle = function(_) {
-      return arguments.length ? (padAngle = typeof _ === "function" ? _ : constant$4(+_), arc) : padAngle;
+      return arguments.length ? (padAngle = typeof _ === "function" ? _ : constant$5(+_), arc) : padAngle;
     };
 
     arc.context = function(_) {
@@ -7638,7 +8217,7 @@
   function line() {
     var x$1 = x,
         y$1 = y,
-        defined = constant$4(true),
+        defined = constant$5(true),
         context = null,
         curve = curveLinear,
         output = null;
@@ -7664,15 +8243,15 @@
     }
 
     line.x = function(_) {
-      return arguments.length ? (x$1 = typeof _ === "function" ? _ : constant$4(+_), line) : x$1;
+      return arguments.length ? (x$1 = typeof _ === "function" ? _ : constant$5(+_), line) : x$1;
     };
 
     line.y = function(_) {
-      return arguments.length ? (y$1 = typeof _ === "function" ? _ : constant$4(+_), line) : y$1;
+      return arguments.length ? (y$1 = typeof _ === "function" ? _ : constant$5(+_), line) : y$1;
     };
 
     line.defined = function(_) {
-      return arguments.length ? (defined = typeof _ === "function" ? _ : constant$4(!!_), line) : defined;
+      return arguments.length ? (defined = typeof _ === "function" ? _ : constant$5(!!_), line) : defined;
     };
 
     line.curve = function(_) {
@@ -7741,14 +8320,14 @@
         x2 = that._x2,
         y2 = that._y2;
 
-    if (that._l01_a > epsilon$1) {
+    if (that._l01_a > epsilon$2) {
       var a = 2 * that._l01_2a + 3 * that._l01_a * that._l12_a + that._l12_2a,
           n = 3 * that._l01_a * (that._l01_a + that._l12_a);
       x1 = (x1 * a - that._x0 * that._l12_2a + that._x2 * that._l01_2a) / n;
       y1 = (y1 * a - that._y0 * that._l12_2a + that._y2 * that._l01_2a) / n;
     }
 
-    if (that._l23_a > epsilon$1) {
+    if (that._l23_a > epsilon$2) {
       var b = 2 * that._l23_2a + 3 * that._l23_a * that._l12_a + that._l12_2a,
           m = 3 * that._l23_a * (that._l23_a + that._l12_a);
       x2 = (x2 * b + that._x1 * that._l23_2a - x * that._l12_2a) / m;
