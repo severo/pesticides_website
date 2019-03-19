@@ -32,6 +32,19 @@ $primary-invert: $pink-invert;
 }
 
 #details {
+  header#idCard {
+    h2,
+    h3 {
+      text-align: center;
+      text-transform: uppercase;
+    }
+    h3 {
+      color: $grey-dark;
+      font-size: 1em;
+      font-weight: normal;
+      margin-top: 0;
+    }
+  }
 }
 
 // See https://github.com/jgthms/bulma/issues/847#issuecomment-314110630
