@@ -28681,6 +28681,7 @@
     select('#search #results').html('').selectAll('li').data(fuseResults.slice(0, limit)).enter().append('li').append('a').text(function (res) {
       return res[0].mun.properties.name + ' (score: ' + res[1] + ')';
     }).on('click', function (res, element) {
+      // TODO: react to other events? see accessibility
       // invoke callbacks
       emptyResults();
       dispatcher.call('search-selected', null, res[0].mun);

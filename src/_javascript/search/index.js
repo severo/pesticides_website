@@ -88,6 +88,7 @@ function updateResults(fuseResults, dispatcher) {
     .append('a')
     .text(res => res[0].mun.properties.name + ' (score: ' + res[1] + ')')
     .on('click', (res, element) => {
+      // TODO: react to other events? see accessibility
       // invoke callbacks
       emptyResults();
       dispatcher.call('search-selected', null, res[0].mun);
