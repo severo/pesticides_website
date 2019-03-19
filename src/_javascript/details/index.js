@@ -20,7 +20,7 @@ function makeHeader(parent, mun) {
     .classed('icon', true)
     .append('i')
     .classed('fas fa-map-marker-alt', true);
-  fu.append('span').text(mun.properties.fu);
+  fu.append('span').text(mun.properties.fuName);
 }
 function startLoading(element) {
   element.classed('is-loading', true);

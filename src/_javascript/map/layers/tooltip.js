@@ -28,7 +28,7 @@ function createAnnotation(data) {
           label: Number.isInteger(data.value)
             ? data.value + ' pesticide(s) found in the drinking water.'
             : 'Never tested.',
-          title: data.properties.name + ' (' + data.properties.fu + ')',
+          title: data.properties.name + ' (' + data.properties.fuName + ')',
         },
         nx: cfg.nx,
         ny: cfg.ny,

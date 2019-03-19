@@ -18917,6 +18917,35 @@
       url: 'https://raw.githubusercontent.com/severo/data_brazil/master/data_by_municipality_for_maps.csv'
     }
   };
+  var fuNames = {
+    AC: 'Acre',
+    AL: 'Alagoas',
+    AM: 'Amazonas',
+    AP: 'Amapá',
+    BA: 'Bahia',
+    CE: 'Ceará',
+    DF: 'Distrito Federal',
+    ES: 'Espírito Santo',
+    GO: 'Goiás',
+    MA: 'Maranhão',
+    MG: 'Minas Gerais',
+    MS: 'Mato Grosso do Sul',
+    MT: 'Mato Grosso',
+    PA: 'Pará',
+    PB: 'Paraíba',
+    PE: 'Pernambuco',
+    PI: 'Piauí',
+    PR: 'Paraná',
+    RJ: 'Rio de Janeiro',
+    RN: 'Rio Grande do Norte',
+    RO: 'Rondônia',
+    RR: 'Roraima',
+    RS: 'Rio Grande do Sul',
+    SC: 'Santa Catarina',
+    SE: 'Sergipe',
+    SP: 'São Paulo',
+    TO: 'Tocantins'
+  };
   function loadData(dispatcher) {
     var _this = this;
 
@@ -18966,6 +18995,7 @@
 
 
         ft.properties.deburredName = deburr(ft.properties.name);
+        ft.properties.fuName = fuNames[ft.properties.fu];
         return ft;
       }); // Publish the data with the "data-loaded" event
 
@@ -19011,7 +19041,7 @@
     header.append('h2').text(mun.properties.name);
     var fu = header.append('h3');
     fu.append('span').classed('icon', true).append('i').classed('fas fa-map-marker-alt', true);
-    fu.append('span').text(mun.properties.fu);
+    fu.append('span').text(mun.properties.fuName);
   }
 
   function startLoading(element) {
@@ -23252,8 +23282,6 @@
   var saturday = weekday(6);
 
   var sundays = sunday.range;
-  var mondays = monday.range;
-  var thursdays = thursday.range;
 
   var month = newInterval(function(date) {
     date.setDate(1);
@@ -23343,8 +23371,6 @@
   var utcSaturday = utcWeekday(6);
 
   var utcSundays = utcSunday.range;
-  var utcMondays = utcMonday.range;
-  var utcThursdays = utcThursday.range;
 
   var utcMonth = newInterval(function(date) {
     date.setUTCDate(1);
@@ -28570,7 +28596,7 @@
       data: data,
       note: {
         label: Number.isInteger(data.value) ? data.value + ' pesticide(s) found in the drinking water.' : 'Never tested.',
-        title: data.properties.name + ' (' + data.properties.fu + ')'
+        title: data.properties.name + ' (' + data.properties.fuName + ')'
       },
       nx: cfg$2.nx,
       ny: cfg$2.ny,
