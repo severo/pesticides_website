@@ -1,4 +1,5 @@
 import {csv, json} from 'd3-fetch';
+import {deburr} from 'lodash-es';
 import {feature} from 'topojson';
 import {geoPath} from 'd3-geo';
 
@@ -60,6 +61,10 @@ export function loadData(dispatcher) {
         } else {
           ft.properties.values = {};
         }
+        // TODO: added for use in the search input. But the search could be
+        // improved with Intl.Collator. In case it's improved in search/index.js
+        // don't forget to modify here.
+        ft.properties.deburredName = deburr(ft.properties.name);
         return ft;
       });
 

@@ -33,6 +33,7 @@
                 <label class="label">{{search.title}}</label>
                 <div class="control has-icons-left">
                   <input
+                    id="search-input"
                     class="input is-medium"
                     type="text"
                     placeholder="{{search.placeholder}}"
@@ -45,6 +46,7 @@
               <p class="click-on-map-text">
                 {{search.click-on-map}}
               </p>
+              <ul id="results"></ul>
             </section>
             <section id="details" class="section"></section>
           </section>
@@ -79,6 +81,7 @@
       defer
       src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"
     ></script>
+    <script src="https://bundle.run/fuzzball@1.2.0"></script>
     <script src="lib/main.js"></script>
   </body>
 </html>
