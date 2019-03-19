@@ -29,9 +29,6 @@ $primary-invert: $pink-invert;
 @import '../../node_modules/bulma/bulma';
 
 #search {
-  .click-on-map-text {
-    text-align: right;
-  }
 }
 
 #details {
@@ -56,20 +53,11 @@ $primary-invert: $pink-invert;
 #map {
   svg {
     width: 100%;
-
-    /*.background {
-      display: none;
-      path {
-        fill: #e3eef9;
-        stroke: none;
-      }
-    }*/
     .choropleth {
       path {
         stroke: none;
         fill-opacity: 0.8;
         fill: #eee;
-
         &:hover {
           stroke: #e8336d;
           stroke-width: 1;
@@ -77,35 +65,10 @@ $primary-invert: $pink-invert;
         }
       }
     }
-    /*.countries-polygons path {
-    fill: #ddd6;
-    stroke: #bbb6;
-    stroke-width: 1;
-  }
-  .countries-labels text {
-    fill: #ddd;
-    font-size: 10px;
-    text-transform: uppercase;
-  }
-  .shadow path {
-    fill: #f8f8f8;
-    stroke: #bbb;
-    stroke-width: 1;
-  }*/
-    .fu-polygons path {
-      fill: none; //#eef6e6;
-      stroke: #bbb;
-      stroke-width: 1;
-    }
     .fu-frontiers path {
-      fill: none; //#eef6e6;
+      fill: none;
       stroke: #bbb;
       stroke-width: 1;
     }
-    /*.states-labels text {
-    fill: #8b8b8b;
-    font-size: 10px;
-    text-transform: uppercase;
-  }*/
   }
 }
