@@ -75,6 +75,9 @@ export function makeSearch(parent, dispatcher, data) {
   endLoading(parent);
 }
 
+function emptyResults() {
+  select('#search #results').html('');
+}
 function updateResults(fuseResults, dispatcher) {
   select('#search #results')
     .html('')
@@ -86,6 +89,7 @@ function updateResults(fuseResults, dispatcher) {
     .text(res => res[0].mun.properties.name + ' (score: ' + res[1] + ')')
     .on('click', (res, element) => {
       // invoke callbacks
+      emptyResults();
       dispatcher.call('search-selected', null, res[0].mun);
     });
 }
