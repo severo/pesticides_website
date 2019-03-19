@@ -79,6 +79,7 @@ function emptyResults() {
   select('#search #results').html('');
 }
 function updateResults(fuseResults, dispatcher) {
+  // TODO: style the list, see main search in https://www.tripadvisor.co.uk/
   select('#search #results')
     .html('')
     .selectAll('li')

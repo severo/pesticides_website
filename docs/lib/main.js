@@ -28678,6 +28678,7 @@
   }
 
   function updateResults(fuseResults, dispatcher) {
+    // TODO: style the list, see main search in https://www.tripadvisor.co.uk/
     select('#search #results').html('').selectAll('li').data(fuseResults.slice(0, limit)).enter().append('li').append('a').text(function (res) {
       return res[0].mun.properties.name + ' (score: ' + res[1] + ')';
     }).on('click', function (res, element) {
