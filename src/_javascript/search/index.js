@@ -53,7 +53,7 @@ export function makeSearch(parent, dispatcher, data) {
 
   // TODO: see if we preprocess something
 
-  dispatcher.on('search-list-updated', fuseResults => {
+  dispatcher.on('search-results-updated.search', fuseResults => {
     updateResults(fuseResults, dispatcher);
   });
 
@@ -62,7 +62,7 @@ export function makeSearch(parent, dispatcher, data) {
 
     const text = cc[0].value;
     dispatcher.call(
-      'search-list-updated',
+      'search-results-updated',
       null,
       // Maybe use Intl.Collator instead
       // https://github.com/nol13/fuzzball.js#collation-and-unicode-stuff
@@ -86,7 +86,7 @@ function updateResults(fuseResults, dispatcher) {
     .text(res => res[0].mun.properties.name + ' (score: ' + res[1] + ')')
     .on('click', (res, element) => {
       // invoke callbacks
-      dispatcher.call('search-selection-changed', null, res[0].mun);
+      dispatcher.call('search-selected', null, res[0].mun);
     });
 }
 

@@ -28658,13 +28658,13 @@
 
     }; // TODO: see if we preprocess something
 
-    dispatcher.on('search-list-updated', function (fuseResults) {
+    dispatcher.on('search-results-updated.search', function (fuseResults) {
       updateResults(fuseResults, dispatcher);
     });
     select('#search-input').on('input', function (aa, bb, cc) {
       // TODO: launch promises, and cancel any previous running promise
       var text = cc[0].value;
-      dispatcher.call('search-list-updated', null, // Maybe use Intl.Collator instead
+      dispatcher.call('search-results-updated', null, // Maybe use Intl.Collator instead
       // https://github.com/nol13/fuzzball.js#collation-and-unicode-stuff
       // But I think it will not change anything in the result, and make it
       // slower
@@ -28678,7 +28678,7 @@
       return res[0].mun.properties.name + ' (score: ' + res[1] + ')';
     }).on('click', function (res, element) {
       // invoke callbacks
-      dispatcher.call('search-selection-changed', null, res[0].mun);
+      dispatcher.call('search-selected', null, res[0].mun);
     });
   }
 
@@ -28690,7 +28690,7 @@
     element.classed('is-loading', false);
   }
 
-  var dispatcher = dispatch('data-loaded', 'mun-click', 'mun-mouseover', 'mun-mouseout', 'search-selection-changed', 'search-list-updated'); // Asynchronous (promise)
+  var dispatcher = dispatch('data-loaded', 'mun-click', 'mun-mouseover', 'mun-mouseout', 'search-results-updated', 'search-selected'); // Asynchronous (promise)
 
   loadData(dispatcher); // Create the layout
 
@@ -28704,7 +28704,7 @@
   dispatcher.on('mun-click.details', function (mun) {
     makeDetails(select('section#details'), dispatcher, mun);
   });
-  dispatcher.on('search-selection-changed', function (mun) {
+  dispatcher.on('search-selected.details', function (mun) {
     makeDetails(select('section#details'), dispatcher, mun);
   });
 

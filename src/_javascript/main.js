@@ -10,8 +10,8 @@ const dispatcher = dispatch(
   'mun-click',
   'mun-mouseover',
   'mun-mouseout',
-  'search-selection-changed',
-  'search-list-updated'
+  'search-results-updated',
+  'search-selected'
 );
 
 // Asynchronous (promise)
@@ -29,6 +29,6 @@ dispatcher.on('data-loaded.map', data => {
 dispatcher.on('mun-click.details', mun => {
   makeDetails(select('section#details'), dispatcher, mun);
 });
-dispatcher.on('search-selection-changed', mun => {
+dispatcher.on('search-selected.details', mun => {
   makeDetails(select('section#details'), dispatcher, mun);
 });
