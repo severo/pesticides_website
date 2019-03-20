@@ -45,6 +45,11 @@ $primary-invert: $pink-invert;
       margin-top: 0;
     }
   }
+  .tubes {
+    svg {
+      margin: 6px;
+    }
+  }
 }
 
 // See https://github.com/jgthms/bulma/issues/847#issuecomment-314110630
