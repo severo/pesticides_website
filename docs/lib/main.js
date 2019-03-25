@@ -19027,6 +19027,22 @@
     return features;
   }
 
+  function makeBottle(parent, dispatcher, mun) {
+    startLoading(parent); // Clean existing contents
+    // TODO: be more clever?
+
+    parent.html(null);
+    endLoading(parent);
+  }
+
+  function startLoading(element) {
+    element.classed('is-loading', true);
+  }
+
+  function endLoading(element) {
+    element.classed('is-loading', false);
+  }
+
   var pi$2 = Math.PI,
       tau$1 = 2 * pi$2,
       epsilon = 1e-6,
@@ -19157,7 +19173,7 @@
   };
 
   function makeDetails(parent, dispatcher, mun) {
-    startLoading(parent); // Clean existing contents
+    startLoading$1(parent); // Clean existing contents
     // TODO: be more clever?
 
     parent.html(null);
@@ -19178,7 +19194,7 @@
     makeTubes(parent, values.slice(9, 18), parameters.slice(9, 18), ['#c63400', '#A92B00']); //#9e3400']);
 
     makeTubes(parent, values.slice(18, 27), parameters.slice(18, 27), ['#007D73', '#006860']);
-    endLoading(parent);
+    endLoading$1(parent);
   }
 
   function makeTubes(parent, values, parameters, colors) {
@@ -19255,11 +19271,11 @@
     fu.append('span').text(mun.properties.fuName);
   }
 
-  function startLoading(element) {
+  function startLoading$1(element) {
     element.classed('is-loading', true);
   }
 
-  function endLoading(element) {
+  function endLoading$1(element) {
     element.classed('is-loading', false);
   }
 
@@ -28714,7 +28730,7 @@
     }
   };
   function makeMap(parent, dispatcher, data) {
-    startLoading$1(parent); // Clean existing contents
+    startLoading$2(parent); // Clean existing contents
     // TODO: be more clever?
 
     parent.html(null);
@@ -28729,20 +28745,20 @@
     createChoropleth(svg, path, data, dispatcher);
     createFuFrontiers(svg, path, data);
     createTooltip(svg, path, dispatcher);
-    endLoading$1(parent);
+    endLoading$2(parent);
   }
 
-  function startLoading$1(element) {
+  function startLoading$2(element) {
     element.classed('is-loading', true);
   }
 
-  function endLoading$1(element) {
+  function endLoading$2(element) {
     element.classed('is-loading', false);
   }
 
   var limit = 5;
   function makeSearch(parent, dispatcher, data) {
-    startLoading$2(parent); // TODO: add unit tests to verify that the cities are ordered as expected for
+    startLoading$3(parent); // TODO: add unit tests to verify that the cities are ordered as expected for
     // some queries ('sa', 'sao p', etc.)
 
     function scorer(query, choice, options) {
@@ -28810,7 +28826,7 @@
       // slower
       fuzz.extract(deburr(text), choices, options));
     });
-    endLoading$2(parent);
+    endLoading$3(parent);
   }
 
   function emptyResults() {
@@ -28829,11 +28845,11 @@
     });
   }
 
-  function startLoading$2(element) {
+  function startLoading$3(element) {
     element.classed('is-loading', true);
   }
 
-  function endLoading$2(element) {
+  function endLoading$3(element) {
     element.classed('is-loading', false);
   }
 
@@ -28843,6 +28859,9 @@
 
   dispatcher.on('data-loaded.search', function (data) {
     makeSearch(select('section#search'), dispatcher, data);
+  });
+  dispatcher.on('data-loaded.bottle', function (data) {
+    makeBottle(select('section#bottle'), dispatcher, data);
   });
   dispatcher.on('data-loaded.map', function (data) {
     makeMap(select('section#map'), dispatcher, data);

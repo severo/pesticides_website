@@ -1,5 +1,6 @@
 import {dispatch} from 'd3-dispatch';
 import {loadData} from './data';
+import {makeBottle} from './bottle';
 import {makeDetails} from './details';
 import {makeMap} from './map';
 import {makeSearch} from './search';
@@ -20,6 +21,9 @@ loadData(dispatcher);
 // Create the layout
 dispatcher.on('data-loaded.search', data => {
   makeSearch(select('section#search'), dispatcher, data);
+});
+dispatcher.on('data-loaded.bottle', data => {
+  makeBottle(select('section#bottle'), dispatcher, data);
 });
 dispatcher.on('data-loaded.map', data => {
   makeMap(select('section#map'), dispatcher, data);
