@@ -57,6 +57,10 @@ export function makeSearch(parent, dispatcher, data) {
     updateResults(fuseResults, dispatcher);
   });
 
+  dispatcher.on('search-selected.search', mun => {
+    parent.select('#search-input').property('value', mun.properties.name);
+  });
+
   select('#search-input').on('input', (aa, bb, cc) => {
     // TODO: launch promises, and cancel any previous running promise
 

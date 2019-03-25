@@ -28798,6 +28798,9 @@
     dispatcher.on('search-results-updated.search', function (fuseResults) {
       updateResults(fuseResults, dispatcher);
     });
+    dispatcher.on('search-selected.search', function (mun) {
+      parent.select('#search-input').property('value', mun.properties.name);
+    });
     select('#search-input').on('input', function (aa, bb, cc) {
       // TODO: launch promises, and cancel any previous running promise
       var text = cc[0].value;
