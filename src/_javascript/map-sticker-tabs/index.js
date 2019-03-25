@@ -14,6 +14,10 @@ export function makeMapStickerTabs(parent, dispatcher, data) {
     toSticker(parent);
   });
 
+  dispatcher.on('bottle-show-sticker.map-sticker-tabs', () => {
+    toSticker(parent);
+  });
+
   endLoading(parent);
 }
 

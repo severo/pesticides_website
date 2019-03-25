@@ -37,7 +37,7 @@ export function makeMap(parent, dispatcher, data) {
   dispatcher.on('tabs-click-map.map', () => {
     parent.classed('is-hidden', false);
   });
-  dispatcher.on('tabs-click-sticker.map', () => {
+  dispatcher.on('tabs-click-sticker.map bottle-show-sticker.map', () => {
     parent.classed('is-hidden', true);
   });
 

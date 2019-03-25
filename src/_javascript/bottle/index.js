@@ -9,20 +9,20 @@ export function makeBottle(parent, dispatcher, data) {
   // Init
   // TODO: compute the mean color for Brazil
   const fakeNum = 17;
-  makeUpperLayer(svg, 'Brazil', fakeNum);
+  makeUpperLayer(svg, dispatcher, 'Brazil', fakeNum);
 
   dispatcher.on('to-brazil-view.bottle', brazilData => {
-    makeUpperLayer(svg, 'Brazil', fakeNum);
+    makeUpperLayer(svg, dispatcher, 'Brazil', fakeNum);
   });
 
   dispatcher.on('to-mun-view.bottle', mun => {
-    makeUpperLayer(svg, mun.properties.name, getValue(mun));
+    makeUpperLayer(svg, dispatcher, mun.properties.name, getValue(mun));
   });
 
   endLoading(parent);
 }
 
-function makeUpperLayer(parent, name, value) {
+function makeUpperLayer(parent, dispatcher, name, value) {
   // Text on main sticker
   const lines = getLines(name);
   parent.select('#line2').text(lines[0]);
@@ -37,10 +37,22 @@ function makeUpperLayer(parent, name, value) {
     parent.select('#alert-sticker').style('fill', 'white');
     parent.select('#alert-sticker-text').text(value + ' agrotoxic(s) included');
     parent.select('#liquid').style('fill', getColor(value));
+
+    // Add events
+    // TODO: change the mouse pointer
+    parent.select('#svg-glass').on('click', () => {
+      dispatcher.call('bottle-show-sticker', null, null);
+    });
+    parent.select('#alert-sticker').on('click', () => {
+      dispatcher.call('bottle-show-sticker', null, null);
+    });
   } else {
     parent.select('#alert-sticker').style('fill', 'none');
     parent.select('#alert-sticker-text').text('');
     parent.select('#liquid').style('fill', 'none');
+    // Remove events
+    parent.select('#svg-glass').on('click', null);
+    parent.select('#alert-sticker').on('click', null);
   }
 }
 
@@ -93,7 +105,7 @@ function makeBasis(parent) {
   makeSvgBottle(bottle, bottleWidth, bottleHeight);
   bottle.attr('transform', 'translate(50,0)');
 
-  const glass = svg.append('g').attr('id', 'svg-bottle');
+  const glass = svg.append('g').attr('id', 'svg-glass');
   const glassWidth = 300;
   const glassHeight = 300;
   makeSvgGlass(glass, glassWidth, glassHeight);

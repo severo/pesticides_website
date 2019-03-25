@@ -14,9 +14,12 @@ export function makeSticker(parent, dispatcher, data) {
   dispatcher.on('tabs-click-map.sticker', () => {
     parent.classed('is-hidden', true);
   });
-  dispatcher.on('tabs-click-sticker.sticker', () => {
-    parent.classed('is-hidden', false);
-  });
+  dispatcher.on(
+    'tabs-click-sticker.sticker bottle-show-sticker.sticker',
+    () => {
+      parent.classed('is-hidden', false);
+    }
+  );
   endLoading(parent);
 }
 

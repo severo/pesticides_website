@@ -24557,17 +24557,17 @@
     // TODO: compute the mean color for Brazil
 
     var fakeNum = 17;
-    makeUpperLayer(svg, 'Brazil', fakeNum);
+    makeUpperLayer(svg, dispatcher, 'Brazil', fakeNum);
     dispatcher.on('to-brazil-view.bottle', function (brazilData) {
-      makeUpperLayer(svg, 'Brazil', fakeNum);
+      makeUpperLayer(svg, dispatcher, 'Brazil', fakeNum);
     });
     dispatcher.on('to-mun-view.bottle', function (mun) {
-      makeUpperLayer(svg, mun.properties.name, getValue$1(mun));
+      makeUpperLayer(svg, dispatcher, mun.properties.name, getValue$1(mun));
     });
     endLoading(parent);
   }
 
-  function makeUpperLayer(parent, name, value) {
+  function makeUpperLayer(parent, dispatcher, name, value) {
     // Text on main sticker
     var lines = getLines(name);
     parent.select('#line2').text(lines[0]);
@@ -24582,11 +24582,22 @@
       // TODO: differentiate when number == 0
       parent.select('#alert-sticker').style('fill', 'white');
       parent.select('#alert-sticker-text').text(value + ' agrotoxic(s) included');
-      parent.select('#liquid').style('fill', getColor(value));
+      parent.select('#liquid').style('fill', getColor(value)); // Add events
+      // TODO: change the mouse pointer
+
+      parent.select('#svg-glass').on('click', function () {
+        dispatcher.call('bottle-show-sticker', null, null);
+      });
+      parent.select('#alert-sticker').on('click', function () {
+        dispatcher.call('bottle-show-sticker', null, null);
+      });
     } else {
       parent.select('#alert-sticker').style('fill', 'none');
       parent.select('#alert-sticker-text').text('');
-      parent.select('#liquid').style('fill', 'none');
+      parent.select('#liquid').style('fill', 'none'); // Remove events
+
+      parent.select('#svg-glass').on('click', null);
+      parent.select('#alert-sticker').on('click', null);
     }
   }
 
@@ -24637,7 +24648,7 @@
     var bottleHeight = 1000;
     makeSvgBottle(bottle, bottleWidth, bottleHeight);
     bottle.attr('transform', 'translate(50,0)');
-    var glass = svg.append('g').attr('id', 'svg-bottle');
+    var glass = svg.append('g').attr('id', 'svg-glass');
     var glassWidth = 300;
     var glassHeight = 300;
     makeSvgGlass(glass, glassWidth, glassHeight);
@@ -28809,7 +28820,7 @@
     dispatcher.on('tabs-click-map.map', function () {
       parent.classed('is-hidden', false);
     });
-    dispatcher.on('tabs-click-sticker.map', function () {
+    dispatcher.on('tabs-click-sticker.map bottle-show-sticker.map', function () {
       parent.classed('is-hidden', true);
     });
     endLoading$2(parent);
@@ -28834,6 +28845,9 @@
     ul.select('li.sticker').on('click', function (ft, element) {
       // invoke callbacks
       dispatcher.call('tabs-click-sticker', null, null);
+      toSticker(parent);
+    });
+    dispatcher.on('bottle-show-sticker.map-sticker-tabs', function () {
       toSticker(parent);
     });
     endLoading$3(parent);
@@ -28967,7 +28981,7 @@
     dispatcher.on('tabs-click-map.sticker', function () {
       parent.classed('is-hidden', true);
     });
-    dispatcher.on('tabs-click-sticker.sticker', function () {
+    dispatcher.on('tabs-click-sticker.sticker bottle-show-sticker.sticker', function () {
       parent.classed('is-hidden', false);
     });
     endLoading$5(parent);
@@ -28989,7 +29003,7 @@
     element.classed('is-loading', false);
   }
 
-  var dispatcher = dispatch('breadcrumb-click-brazil', 'data-loaded', 'mun-click', 'mun-mouseover', 'mun-mouseout', 'search-results-updated', 'search-selected', 'to-mun-view', 'to-brazil-view', 'tabs-click-map', 'tabs-click-sticker'); // Asynchronous (promise)
+  var dispatcher = dispatch('breadcrumb-click-brazil', 'data-loaded', 'mun-click', 'mun-mouseover', 'mun-mouseout', 'search-results-updated', 'search-selected', 'to-mun-view', 'to-brazil-view', 'tabs-click-map', 'tabs-click-sticker', 'bottle-show-sticker'); // Asynchronous (promise)
 
   loadData(dispatcher); // Create the layout
 

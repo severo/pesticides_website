@@ -19,7 +19,8 @@ const dispatcher = dispatch(
   'to-mun-view',
   'to-brazil-view',
   'tabs-click-map',
-  'tabs-click-sticker'
+  'tabs-click-sticker',
+  'bottle-show-sticker'
 );
 
 // Asynchronous (promise)
