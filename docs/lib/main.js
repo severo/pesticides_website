@@ -28798,7 +28798,7 @@
     dispatcher.on('search-results-updated.search', function (fuseResults) {
       updateResults(fuseResults, dispatcher);
     });
-    dispatcher.on('search-selected.search', function (mun) {
+    dispatcher.on('search-selected.search mun-click.search', function (mun) {
       parent.select('#search-input').property('value', mun.properties.name);
     });
     select('#search-input').on('input', function (aa, bb, cc) {

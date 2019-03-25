@@ -57,7 +57,7 @@ export function makeSearch(parent, dispatcher, data) {
     updateResults(fuseResults, dispatcher);
   });
 
-  dispatcher.on('search-selected.search', mun => {
+  dispatcher.on('search-selected.search mun-click.search', mun => {
     parent.select('#search-input').property('value', mun.properties.name);
   });
 
