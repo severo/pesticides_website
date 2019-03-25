@@ -24553,48 +24553,40 @@
 
   function makeBottle(parent, dispatcher, data) {
     startLoading(parent);
-    makeBasis(parent);
-    parent.append('p').attr('id', 'text');
-    makeForBrazil(parent, dispatcher, data);
-    dispatcher.on('to-mun-view.bottle', function (mun) {
-      makeForMun(parent, dispatcher, mun);
-    });
+    var svg = makeBasis(parent); // Init
+    // TODO: compute the mean color for Brazil
+
+    var fakeNum = 17;
+    makeUpperLayer(svg, 'Brazil', fakeNum);
     dispatcher.on('to-brazil-view.bottle', function (brazilData) {
-      makeForBrazil(parent, dispatcher, brazilData);
+      makeUpperLayer(svg, 'Brazil', fakeNum);
+    });
+    dispatcher.on('to-mun-view.bottle', function (mun) {
+      makeUpperLayer(svg, mun.properties.name, getValue$1(mun));
     });
     endLoading(parent);
   }
 
-  function makeForBrazil(parent, dispatcher, data) {
-    // TODO: compute the mean color for Brazil
-    var fakeNum = 17;
-    parent.select('svg #liquid').style('fill', colorScale(fakeNum));
-    parent.select('svg #line2').text('Brazil');
-    parent.select('svg #line3').text('');
-    parent.select('svg #alert-sticker').style('fill', 'white');
-    parent.select('svg #alert-sticker-text').text(fakeNum + ' agrotoxic(s) included');
-    parent.select('svg #liquid').style('fill', colorScale(fakeNum));
-  }
-
-  function makeForMun(parent, dispatcher, mun) {
-    var lines = getLines(mun.properties.name);
-    parent.select('svg #line2').text(lines[0]);
+  function makeUpperLayer(parent, name, value) {
+    // Text on main sticker
+    var lines = getLines(name);
+    parent.select('#line2').text(lines[0]);
 
     if (lines[1].length > 0) {
-      parent.select('svg #line3').text(lines[1]);
+      parent.select('#line3').text(lines[1]);
     } else {
-      parent.select('svg #line3').text('');
+      parent.select('#line3').text('');
     }
 
-    if (Number.isInteger(value(mun))) {
+    if (Number.isInteger(value)) {
       // TODO: differentiate when number == 0
-      parent.select('svg #alert-sticker').style('fill', 'white');
-      parent.select('svg #alert-sticker-text').text(value(mun) + ' agrotoxic(s) included');
-      parent.select('svg #liquid').style('fill', getColor(mun));
+      parent.select('#alert-sticker').style('fill', 'white');
+      parent.select('#alert-sticker-text').text(value + ' agrotoxic(s) included');
+      parent.select('#liquid').style('fill', getColor(value));
     } else {
-      parent.select('svg #alert-sticker').style('fill', 'none');
-      parent.select('svg #alert-sticker-text').text('');
-      parent.select('svg #liquid').style('fill', 'none');
+      parent.select('#alert-sticker').style('fill', 'none');
+      parent.select('#alert-sticker-text').text('');
+      parent.select('#liquid').style('fill', 'none');
     }
   }
 
@@ -24612,7 +24604,7 @@
     return interpolateYlOrRd;
   });
 
-  function value(ft) {
+  function getValue$1(ft) {
     if ('number' in ft.properties) {
       return ft.properties.number[cfg$1.field];
     }
@@ -24620,9 +24612,9 @@
     return null;
   }
 
-  function getColor(ft) {
-    if (Number.isInteger(value(ft))) {
-      return colorScale(value(ft));
+  function getColor(value) {
+    if (Number.isInteger(value)) {
+      return colorScale(value);
     }
 
     return null;
@@ -24650,6 +24642,7 @@
     var glassHeight = 300;
     makeSvgGlass(glass, glassWidth, glassHeight);
     glass.attr('transform', 'translate(400,700)');
+    return svg;
   }
 
   function makeSvgBottle(bottle, width, height) {
@@ -24796,8 +24789,8 @@
     parent.append('g').classed('choropleth', true).selectAll('path').data(data.mun.features).enter().append('path').attr('id', function (ft) {
       return 'id-' + ft.properties.ibgeCode;
     }).attr('d', path).style('fill', function (ft) {
-      if (Number.isInteger(value$1(ft))) {
-        return color$1(value$1(ft));
+      if (Number.isInteger(value(ft))) {
+        return color$1(value(ft));
       }
 
       return null;
@@ -24805,7 +24798,7 @@
       // invoke callbacks
       dispatcher.call(cfg$2.typename.mouseover, null, {
         properties: ft.properties,
-        value: value$1(ft)
+        value: value(ft)
       });
     }).on('mouseout', function (ft, element) {
       // invoke callbacks
@@ -24817,7 +24810,7 @@
     makeLegend(parent);
   }
 
-  function value$1(ft) {
+  function value(ft) {
     if ('number' in ft.properties) {
       return ft.properties.number[cfg$2.field];
     }
@@ -28964,12 +28957,12 @@
   function makeSticker(parent, dispatcher, data) {
     startLoading$5(parent);
     parent.append('p').attr('id', 'text');
-    makeForBrazil$1(parent, dispatcher, data);
+    makeForBrazil(parent, dispatcher, data);
     dispatcher.on('to-mun-view.sticker', function (mun) {
-      makeForMun$1(parent, dispatcher, mun);
+      makeForMun(parent, dispatcher, mun);
     });
     dispatcher.on('to-brazil-view.sticker', function (brazilData) {
-      makeForBrazil$1(parent, dispatcher, brazilData);
+      makeForBrazil(parent, dispatcher, brazilData);
     });
     dispatcher.on('tabs-click-map.sticker', function () {
       parent.classed('is-hidden', true);
@@ -28980,11 +28973,11 @@
     endLoading$5(parent);
   }
 
-  function makeForBrazil$1(parent, dispatcher, data) {
+  function makeForBrazil(parent, dispatcher, data) {
     parent.select('#text').text('[TODO] Sticker for Brazil');
   }
 
-  function makeForMun$1(parent, dispatcher, mun) {
+  function makeForMun(parent, dispatcher, mun) {
     parent.select('#text').text('[TODO] Sticker for ' + mun.properties.name);
   }
 

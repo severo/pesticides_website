@@ -4,54 +4,43 @@ import {interpolateYlOrRd, scaleLinear} from 'd3';
 export function makeBottle(parent, dispatcher, data) {
   startLoading(parent);
 
-  makeBasis(parent);
+  const svg = makeBasis(parent);
 
-  parent.append('p').attr('id', 'text');
-  makeForBrazil(parent, dispatcher, data);
-
-  dispatcher.on('to-mun-view.bottle', mun => {
-    makeForMun(parent, dispatcher, mun);
-  });
+  // Init
+  // TODO: compute the mean color for Brazil
+  const fakeNum = 17;
+  makeUpperLayer(svg, 'Brazil', fakeNum);
 
   dispatcher.on('to-brazil-view.bottle', brazilData => {
-    makeForBrazil(parent, dispatcher, brazilData);
+    makeUpperLayer(svg, 'Brazil', fakeNum);
   });
+
+  dispatcher.on('to-mun-view.bottle', mun => {
+    makeUpperLayer(svg, mun.properties.name, getValue(mun));
+  });
+
   endLoading(parent);
 }
 
-function makeForBrazil(parent, dispatcher, data) {
-  // TODO: compute the mean color for Brazil
-  const fakeNum = 17;
-  parent.select('svg #liquid').style('fill', colorScale(fakeNum));
-  parent.select('svg #line2').text('Brazil');
-  parent.select('svg #line3').text('');
-  parent.select('svg #alert-sticker').style('fill', 'white');
-  parent
-    .select('svg #alert-sticker-text')
-    .text(fakeNum + ' agrotoxic(s) included');
-  parent.select('svg #liquid').style('fill', colorScale(fakeNum));
-}
-
-function makeForMun(parent, dispatcher, mun) {
-  const lines = getLines(mun.properties.name);
-  parent.select('svg #line2').text(lines[0]);
+function makeUpperLayer(parent, name, value) {
+  // Text on main sticker
+  const lines = getLines(name);
+  parent.select('#line2').text(lines[0]);
   if (lines[1].length > 0) {
-    parent.select('svg #line3').text(lines[1]);
+    parent.select('#line3').text(lines[1]);
   } else {
-    parent.select('svg #line3').text('');
+    parent.select('#line3').text('');
   }
 
-  if (Number.isInteger(value(mun))) {
+  if (Number.isInteger(value)) {
     // TODO: differentiate when number == 0
-    parent.select('svg #alert-sticker').style('fill', 'white');
-    parent
-      .select('svg #alert-sticker-text')
-      .text(value(mun) + ' agrotoxic(s) included');
-    parent.select('svg #liquid').style('fill', getColor(mun));
+    parent.select('#alert-sticker').style('fill', 'white');
+    parent.select('#alert-sticker-text').text(value + ' agrotoxic(s) included');
+    parent.select('#liquid').style('fill', getColor(value));
   } else {
-    parent.select('svg #alert-sticker').style('fill', 'none');
-    parent.select('svg #alert-sticker-text').text('');
-    parent.select('svg #liquid').style('fill', 'none');
+    parent.select('#alert-sticker').style('fill', 'none');
+    parent.select('#alert-sticker-text').text('');
+    parent.select('#liquid').style('fill', 'none');
   }
 }
 
@@ -60,22 +49,25 @@ function getLines(text) {
   // eslint-disable-next-line no-magic-numbers
   return [text.slice(0, 10), text.slice(10, 20)];
 }
+
 const cfg = {
   field: 'supEu',
   max: 27,
 };
+
 const colorScale = scaleLinear()
   .domain([0, cfg.max])
   .interpolate(() => interpolateYlOrRd);
-function value(ft) {
+
+function getValue(ft) {
   if ('number' in ft.properties) {
     return ft.properties.number[cfg.field];
   }
   return null;
 }
-function getColor(ft) {
-  if (Number.isInteger(value(ft))) {
-    return colorScale(value(ft));
+function getColor(value) {
+  if (Number.isInteger(value)) {
+    return colorScale(value);
   }
   return null;
 }
@@ -106,6 +98,8 @@ function makeBasis(parent) {
   const glassHeight = 300;
   makeSvgGlass(glass, glassWidth, glassHeight);
   glass.attr('transform', 'translate(400,700)');
+
+  return svg;
 }
 
 function makeSvgBottle(bottle, width, height) {
