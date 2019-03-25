@@ -25,15 +25,36 @@ export function makeGlass(parent, dispatcher, data) {
 
 function makeUpperLayer(parent, dispatcher, name, value) {
   if (!Number.isInteger(value)) {
+    parent
+      .select('header.header')
+      .html('No data about agrotoxics inside drinking water in ' + name + '.');
+    parent.select('#droplet').style('fill', 'none');
     parent.select('#liquid').style('fill', 'none');
+    parent.select('#composition-box').classed('is-hidden', true);
   } else if (value === 0) {
     // TODO: better manage the color
+    parent
+      .select('header.header')
+      .html('No agrotoxics detected inside drinking water in ' + name + '.');
+    parent.select('#droplet').style('fill', '#5dadec');
     parent.select('#liquid').style('fill', '#5dadec');
+    parent.select('#composition-box').classed('is-hidden', false);
   } else {
+    parent
+      .select('header.header')
+      .html(
+        'The drinking water in ' +
+          name +
+          ' contains <strong>' +
+          value +
+          ' different agrotoxics</strong>.'
+      );
+    parent.select('#droplet').style('fill', getColor(value));
     parent.select('#liquid').style('fill', getColor(value));
+    parent.select('#composition-box').classed('is-hidden', false);
   }
 
-  makeSticker(parent.select('.composition-box'), name, value);
+  makeSticker(parent.select('#composition-box'), name, value);
 }
 
 const cfg = {
@@ -66,25 +87,48 @@ function endLoading(element) {
 }
 
 function makeBasis(parent) {
-  const vpW = 1000;
-  const vpH = 1000;
+  parent.append('header').classed('header', true);
 
+  const vpW = 1000;
+  const vpH = 500;
   const svg = parent
     .append('svg')
     .attr('viewBox', '0,0,' + vpW + ',' + vpH + '');
+
+  const droplet = svg.append('g').attr('id', 'svg-droplet');
+  const dropletWidth = 30;
+  const dropletHeight = 42;
+  makeSvgDroplet(droplet, dropletWidth, dropletHeight);
+  droplet.attr('transform', 'translate(455,30) scale(3)');
 
   const glass = svg.append('g').attr('id', 'svg-glass');
   const glassWidth = 300;
   const glassHeight = 300;
   makeSvgGlass(glass, glassWidth, glassHeight);
-  glass.attr('transform', 'translate(400,700)');
+  glass.attr('transform', 'translate(350,200)');
 
-  parent.append('div').classed('composition-box', true);
+  parent.append('div').attr('id', 'composition-box');
 }
 
+function makeSvgDroplet(droplet, width, height) {
+  /* eslint-disable no-magic-numbers */
+  // droplet - see https://stackoverflow.com/a/30712432/7351594
+  droplet.html(
+    `<path
+      id="droplet"
+      d="M15 3
+           Q16.5 6.8 25 18
+           A12.8 12.8 0 1 1 5 18
+           Q13.5 6.8 15 3z"
+    />`
+  );
+  /* eslint-enable no-magic-numbers */
+}
 function makeSvgGlass(glass, width, height) {
   /* eslint-disable no-magic-numbers */
-  const quarterWidth = width / 4;
+  const qWidth = width / 4;
+  const qqWidth = qWidth / 4;
+  const qHeight = height / 4;
   const thickness = width / 20;
 
   // glass
@@ -93,8 +137,8 @@ function makeSvgGlass(glass, width, height) {
     .attr('d', () => {
       const path = d3Path.path();
       path.moveTo(0, 0);
-      path.lineTo(quarterWidth, height);
-      path.lineTo(width - quarterWidth, height);
+      path.lineTo(qWidth, height);
+      path.lineTo(width - qWidth, height);
       path.lineTo(width, 0);
       path.closePath();
       return path.toString();
@@ -107,10 +151,10 @@ function makeSvgGlass(glass, width, height) {
     .attr('id', 'liquid')
     .attr('d', () => {
       const path = d3Path.path();
-      path.moveTo(thickness, thickness);
-      path.lineTo(quarterWidth + thickness, height - thickness);
-      path.lineTo(width - quarterWidth - thickness, height - thickness);
-      path.lineTo(width - thickness, thickness);
+      path.moveTo(qqWidth + thickness, qHeight);
+      path.lineTo(qWidth + thickness, height - thickness);
+      path.lineTo(width - qWidth - thickness, height - thickness);
+      path.lineTo(width - qqWidth - thickness, qHeight);
       path.closePath();
       return path.toString();
     })

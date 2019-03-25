@@ -34,7 +34,11 @@ $primary-invert: $pink-invert;
 #glass {
   min-height: 150px;
 
-  div.composition-box {
+  #droplet {
+    strike: none;
+  }
+
+  #composition-box {
     border: solid 1px black;
     padding: 1em;
 
