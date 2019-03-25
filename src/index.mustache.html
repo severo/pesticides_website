@@ -5,6 +5,9 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{{title}}</title>
+    <!-- TODO: bundle at build -->
+    <script defer src="https://bundle.run/fuzzball@1.2.0"></script>
+    <script defer src="lib/main.js"></script>
     <link rel="stylesheet" href="css/main.css" />
   </head>
   <body>
@@ -23,16 +26,13 @@
             <section id="search">
               <div class="field">
                 <label class="label">{{search.title}}</label>
-                <div class="control has-icons-left">
+                <div class="control">
                   <input
                     id="search-input"
                     class="input is-medium"
                     type="search"
                     placeholder="{{search.placeholder}}"
                   />
-                  <span class="icon is-medium is-left">
-                    <i class="fas fa-search-location"></i>
-                  </span>
                 </div>
               </div>
               <ul id="results"></ul>
@@ -77,12 +77,5 @@
         </div>
       </div>
     </footer>
-    <!-- TODO: bundle at build -->
-    <script
-      defer
-      src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"
-    ></script>
-    <script src="https://bundle.run/fuzzball@1.2.0"></script>
-    <script src="lib/main.js"></script>
   </body>
 </html>
