@@ -19027,61 +19027,134 @@
     return features;
   }
 
-  function makeBottle(parent, dispatcher, data) {
-    startLoading(parent);
-    parent.append('p').attr('id', 'text');
-    makeForBrazil(parent, dispatcher, data);
-    dispatcher.on('to-mun-view.bottle', function (mun) {
-      makeForMun(parent, dispatcher, mun);
-    });
-    dispatcher.on('to-brazil-view.bottle', function (brazilData) {
-      makeForBrazil(parent, dispatcher, brazilData);
-    });
-    endLoading(parent);
+  var pi$2 = Math.PI,
+      tau$1 = 2 * pi$2,
+      epsilon = 1e-6,
+      tauEpsilon = tau$1 - epsilon;
+
+  function Path() {
+    this._x0 = this._y0 = // start of current subpath
+    this._x1 = this._y1 = null; // end of current subpath
+    this._ = "";
   }
 
-  function makeForBrazil(parent, dispatcher, data) {
-    parent.select('#text').text('[TODO] Bottle for Brazil');
+  function path() {
+    return new Path;
   }
 
-  function makeForMun(parent, dispatcher, mun) {
-    parent.select('#text').text('[TODO] Bottle for ' + mun.properties.name);
-  }
+  Path.prototype = path.prototype = {
+    constructor: Path,
+    moveTo: function(x, y) {
+      this._ += "M" + (this._x0 = this._x1 = +x) + "," + (this._y0 = this._y1 = +y);
+    },
+    closePath: function() {
+      if (this._x1 !== null) {
+        this._x1 = this._x0, this._y1 = this._y0;
+        this._ += "Z";
+      }
+    },
+    lineTo: function(x, y) {
+      this._ += "L" + (this._x1 = +x) + "," + (this._y1 = +y);
+    },
+    quadraticCurveTo: function(x1, y1, x, y) {
+      this._ += "Q" + (+x1) + "," + (+y1) + "," + (this._x1 = +x) + "," + (this._y1 = +y);
+    },
+    bezierCurveTo: function(x1, y1, x2, y2, x, y) {
+      this._ += "C" + (+x1) + "," + (+y1) + "," + (+x2) + "," + (+y2) + "," + (this._x1 = +x) + "," + (this._y1 = +y);
+    },
+    arcTo: function(x1, y1, x2, y2, r) {
+      x1 = +x1, y1 = +y1, x2 = +x2, y2 = +y2, r = +r;
+      var x0 = this._x1,
+          y0 = this._y1,
+          x21 = x2 - x1,
+          y21 = y2 - y1,
+          x01 = x0 - x1,
+          y01 = y0 - y1,
+          l01_2 = x01 * x01 + y01 * y01;
 
-  function startLoading(element) {
-    element.classed('is-loading', true);
-  }
+      // Is the radius negative? Error.
+      if (r < 0) throw new Error("negative radius: " + r);
 
-  function endLoading(element) {
-    element.classed('is-loading', false);
-  }
+      // Is this path empty? Move to (x1,y1).
+      if (this._x1 === null) {
+        this._ += "M" + (this._x1 = x1) + "," + (this._y1 = y1);
+      }
 
-  function makeBreadcrumb(parent, dispatcher, data) {
-    startLoading$1(parent);
-    dispatcher.on('to-mun-view.breadcrumb', function (mun) {
-      var ul = parent.select('ul');
-      ul.html(null);
-      ul.append('li').append('a').attr('href', '#').text('Brazil').on('click', function (ft, element) {
-        // invoke callbacks
-        dispatcher.call('breadcrumb-click-brazil', null, data);
-      });
-      ul.append('li').classed('is-active', true).append('a').attr('href', '#').attr('aria-current', 'page').text(mun.properties.name);
-    });
-    dispatcher.on('to-brazil-view.breadcrumb', function (mun) {
-      var ul = parent.select('ul');
-      ul.html(null);
-      ul.append('li').classed('is-active', true).append('a').attr('href', '#').attr('aria-current', 'page').text('Brazil');
-    });
-    endLoading$1(parent);
-  }
+      // Or, is (x1,y1) coincident with (x0,y0)? Do nothing.
+      else if (!(l01_2 > epsilon));
 
-  function startLoading$1(element) {
-    element.classed('is-loading', true);
-  }
+      // Or, are (x0,y0), (x1,y1) and (x2,y2) collinear?
+      // Equivalently, is (x1,y1) coincident with (x2,y2)?
+      // Or, is the radius zero? Line to (x1,y1).
+      else if (!(Math.abs(y01 * x21 - y21 * x01) > epsilon) || !r) {
+        this._ += "L" + (this._x1 = x1) + "," + (this._y1 = y1);
+      }
 
-  function endLoading$1(element) {
-    element.classed('is-loading', false);
-  }
+      // Otherwise, draw an arc!
+      else {
+        var x20 = x2 - x0,
+            y20 = y2 - y0,
+            l21_2 = x21 * x21 + y21 * y21,
+            l20_2 = x20 * x20 + y20 * y20,
+            l21 = Math.sqrt(l21_2),
+            l01 = Math.sqrt(l01_2),
+            l = r * Math.tan((pi$2 - Math.acos((l21_2 + l01_2 - l20_2) / (2 * l21 * l01))) / 2),
+            t01 = l / l01,
+            t21 = l / l21;
+
+        // If the start tangent is not coincident with (x0,y0), line to.
+        if (Math.abs(t01 - 1) > epsilon) {
+          this._ += "L" + (x1 + t01 * x01) + "," + (y1 + t01 * y01);
+        }
+
+        this._ += "A" + r + "," + r + ",0,0," + (+(y01 * x20 > x01 * y20)) + "," + (this._x1 = x1 + t21 * x21) + "," + (this._y1 = y1 + t21 * y21);
+      }
+    },
+    arc: function(x, y, r, a0, a1, ccw) {
+      x = +x, y = +y, r = +r;
+      var dx = r * Math.cos(a0),
+          dy = r * Math.sin(a0),
+          x0 = x + dx,
+          y0 = y + dy,
+          cw = 1 ^ ccw,
+          da = ccw ? a0 - a1 : a1 - a0;
+
+      // Is the radius negative? Error.
+      if (r < 0) throw new Error("negative radius: " + r);
+
+      // Is this path empty? Move to (x0,y0).
+      if (this._x1 === null) {
+        this._ += "M" + x0 + "," + y0;
+      }
+
+      // Or, is (x0,y0) not coincident with the previous point? Line to (x0,y0).
+      else if (Math.abs(this._x1 - x0) > epsilon || Math.abs(this._y1 - y0) > epsilon) {
+        this._ += "L" + x0 + "," + y0;
+      }
+
+      // Is this arc empty? We’re done.
+      if (!r) return;
+
+      // Does the angle go the wrong way? Flip the direction.
+      if (da < 0) da = da % tau$1 + tau$1;
+
+      // Is this a complete circle? Draw two arcs to complete the circle.
+      if (da > tauEpsilon) {
+        this._ += "A" + r + "," + r + ",0,1," + cw + "," + (x - dx) + "," + (y - dy) + "A" + r + "," + r + ",0,1," + cw + "," + (this._x1 = x0) + "," + (this._y1 = y0);
+      }
+
+      // Is this arc non-empty? Draw an arc!
+      else if (da > epsilon) {
+        this._ += "A" + r + "," + r + ",0," + (+(da >= pi$2)) + "," + cw + "," + (this._x1 = x + r * Math.cos(a1)) + "," + (this._y1 = y + r * Math.sin(a1));
+      }
+    },
+    rect: function(x, y, w, h) {
+      this._ += "M" + (this._x0 = this._x1 = +x) + "," + (this._y0 = this._y1 = +y) + "h" + (+w) + "v" + (+h) + "h" + (-w) + "Z";
+    },
+    toString: function() {
+      return this._;
+    }
+  };
 
   var slice$1 = Array.prototype.slice;
 
@@ -19093,7 +19166,7 @@
       right = 2,
       bottom = 3,
       left = 4,
-      epsilon = 1e-6;
+      epsilon$1 = 1e-6;
 
   function translateX(x) {
     return "translate(" + (x + 0.5) + ",0)";
@@ -19170,11 +19243,11 @@
         text = text.transition(context);
 
         tickExit = tickExit.transition(context)
-            .attr("opacity", epsilon)
+            .attr("opacity", epsilon$1)
             .attr("transform", function(d) { return isFinite(d = position(d)) ? transform(d) : this.getAttribute("transform"); });
 
         tickEnter
-            .attr("opacity", epsilon)
+            .attr("opacity", epsilon$1)
             .attr("transform", function(d) { var p = this.parentNode.__axis; return transform(p && isFinite(p = p(d)) ? p : position(d)); });
       }
 
@@ -21909,9 +21982,9 @@
     return ((t *= 2) <= 1 ? t * t * t : (t -= 2) * t * t + 2) / 2;
   }
 
-  var pi$2 = Math.PI;
+  var pi$3 = Math.PI;
 
-  var tau$1 = 2 * Math.PI;
+  var tau$2 = 2 * Math.PI;
 
   var defaultTiming = {
     time: null, // Set on use.
@@ -21954,136 +22027,7 @@
   selection.prototype.interrupt = selection_interrupt;
   selection.prototype.transition = selection_transition;
 
-  var pi$3 = Math.PI;
-
-  var pi$4 = Math.PI,
-      tau$2 = 2 * pi$4,
-      epsilon$1 = 1e-6,
-      tauEpsilon = tau$2 - epsilon$1;
-
-  function Path() {
-    this._x0 = this._y0 = // start of current subpath
-    this._x1 = this._y1 = null; // end of current subpath
-    this._ = "";
-  }
-
-  function path() {
-    return new Path;
-  }
-
-  Path.prototype = path.prototype = {
-    constructor: Path,
-    moveTo: function(x, y) {
-      this._ += "M" + (this._x0 = this._x1 = +x) + "," + (this._y0 = this._y1 = +y);
-    },
-    closePath: function() {
-      if (this._x1 !== null) {
-        this._x1 = this._x0, this._y1 = this._y0;
-        this._ += "Z";
-      }
-    },
-    lineTo: function(x, y) {
-      this._ += "L" + (this._x1 = +x) + "," + (this._y1 = +y);
-    },
-    quadraticCurveTo: function(x1, y1, x, y) {
-      this._ += "Q" + (+x1) + "," + (+y1) + "," + (this._x1 = +x) + "," + (this._y1 = +y);
-    },
-    bezierCurveTo: function(x1, y1, x2, y2, x, y) {
-      this._ += "C" + (+x1) + "," + (+y1) + "," + (+x2) + "," + (+y2) + "," + (this._x1 = +x) + "," + (this._y1 = +y);
-    },
-    arcTo: function(x1, y1, x2, y2, r) {
-      x1 = +x1, y1 = +y1, x2 = +x2, y2 = +y2, r = +r;
-      var x0 = this._x1,
-          y0 = this._y1,
-          x21 = x2 - x1,
-          y21 = y2 - y1,
-          x01 = x0 - x1,
-          y01 = y0 - y1,
-          l01_2 = x01 * x01 + y01 * y01;
-
-      // Is the radius negative? Error.
-      if (r < 0) throw new Error("negative radius: " + r);
-
-      // Is this path empty? Move to (x1,y1).
-      if (this._x1 === null) {
-        this._ += "M" + (this._x1 = x1) + "," + (this._y1 = y1);
-      }
-
-      // Or, is (x1,y1) coincident with (x0,y0)? Do nothing.
-      else if (!(l01_2 > epsilon$1));
-
-      // Or, are (x0,y0), (x1,y1) and (x2,y2) collinear?
-      // Equivalently, is (x1,y1) coincident with (x2,y2)?
-      // Or, is the radius zero? Line to (x1,y1).
-      else if (!(Math.abs(y01 * x21 - y21 * x01) > epsilon$1) || !r) {
-        this._ += "L" + (this._x1 = x1) + "," + (this._y1 = y1);
-      }
-
-      // Otherwise, draw an arc!
-      else {
-        var x20 = x2 - x0,
-            y20 = y2 - y0,
-            l21_2 = x21 * x21 + y21 * y21,
-            l20_2 = x20 * x20 + y20 * y20,
-            l21 = Math.sqrt(l21_2),
-            l01 = Math.sqrt(l01_2),
-            l = r * Math.tan((pi$4 - Math.acos((l21_2 + l01_2 - l20_2) / (2 * l21 * l01))) / 2),
-            t01 = l / l01,
-            t21 = l / l21;
-
-        // If the start tangent is not coincident with (x0,y0), line to.
-        if (Math.abs(t01 - 1) > epsilon$1) {
-          this._ += "L" + (x1 + t01 * x01) + "," + (y1 + t01 * y01);
-        }
-
-        this._ += "A" + r + "," + r + ",0,0," + (+(y01 * x20 > x01 * y20)) + "," + (this._x1 = x1 + t21 * x21) + "," + (this._y1 = y1 + t21 * y21);
-      }
-    },
-    arc: function(x, y, r, a0, a1, ccw) {
-      x = +x, y = +y, r = +r;
-      var dx = r * Math.cos(a0),
-          dy = r * Math.sin(a0),
-          x0 = x + dx,
-          y0 = y + dy,
-          cw = 1 ^ ccw,
-          da = ccw ? a0 - a1 : a1 - a0;
-
-      // Is the radius negative? Error.
-      if (r < 0) throw new Error("negative radius: " + r);
-
-      // Is this path empty? Move to (x0,y0).
-      if (this._x1 === null) {
-        this._ += "M" + x0 + "," + y0;
-      }
-
-      // Or, is (x0,y0) not coincident with the previous point? Line to (x0,y0).
-      else if (Math.abs(this._x1 - x0) > epsilon$1 || Math.abs(this._y1 - y0) > epsilon$1) {
-        this._ += "L" + x0 + "," + y0;
-      }
-
-      // Is this arc empty? We’re done.
-      if (!r) return;
-
-      // Does the angle go the wrong way? Flip the direction.
-      if (da < 0) da = da % tau$2 + tau$2;
-
-      // Is this a complete circle? Draw two arcs to complete the circle.
-      if (da > tauEpsilon) {
-        this._ += "A" + r + "," + r + ",0,1," + cw + "," + (x - dx) + "," + (y - dy) + "A" + r + "," + r + ",0,1," + cw + "," + (this._x1 = x0) + "," + (this._y1 = y0);
-      }
-
-      // Is this arc non-empty? Draw an arc!
-      else if (da > epsilon$1) {
-        this._ += "A" + r + "," + r + ",0," + (+(da >= pi$4)) + "," + cw + "," + (this._x1 = x + r * Math.cos(a1)) + "," + (this._y1 = y + r * Math.sin(a1));
-      }
-    },
-    rect: function(x, y, w, h) {
-      this._ += "M" + (this._x0 = this._x1 = +x) + "," + (this._y0 = this._y1 = +y) + "h" + (+w) + "v" + (+h) + "h" + (-w) + "Z";
-    },
-    toString: function() {
-      return this._;
-    }
-  };
+  var pi$4 = Math.PI;
 
   var prefix = "$";
 
@@ -24607,6 +24551,215 @@
     bezierCurveTo: function(x1, y1, x2, y2, x, y) { this._context.bezierCurveTo(y1, x1, y2, x2, y, x); }
   };
 
+  function makeBottle(parent, dispatcher, data) {
+    startLoading(parent);
+    makeBasis(parent);
+    parent.append('p').attr('id', 'text');
+    makeForBrazil(parent, dispatcher, data);
+    dispatcher.on('to-mun-view.bottle', function (mun) {
+      makeForMun(parent, dispatcher, mun);
+    });
+    dispatcher.on('to-brazil-view.bottle', function (brazilData) {
+      makeForBrazil(parent, dispatcher, brazilData);
+    });
+    endLoading(parent);
+  }
+
+  function makeForBrazil(parent, dispatcher, data) {
+    // TODO: compute the mean color for Brazil
+    var fakeNum = 17;
+    parent.select('svg #liquid').style('fill', colorScale(fakeNum));
+    parent.select('svg #line2').text('Brazil');
+    parent.select('svg #line3').text('');
+    parent.select('svg #alert-sticker').style('fill', 'white');
+    parent.select('svg #alert-sticker-text').text(fakeNum + ' agrotoxic(s) included');
+    parent.select('svg #liquid').style('fill', colorScale(fakeNum));
+  }
+
+  function makeForMun(parent, dispatcher, mun) {
+    var lines = getLines(mun.properties.name);
+    parent.select('svg #line2').text(lines[0]);
+
+    if (lines[1].length > 0) {
+      parent.select('svg #line3').text(lines[1]);
+    } else {
+      parent.select('svg #line3').text('');
+    }
+
+    if (Number.isInteger(value(mun))) {
+      // TODO: differentiate when number == 0
+      parent.select('svg #alert-sticker').style('fill', 'white');
+      parent.select('svg #alert-sticker-text').text(value(mun) + ' agrotoxic(s) included');
+      parent.select('svg #liquid').style('fill', getColor(mun));
+    } else {
+      parent.select('svg #alert-sticker').style('fill', 'none');
+      parent.select('svg #alert-sticker-text').text('');
+      parent.select('svg #liquid').style('fill', 'none');
+    }
+  }
+
+  function getLines(text) {
+    // TODO: cut between words
+    // eslint-disable-next-line no-magic-numbers
+    return [text.slice(0, 10), text.slice(10, 20)];
+  }
+
+  var cfg$1 = {
+    field: 'supEu',
+    max: 27
+  };
+  var colorScale = linear$1().domain([0, cfg$1.max]).interpolate(function () {
+    return interpolateYlOrRd;
+  });
+
+  function value(ft) {
+    if ('number' in ft.properties) {
+      return ft.properties.number[cfg$1.field];
+    }
+
+    return null;
+  }
+
+  function getColor(ft) {
+    if (Number.isInteger(value(ft))) {
+      return colorScale(value(ft));
+    }
+
+    return null;
+  }
+
+  function startLoading(element) {
+    element.classed('is-loading', true);
+  }
+
+  function endLoading(element) {
+    element.classed('is-loading', false);
+  }
+
+  function makeBasis(parent) {
+    var vpW = 1000;
+    var vpH = 1000;
+    var svg = parent.append('svg').attr('viewBox', '0,0,' + vpW + ',' + vpH + '');
+    var bottle = svg.append('g').attr('id', 'svg-bottle');
+    var bottleWidth = 300;
+    var bottleHeight = 1000;
+    makeSvgBottle(bottle, bottleWidth, bottleHeight);
+    bottle.attr('transform', 'translate(50,0)');
+    var glass = svg.append('g').attr('id', 'svg-bottle');
+    var glassWidth = 300;
+    var glassHeight = 300;
+    makeSvgGlass(glass, glassWidth, glassHeight);
+    glass.attr('transform', 'translate(400,700)');
+  }
+
+  function makeSvgBottle(bottle, width, height) {
+    /* eslint-disable no-magic-numbers */
+    var midWidth = width / 2;
+    var capWidth = width / 4;
+    var capMidWidth = capWidth / 2;
+    var capHeight = height / 20;
+    var bodyWidth = width;
+    var bodyHeight = height - capHeight;
+    var mainStickerWidth = width;
+    var mainStickerHeight = height / 5;
+    var mainStickerYPosition = 2 * height / 5;
+    var alertStickerWidth = width;
+    var alertStickerHeight = height / 10;
+    var alertStickerYPosition = mainStickerYPosition + mainStickerHeight + height / 20;
+    var mainStickerTextYPosition = mainStickerYPosition + height / 20;
+    var line2Y = height / 20;
+    var line3Y = line2Y + height / 20;
+    var alertStickerTextYPosition = alertStickerYPosition + height / 20; // cap
+
+    bottle.append('path').attr('d', function () {
+      var path$1 = path();
+      path$1.rect(0, 0, capWidth, capHeight);
+      return path$1.toString();
+    }).attr('transform', 'translate(' + (midWidth - capMidWidth) + ' 0)').style('fill', '#e7f3f8'); // body
+
+    bottle.append('path').attr('d', function () {
+      var path$1 = path();
+      path$1.rect(0, 0, bodyWidth, bodyHeight);
+      return path$1.toString();
+    }).attr('transform', 'translate(0 ' + capHeight + ')').style('fill', '#e7f3f8'); // main sticker
+
+    bottle.append('path').attr('d', function () {
+      var path$1 = path();
+      path$1.rect(0, 0, mainStickerWidth, mainStickerHeight);
+      return path$1.toString();
+    }).attr('transform', 'translate(0 ' + mainStickerYPosition + ')').style('fill', 'white'); // text on main sticker
+
+    var mainStickerText = bottle.append('g').attr('id', 'main-sticker-text');
+    mainStickerText.append('text').attr('id', 'line1').attr('text-anchor', 'middle').text('Water of');
+    mainStickerText.append('text').attr('id', 'line2').attr('text-anchor', 'middle').attr('y', line2Y).text('');
+    mainStickerText.append('text').attr('id', 'line3').attr('text-anchor', 'middle').attr('y', line3Y).text('');
+    mainStickerText.attr('transform', 'translate(' + midWidth + ' ' + mainStickerTextYPosition + ')'); // alert sticker
+
+    bottle.append('path').attr('id', 'alert-sticker').attr('d', function () {
+      var path$1 = path();
+      path$1.rect(0, 0, alertStickerWidth, alertStickerHeight);
+      return path$1.toString();
+    }).attr('transform', 'translate(0 ' + alertStickerYPosition + ')').style('fill', 'none'); // text on main sticker
+
+    var alertStickerText = bottle.append('text').attr('id', 'alert-sticker-text').attr('text-anchor', 'middle').text('');
+    alertStickerText.attr('transform', 'translate(' + midWidth + ' ' + alertStickerTextYPosition + ')');
+    /* eslint-enable no-magic-numbers */
+  }
+
+  function makeSvgGlass(glass, width, height) {
+    /* eslint-disable no-magic-numbers */
+    var quarterWidth = width / 4;
+    var thickness = width / 20; // glass
+
+    glass.append('path').attr('d', function () {
+      var path$1 = path();
+      path$1.moveTo(0, 0);
+      path$1.lineTo(quarterWidth, height);
+      path$1.lineTo(width - quarterWidth, height);
+      path$1.lineTo(width, 0);
+      path$1.closePath();
+      return path$1.toString();
+    }).style('fill', '#e7f3f8'); // liquid
+
+    glass.append('path').attr('id', 'liquid').attr('d', function () {
+      var path$1 = path();
+      path$1.moveTo(thickness, thickness);
+      path$1.lineTo(quarterWidth + thickness, height - thickness);
+      path$1.lineTo(width - quarterWidth - thickness, height - thickness);
+      path$1.lineTo(width - thickness, thickness);
+      path$1.closePath();
+      return path$1.toString();
+    }).style('fill', 'none');
+    /* eslint-enable no-magic-numbers */
+  }
+
+  function makeBreadcrumb(parent, dispatcher, data) {
+    startLoading$1(parent);
+    dispatcher.on('to-mun-view.breadcrumb', function (mun) {
+      var ul = parent.select('ul');
+      ul.html(null);
+      ul.append('li').append('a').attr('href', '#').text('Brazil').on('click', function (ft, element) {
+        // invoke callbacks
+        dispatcher.call('breadcrumb-click-brazil', null, data);
+      });
+      ul.append('li').classed('is-active', true).append('a').attr('href', '#').attr('aria-current', 'page').text(mun.properties.name);
+    });
+    dispatcher.on('to-brazil-view.breadcrumb', function (mun) {
+      var ul = parent.select('ul');
+      ul.html(null);
+      ul.append('li').classed('is-active', true).append('a').attr('href', '#').attr('aria-current', 'page').text('Brazil');
+    });
+    endLoading$1(parent);
+  }
+
+  function startLoading$1(element) {
+    element.classed('is-loading', true);
+  }
+
+  function endLoading$1(element) {
+    element.classed('is-loading', false);
+  }
+
   /* Reminder of the data available from the CSV
   category: {
     atrAvgCat: row.atrazine_atrazine_category,
@@ -24623,7 +24776,7 @@
   },
   */
 
-  var cfg$1 = {
+  var cfg$2 = {
     field: 'supEu',
     legend: {
       height: 10,
@@ -24643,57 +24796,57 @@
     parent.append('g').classed('choropleth', true).selectAll('path').data(data.mun.features).enter().append('path').attr('id', function (ft) {
       return 'id-' + ft.properties.ibgeCode;
     }).attr('d', path).style('fill', function (ft) {
-      if (Number.isInteger(value(ft))) {
-        return color$1(value(ft));
+      if (Number.isInteger(value$1(ft))) {
+        return color$1(value$1(ft));
       }
 
       return null;
     }).on('mouseover', function (ft, element) {
       // invoke callbacks
-      dispatcher.call(cfg$1.typename.mouseover, null, {
+      dispatcher.call(cfg$2.typename.mouseover, null, {
         properties: ft.properties,
-        value: value(ft)
+        value: value$1(ft)
       });
     }).on('mouseout', function (ft, element) {
       // invoke callbacks
-      dispatcher.call(cfg$1.typename.mouseout);
+      dispatcher.call(cfg$2.typename.mouseout);
     }).on('click', function (ft, element) {
       // invoke callbacks
-      dispatcher.call(cfg$1.typename.click, null, ft);
+      dispatcher.call(cfg$2.typename.click, null, ft);
     });
     makeLegend(parent);
   }
 
-  function value(ft) {
+  function value$1(ft) {
     if ('number' in ft.properties) {
-      return ft.properties.number[cfg$1.field];
+      return ft.properties.number[cfg$2.field];
     }
 
     return null;
   }
 
-  var color$1 = linear$1().domain([0, cfg$1.max]).interpolate(function () {
+  var color$1 = linear$1().domain([0, cfg$2.max]).interpolate(function () {
     return interpolateYlOrRd;
   });
 
   function makeLegend(parent) {
     // TODO: should be a scheme (27 colors), not a continuous scale
-    var xx = linear$1().domain(color$1.domain()).rangeRound([0, cfg$1.legend.width * cfg$1.max]);
+    var xx = linear$1().domain(color$1.domain()).rangeRound([0, cfg$2.legend.width * cfg$2.max]);
     var legend = parent.append('g') //.style('font-size', '0.8rem')
     //.style('font-family', 'sans-serif')
     .attr('transform', 'translate(550,50)');
-    legend.selectAll('rect').data(sequence(0, cfg$1.max, 1)).enter().append('rect').attr('height', cfg$1.legend.height).attr('x', function (el) {
+    legend.selectAll('rect').data(sequence(0, cfg$2.max, 1)).enter().append('rect').attr('height', cfg$2.legend.height).attr('x', function (el) {
       return xx(el);
-    }).attr('width', cfg$1.legend.width).attr('fill', function (el) {
+    }).attr('width', cfg$2.legend.width).attr('fill', function (el) {
       return color$1(el);
     });
     var label = legend.append('g').attr('fill', '#000').attr('text-anchor', 'start'); // TODO: i18n
 
-    label.append('text').attr('y', -cfg$1.legend.titleOffset).attr('font-weight', 'bold').text('Number of pesticides detected in drinking water'); // TODO: i18n
+    label.append('text').attr('y', -cfg$2.legend.titleOffset).attr('font-weight', 'bold').text('Number of pesticides detected in drinking water'); // TODO: i18n
 
-    label.append('text').attr('y', -cfg$1.legend.subtitleOffset).text('(white: no pesticide, purple: 27 different pesticides)'); // Scale
+    label.append('text').attr('y', -cfg$2.legend.subtitleOffset).text('(white: no pesticide, purple: 27 different pesticides)'); // Scale
 
-    legend.append('g').call(axisBottom(xx).tickSize(cfg$1.legend.tickSize)).select('.domain').remove();
+    legend.append('g').call(axisBottom(xx).tickSize(cfg$2.legend.tickSize)).select('.domain').remove();
   }
 
   function createFuFrontiers(parent, path, data) {
@@ -28607,7 +28760,7 @@
     return annotation;
   }
 
-  var cfg$2 = {
+  var cfg$3 = {
     nx: 200,
     ny: 700
   };
@@ -28629,8 +28782,8 @@
         label: Number.isInteger(data.value) ? data.value + ' pesticide(s) found in the drinking water.' : 'Never tested.',
         title: data.properties.name + ' (' + data.properties.fuName + ')'
       },
-      nx: cfg$2.nx,
-      ny: cfg$2.ny,
+      nx: cfg$3.nx,
+      ny: cfg$3.ny,
       x: data.properties.centroid[0],
       // eslint-disable-line id-length
       y: data.properties.centroid[1] // eslint-disable-line id-length
@@ -28638,7 +28791,7 @@
     }]);
   }
 
-  var cfg$3 = {
+  var cfg$4 = {
     viewport: {
       height: 960,
       width: 960
@@ -28649,7 +28802,7 @@
     // TODO: be more clever?
 
     parent.html(null);
-    var svg = parent.append('svg').attr('viewBox', '0,0,' + cfg$3.viewport.width + ',' + cfg$3.viewport.height); // Path is a function that transforms a geometry (a point, a line, a
+    var svg = parent.append('svg').attr('viewBox', '0,0,' + cfg$4.viewport.width + ',' + cfg$4.viewport.height); // Path is a function that transforms a geometry (a point, a line, a
     // polygon) into a SVG path (also allows to generate canvas paths, for
     // example)
     // Note that it takes geographic coordinates as an input, not planar ones
