@@ -23284,8 +23284,6 @@
   var saturday = weekday(6);
 
   var sundays = sunday.range;
-  var mondays = monday.range;
-  var thursdays = thursday.range;
 
   var month = newInterval(function(date) {
     date.setDate(1);
@@ -23375,8 +23373,6 @@
   var utcSaturday = utcWeekday(6);
 
   var utcSundays = utcSunday.range;
-  var utcMondays = utcMonday.range;
-  var utcThursdays = utcThursday.range;
 
   var utcMonth = newInterval(function(date) {
     date.setUTCDate(1);
@@ -24649,8 +24645,8 @@
   function makeUpperLayer(parent, dispatcher, name, value) {
     if (!Number.isInteger(value)) {
       parent.select('header.header').html('No data about agrotoxics inside drinking water in ' + name + '.');
-      parent.select('#droplet').style('fill', 'none');
-      parent.select('#liquid').style('fill', 'none');
+      parent.select('#droplet').style('fill', '#eee');
+      parent.select('#liquid').style('fill', '#eee');
       parent.select('#composition-box').classed('is-hidden', true);
     } else if (value === 0) {
       // TODO: better manage the color
@@ -24706,9 +24702,7 @@
     var vpH = 500;
     var svg = parent.append('svg').attr('viewBox', '0,0,' + vpW + ',' + vpH + '');
     var droplet = svg.append('g').attr('id', 'svg-droplet');
-    var dropletWidth = 30;
-    var dropletHeight = 42;
-    makeSvgDroplet(droplet, dropletWidth, dropletHeight);
+    makeSvgDroplet(droplet);
     droplet.attr('transform', 'translate(455,30) scale(3)');
     var glass = svg.append('g').attr('id', 'svg-glass');
     var glassWidth = 300;
@@ -24718,7 +24712,7 @@
     parent.append('div').attr('id', 'composition-box');
   }
 
-  function makeSvgDroplet(droplet, width, height) {
+  function makeSvgDroplet(droplet) {
     /* eslint-disable no-magic-numbers */
     // droplet - see https://stackoverflow.com/a/30712432/7351594
     droplet.html("<path\n      id=\"droplet\"\n      d=\"M15 3\n           Q16.5 6.8 25 18\n           A12.8 12.8 0 1 1 5 18\n           Q13.5 6.8 15 3z\"\n    />");
@@ -24740,7 +24734,8 @@
       path$1.lineTo(width, 0);
       path$1.closePath();
       return path$1.toString();
-    }).style('fill', '#e7f3f8'); // liquid
+    }).style('fill', '#d5e5f2'); //'#e7f3f8');
+    // liquid
 
     glass.append('path').attr('id', 'liquid').attr('d', function () {
       var path$1 = path();

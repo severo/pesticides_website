@@ -28,8 +28,8 @@ function makeUpperLayer(parent, dispatcher, name, value) {
     parent
       .select('header.header')
       .html('No data about agrotoxics inside drinking water in ' + name + '.');
-    parent.select('#droplet').style('fill', 'none');
-    parent.select('#liquid').style('fill', 'none');
+    parent.select('#droplet').style('fill', '#eee');
+    parent.select('#liquid').style('fill', '#eee');
     parent.select('#composition-box').classed('is-hidden', true);
   } else if (value === 0) {
     // TODO: better manage the color
@@ -96,9 +96,7 @@ function makeBasis(parent) {
     .attr('viewBox', '0,0,' + vpW + ',' + vpH + '');
 
   const droplet = svg.append('g').attr('id', 'svg-droplet');
-  const dropletWidth = 30;
-  const dropletHeight = 42;
-  makeSvgDroplet(droplet, dropletWidth, dropletHeight);
+  makeSvgDroplet(droplet);
   droplet.attr('transform', 'translate(455,30) scale(3)');
 
   const glass = svg.append('g').attr('id', 'svg-glass');
@@ -110,7 +108,7 @@ function makeBasis(parent) {
   parent.append('div').attr('id', 'composition-box');
 }
 
-function makeSvgDroplet(droplet, width, height) {
+function makeSvgDroplet(droplet) {
   /* eslint-disable no-magic-numbers */
   // droplet - see https://stackoverflow.com/a/30712432/7351594
   droplet.html(
@@ -143,7 +141,7 @@ function makeSvgGlass(glass, width, height) {
       path.closePath();
       return path.toString();
     })
-    .style('fill', '#e7f3f8');
+    .style('fill', '#d5e5f2'); //'#e7f3f8');
 
   // liquid
   glass
