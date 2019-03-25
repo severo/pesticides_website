@@ -12,7 +12,7 @@
       <div class="hero-body">
         <div class="container">
           <div class="columns">
-            <div class="column is-8-desktop is-offset-2-desktop">
+            <div class="column is-8-desktop">
               <h1 class="title is-2 is-spaced">
                 Quem bebe agrotóxicos?
               </h1>
@@ -20,15 +20,6 @@
                 Pesticidas in drinking water in Brazil
               </h2>
             </div>
-          </div>
-        </div>
-      </div>
-    </section>
-    <section class="section">
-      <div class="container">
-        <div class="columns is-desktop">
-          <section class="column is-half-desktop is-loading" id="map"></section>
-          <section class="column is-half-desktop content">
             <section id="search">
               <div class="field">
                 <label class="label">Check your municipality</label>
@@ -46,7 +37,20 @@
               </div>
               <ul id="results"></ul>
             </section>
-            <section id="details" class="section content"></section>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="section">
+      <div class="container">
+        <div class="columns is-desktop">
+          <section class="column is-half-desktop">
+            <section class="is-loading" id="bottle"></section>
+            <section class="is-hidden section content" id="substance"></section>
+          </section>
+          <section class="column is-half-desktop ">
+            <section class="is-loading" id="map"></section>
+            <section class="is-hidden section content" id="sticker"></section>
           </section>
         </div>
       </div>

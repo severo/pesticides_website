@@ -31,6 +31,10 @@ $primary-invert: $pink-invert;
 #search {
 }
 
+#bottle {
+  min-height: 150px;
+}
+
 #details {
   header#idCard {
     h2,
@@ -69,6 +73,7 @@ $primary-invert: $pink-invert;
 }
 
 #map {
+  min-height: 150px;
   svg {
     width: 100%;
     .choropleth {
