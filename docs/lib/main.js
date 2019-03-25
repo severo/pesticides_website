@@ -24551,18 +24551,66 @@
     bezierCurveTo: function(x1, y1, x2, y2, x, y) { this._context.bezierCurveTo(y1, x1, y2, x2, y, x); }
   };
 
+  var water = {
+    emoji: '💧',
+    name: 'Water',
+    value: NaN
+  };
+  var pesticides = [{
+    emoji: '💀',
+    name: 'Atrazine',
+    value: 1.5
+  }, {
+    emoji: '💀',
+    name: 'Simazine',
+    value: 0.7
+  }, {
+    emoji: '💀',
+    name: 'Gliphosate',
+    value: 0.4
+  }];
+  function makeSticker(box, name, value) {
+    /* eslint-disable */
+    var substances = [water];
+
+    if (Number.isInteger(value)) {
+      Array.from({
+        length: value
+      }, function (_, i) {
+        return i;
+      }).forEach(function (i) {
+        substances.push(pesticides[i % 3]);
+      });
+    }
+    /* eslint-enable */
+
+
+    box.html(null);
+    var header = box.append('header').classed('has-text-centered', true);
+    header.append('h2').classed('is-4', true).text('Composition in mg/L');
+    header.append('h4').classed('is-6', true).text(name);
+    var list = box.append('ul').classed('substances-list', true).selectAll('li').data(substances).enter().append('li');
+    list.append('span').classed('name', true) // TODO: replace emoji by an SVG icon
+    .text(function (substance) {
+      return substance.emoji + ' ' + substance.name;
+    });
+    list.append('span').classed('value', true).text(function (substance) {
+      return isNaN(substance.value) ? '' : substance.value.toLocaleString('pt-BR');
+    });
+  }
+
   function makeBottle(parent, dispatcher, data) {
     startLoading(parent);
-    var svg = makeBasis(parent); // Init
+    makeBasis(parent); // Init
     // TODO: compute the mean color for Brazil
 
     var fakeNum = 17;
-    makeUpperLayer(svg, dispatcher, 'Brazil', fakeNum);
+    makeUpperLayer(parent, dispatcher, 'Brazil', fakeNum);
     dispatcher.on('to-brazil-view.bottle', function (brazilData) {
-      makeUpperLayer(svg, dispatcher, 'Brazil', fakeNum);
+      makeUpperLayer(parent, dispatcher, 'Brazil', fakeNum);
     });
     dispatcher.on('to-mun-view.bottle', function (mun) {
-      makeUpperLayer(svg, dispatcher, mun.properties.name, getValue$1(mun));
+      makeUpperLayer(parent, dispatcher, mun.properties.name, getValue$1(mun));
     });
     endLoading(parent);
   }
@@ -24582,23 +24630,14 @@
       // TODO: differentiate when number == 0
       parent.select('#alert-sticker').style('fill', 'white');
       parent.select('#alert-sticker-text').text(value + ' agrotoxic(s) included');
-      parent.select('#liquid').style('fill', getColor(value)); // Add events
-      // TODO: change the mouse pointer
-
-      parent.select('#svg-glass').on('click', function () {
-        dispatcher.call('bottle-show-sticker', null, null);
-      });
-      parent.select('#alert-sticker').on('click', function () {
-        dispatcher.call('bottle-show-sticker', null, null);
-      });
+      parent.select('#liquid').style('fill', getColor(value));
     } else {
       parent.select('#alert-sticker').style('fill', 'none');
       parent.select('#alert-sticker-text').text('');
-      parent.select('#liquid').style('fill', 'none'); // Remove events
-
-      parent.select('#svg-glass').on('click', null);
-      parent.select('#alert-sticker').on('click', null);
+      parent.select('#liquid').style('fill', 'none');
     }
+
+    makeSticker(parent.select('.composition-box'), name, value);
   }
 
   function getLines(text) {
@@ -24653,7 +24692,7 @@
     var glassHeight = 300;
     makeSvgGlass(glass, glassWidth, glassHeight);
     glass.attr('transform', 'translate(400,700)');
-    return svg;
+    parent.append('div').classed('composition-box', true);
   }
 
   function makeSvgBottle(bottle, width, height) {
@@ -28817,12 +28856,6 @@
     createChoropleth(svg, path, data, dispatcher);
     createFuFrontiers(svg, path, data);
     createTooltip(svg, path, dispatcher);
-    dispatcher.on('tabs-click-map.map', function () {
-      parent.classed('is-hidden', false);
-    });
-    dispatcher.on('tabs-click-sticker.map bottle-show-sticker.map', function () {
-      parent.classed('is-hidden', true);
-    });
     endLoading$2(parent);
   }
 
@@ -28834,46 +28867,9 @@
     element.classed('is-loading', false);
   }
 
-  function makeMapStickerTabs(parent, dispatcher, data) {
-    startLoading$3(parent);
-    var ul = parent.select('ul');
-    ul.select('li.map').on('click', function (ft, element) {
-      // invoke callbacks
-      dispatcher.call('tabs-click-map', null, null);
-      toMap(parent);
-    });
-    ul.select('li.sticker').on('click', function (ft, element) {
-      // invoke callbacks
-      dispatcher.call('tabs-click-sticker', null, null);
-      toSticker(parent);
-    });
-    dispatcher.on('bottle-show-sticker.map-sticker-tabs', function () {
-      toSticker(parent);
-    });
-    endLoading$3(parent);
-  }
-
-  function toMap(parent) {
-    parent.select('ul li.sticker').classed('is-active', false);
-    parent.select('ul li.map').classed('is-active', true);
-  }
-
-  function toSticker(parent) {
-    parent.select('ul li.map').classed('is-active', false);
-    parent.select('ul li.sticker').classed('is-active', true);
-  }
-
-  function startLoading$3(element) {
-    element.classed('is-loading', true);
-  }
-
-  function endLoading$3(element) {
-    element.classed('is-loading', false);
-  }
-
   var limit = 5;
   function makeSearch(parent, dispatcher, data) {
-    startLoading$4(parent); // TODO: add unit tests to verify that the cities are ordered as expected for
+    startLoading$3(parent); // TODO: add unit tests to verify that the cities are ordered as expected for
     // some queries ('sa', 'sao p', etc.)
 
     function scorer(query, choice, options) {
@@ -28941,7 +28937,7 @@
     dispatcher.on('search-selected.search', function (mun) {
       parent.select('#search-input').property('value', '');
     });
-    endLoading$4(parent);
+    endLoading$3(parent);
   }
 
   function emptyResults() {
@@ -28960,76 +28956,15 @@
     });
   }
 
-  function startLoading$4(element) {
+  function startLoading$3(element) {
     element.classed('is-loading', true);
   }
 
-  function endLoading$4(element) {
+  function endLoading$3(element) {
     element.classed('is-loading', false);
   }
 
-  function makeSticker(parent, dispatcher, data) {
-    startLoading$5(parent);
-    makeForBrazil(parent, dispatcher, data);
-    dispatcher.on('to-mun-view.sticker', function (mun) {
-      makeForMun(parent, dispatcher, mun);
-    });
-    dispatcher.on('to-brazil-view.sticker', function (brazilData) {
-      makeForBrazil(parent, dispatcher, brazilData);
-    });
-    dispatcher.on('tabs-click-map.sticker', function () {
-      parent.classed('is-hidden', true);
-    });
-    dispatcher.on('tabs-click-sticker.sticker bottle-show-sticker.sticker', function () {
-      parent.classed('is-hidden', false);
-    });
-    endLoading$5(parent);
-  }
-
-  function makeForBrazil(parent, dispatcher, data) {
-    makeList(parent, 'Brazil');
-  }
-
-  function makeForMun(parent, dispatcher, mun) {
-    makeList(parent, mun.properties.name);
-  }
-
-  var pesticides = [{
-    name: 'Atrazine',
-    value: 1.5
-  }, {
-    name: 'Simazine',
-    value: 0.7
-  }, {
-    name: 'Gliphosate',
-    value: 0.4
-  }];
-
-  function makeList(parent, title) {
-    parent.html(null);
-    var box = parent.append('div').classed('composition-box', true);
-    var header = box.append('header').classed('has-text-centered', true);
-    header.append('h2').classed('is-4', true).text('Composition in mg/L');
-    header.append('h4').classed('is-6', true).text(title);
-    var list = box.append('ul').classed('substances-list', true).selectAll('li').data(pesticides).enter().append('li');
-    list.append('span').classed('name', true) // TODO: replace emoji by an SVG icon
-    .text(function (substance) {
-      return '💀 ' + substance.name;
-    });
-    list.append('span').classed('value', true).text(function (substance) {
-      return substance.value.toLocaleString('pt-BR');
-    });
-  }
-
-  function startLoading$5(element) {
-    element.classed('is-loading', true);
-  }
-
-  function endLoading$5(element) {
-    element.classed('is-loading', false);
-  }
-
-  var dispatcher = dispatch('breadcrumb-click-brazil', 'data-loaded', 'mun-click', 'mun-mouseover', 'mun-mouseout', 'search-results-updated', 'search-selected', 'to-mun-view', 'to-brazil-view', 'tabs-click-map', 'tabs-click-sticker', 'bottle-show-sticker'); // Asynchronous (promise)
+  var dispatcher = dispatch('breadcrumb-click-brazil', 'data-loaded', 'mun-click', 'mun-mouseover', 'mun-mouseout', 'search-results-updated', 'search-selected', 'to-mun-view', 'to-brazil-view'); // Asynchronous (promise)
 
   loadData(dispatcher); // Create the layout
 
@@ -29044,13 +28979,6 @@
   });
   dispatcher.on('data-loaded.map', function (data) {
     makeMap(select('section#map'), dispatcher, data);
-  });
-  dispatcher.on('data-loaded.sticker', function (data) {
-    makeSticker(select('section#sticker'), dispatcher, data);
-  });
-  dispatcher.on('data-loaded.map-sticker-tabs', function (data) {
-    // Maybe we don't need to wait for the data to be ready for this
-    makeMapStickerTabs(select('div#map-sticker-tabs'), dispatcher, data);
   }); // Mun / Brazil
 
   dispatcher.on('mun-click.state search-selected.state', function (mun) {

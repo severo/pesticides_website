@@ -34,13 +34,6 @@ export function makeMap(parent, dispatcher, data) {
   createFuFrontiers(svg, path, data);
   createTooltip(svg, path, dispatcher);
 
-  dispatcher.on('tabs-click-map.map', () => {
-    parent.classed('is-hidden', false);
-  });
-  dispatcher.on('tabs-click-sticker.map bottle-show-sticker.map', () => {
-    parent.classed('is-hidden', true);
-  });
-
   endLoading(parent);
 }
 

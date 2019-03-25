@@ -1,22 +1,23 @@
 import * as d3Path from 'd3-path';
 import {interpolateYlOrRd, scaleLinear} from 'd3';
+import {makeSticker} from './sticker';
 
 export function makeBottle(parent, dispatcher, data) {
   startLoading(parent);
 
-  const svg = makeBasis(parent);
+  makeBasis(parent);
 
   // Init
   // TODO: compute the mean color for Brazil
   const fakeNum = 17;
-  makeUpperLayer(svg, dispatcher, 'Brazil', fakeNum);
+  makeUpperLayer(parent, dispatcher, 'Brazil', fakeNum);
 
   dispatcher.on('to-brazil-view.bottle', brazilData => {
-    makeUpperLayer(svg, dispatcher, 'Brazil', fakeNum);
+    makeUpperLayer(parent, dispatcher, 'Brazil', fakeNum);
   });
 
   dispatcher.on('to-mun-view.bottle', mun => {
-    makeUpperLayer(svg, dispatcher, mun.properties.name, getValue(mun));
+    makeUpperLayer(parent, dispatcher, mun.properties.name, getValue(mun));
   });
 
   endLoading(parent);
@@ -37,23 +38,13 @@ function makeUpperLayer(parent, dispatcher, name, value) {
     parent.select('#alert-sticker').style('fill', 'white');
     parent.select('#alert-sticker-text').text(value + ' agrotoxic(s) included');
     parent.select('#liquid').style('fill', getColor(value));
-
-    // Add events
-    // TODO: change the mouse pointer
-    parent.select('#svg-glass').on('click', () => {
-      dispatcher.call('bottle-show-sticker', null, null);
-    });
-    parent.select('#alert-sticker').on('click', () => {
-      dispatcher.call('bottle-show-sticker', null, null);
-    });
   } else {
     parent.select('#alert-sticker').style('fill', 'none');
     parent.select('#alert-sticker-text').text('');
     parent.select('#liquid').style('fill', 'none');
-    // Remove events
-    parent.select('#svg-glass').on('click', null);
-    parent.select('#alert-sticker').on('click', null);
   }
+
+  makeSticker(parent.select('.composition-box'), name, value);
 }
 
 function getLines(text) {
@@ -111,7 +102,7 @@ function makeBasis(parent) {
   makeSvgGlass(glass, glassWidth, glassHeight);
   glass.attr('transform', 'translate(400,700)');
 
-  return svg;
+  parent.append('div').classed('composition-box', true);
 }
 
 function makeSvgBottle(bottle, width, height) {
