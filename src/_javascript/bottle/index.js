@@ -2,6 +2,7 @@ export function makeBottle(parent, dispatcher, data) {
   startLoading(parent);
 
   parent.append('p').attr('id', 'text');
+
   makeForBrazil(parent, dispatcher, data);
 
   dispatcher.on('to-mun-view.bottle', mun => {

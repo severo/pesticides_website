@@ -3,7 +3,9 @@ import {loadData} from './data';
 import {makeBottle} from './bottle';
 import {makeBreadcrumb} from './breadcrumb';
 import {makeMap} from './map';
+import {makeMapStickerTabs} from './map-sticker-tabs';
 import {makeSearch} from './search';
+import {makeSticker} from './sticker';
 import {select} from 'd3-selection';
 
 const dispatcher = dispatch(
@@ -15,7 +17,9 @@ const dispatcher = dispatch(
   'search-results-updated',
   'search-selected',
   'to-mun-view',
-  'to-brazil-view'
+  'to-brazil-view',
+  'tabs-click-map',
+  'tabs-click-sticker'
 );
 
 // Asynchronous (promise)
@@ -34,8 +38,15 @@ dispatcher.on('data-loaded.bottle', data => {
 dispatcher.on('data-loaded.map', data => {
   makeMap(select('section#map'), dispatcher, data);
 });
+dispatcher.on('data-loaded.sticker', data => {
+  makeSticker(select('section#sticker'), dispatcher, data);
+});
+dispatcher.on('data-loaded.map-sticker-tabs', data => {
+  // Maybe we don't need to wait for the data to be ready for this
+  makeMapStickerTabs(select('div#map-sticker-tabs'), dispatcher, data);
+});
 
-//
+// Mun / Brazil
 dispatcher.on('mun-click.state search-selected.state', mun => {
   dispatcher.call('to-mun-view', null, mun);
 });

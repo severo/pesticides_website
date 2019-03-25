@@ -28660,6 +28660,12 @@
     createChoropleth(svg, path, data, dispatcher);
     createFuFrontiers(svg, path, data);
     createTooltip(svg, path, dispatcher);
+    dispatcher.on('tabs-click-map.map', function () {
+      parent.classed('is-hidden', false);
+    });
+    dispatcher.on('tabs-click-sticker.map', function () {
+      parent.classed('is-hidden', true);
+    });
     endLoading$2(parent);
   }
 
@@ -28671,9 +28677,43 @@
     element.classed('is-loading', false);
   }
 
+  function makeMapStickerTabs(parent, dispatcher, data) {
+    startLoading$3(parent);
+    var ul = parent.select('ul');
+    ul.select('li.map').on('click', function (ft, element) {
+      // invoke callbacks
+      dispatcher.call('tabs-click-map', null, null);
+      toMap(parent);
+    });
+    ul.select('li.sticker').on('click', function (ft, element) {
+      // invoke callbacks
+      dispatcher.call('tabs-click-sticker', null, null);
+      toSticker(parent);
+    });
+    endLoading$3(parent);
+  }
+
+  function toMap(parent) {
+    parent.select('ul li.sticker').classed('is-active', false);
+    parent.select('ul li.map').classed('is-active', true);
+  }
+
+  function toSticker(parent) {
+    parent.select('ul li.map').classed('is-active', false);
+    parent.select('ul li.sticker').classed('is-active', true);
+  }
+
+  function startLoading$3(element) {
+    element.classed('is-loading', true);
+  }
+
+  function endLoading$3(element) {
+    element.classed('is-loading', false);
+  }
+
   var limit = 5;
   function makeSearch(parent, dispatcher, data) {
-    startLoading$3(parent); // TODO: add unit tests to verify that the cities are ordered as expected for
+    startLoading$4(parent); // TODO: add unit tests to verify that the cities are ordered as expected for
     // some queries ('sa', 'sao p', etc.)
 
     function scorer(query, choice, options) {
@@ -28741,7 +28781,7 @@
     dispatcher.on('search-selected.search', function (mun) {
       parent.select('#search-input').property('value', '');
     });
-    endLoading$3(parent);
+    endLoading$4(parent);
   }
 
   function emptyResults() {
@@ -28760,15 +28800,50 @@
     });
   }
 
-  function startLoading$3(element) {
+  function startLoading$4(element) {
     element.classed('is-loading', true);
   }
 
-  function endLoading$3(element) {
+  function endLoading$4(element) {
     element.classed('is-loading', false);
   }
 
-  var dispatcher = dispatch('breadcrumb-click-brazil', 'data-loaded', 'mun-click', 'mun-mouseover', 'mun-mouseout', 'search-results-updated', 'search-selected', 'to-mun-view', 'to-brazil-view'); // Asynchronous (promise)
+  function makeSticker(parent, dispatcher, data) {
+    startLoading$5(parent);
+    parent.append('p').attr('id', 'text');
+    makeForBrazil$1(parent, dispatcher, data);
+    dispatcher.on('to-mun-view.sticker', function (mun) {
+      makeForMun$1(parent, dispatcher, mun);
+    });
+    dispatcher.on('to-brazil-view.sticker', function (brazilData) {
+      makeForBrazil$1(parent, dispatcher, brazilData);
+    });
+    dispatcher.on('tabs-click-map.sticker', function () {
+      parent.classed('is-hidden', true);
+    });
+    dispatcher.on('tabs-click-sticker.sticker', function () {
+      parent.classed('is-hidden', false);
+    });
+    endLoading$5(parent);
+  }
+
+  function makeForBrazil$1(parent, dispatcher, data) {
+    parent.select('#text').text('[TODO] Sticker for Brazil');
+  }
+
+  function makeForMun$1(parent, dispatcher, mun) {
+    parent.select('#text').text('[TODO] Sticker for ' + mun.properties.name);
+  }
+
+  function startLoading$5(element) {
+    element.classed('is-loading', true);
+  }
+
+  function endLoading$5(element) {
+    element.classed('is-loading', false);
+  }
+
+  var dispatcher = dispatch('breadcrumb-click-brazil', 'data-loaded', 'mun-click', 'mun-mouseover', 'mun-mouseout', 'search-results-updated', 'search-selected', 'to-mun-view', 'to-brazil-view', 'tabs-click-map', 'tabs-click-sticker'); // Asynchronous (promise)
 
   loadData(dispatcher); // Create the layout
 
@@ -28783,7 +28858,14 @@
   });
   dispatcher.on('data-loaded.map', function (data) {
     makeMap(select('section#map'), dispatcher, data);
-  }); //
+  });
+  dispatcher.on('data-loaded.sticker', function (data) {
+    makeSticker(select('section#sticker'), dispatcher, data);
+  });
+  dispatcher.on('data-loaded.map-sticker-tabs', function (data) {
+    // Maybe we don't need to wait for the data to be ready for this
+    makeMapStickerTabs(select('div#map-sticker-tabs'), dispatcher, data);
+  }); // Mun / Brazil
 
   dispatcher.on('mun-click.state search-selected.state', function (mun) {
     dispatcher.call('to-mun-view', null, mun);
