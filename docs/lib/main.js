@@ -19027,11 +19027,15 @@
     return features;
   }
 
-  function makeBottle(parent, dispatcher, mun) {
+  function makeBottle(parent, dispatcher, data) {
     startLoading(parent); // Clean existing contents
     // TODO: be more clever?
 
     parent.html(null);
+    parent.append('p').attr('id', 'text').text('Not initialized');
+    dispatcher.on('search-selected.bottle mun-click.bottle', function (mun) {
+      parent.select('#text').text('Bottle for ' + mun.properties.name);
+    });
     endLoading(parent);
   }
 
