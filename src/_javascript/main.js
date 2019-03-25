@@ -1,7 +1,7 @@
 import {dispatch} from 'd3-dispatch';
 import {loadData} from './data';
-import {makeBottle} from './bottle';
 import {makeBreadcrumb} from './breadcrumb';
+import {makeGlass} from './glass';
 import {makeMap} from './map';
 import {makeSearch} from './search';
 import {select} from 'd3-selection';
@@ -28,8 +28,8 @@ dispatcher.on('data-loaded.search', data => {
 dispatcher.on('data-loaded.breadcrumb', data => {
   makeBreadcrumb(select('nav#breadcrumb'), dispatcher, data);
 });
-dispatcher.on('data-loaded.bottle', data => {
-  makeBottle(select('section#bottle'), dispatcher, data);
+dispatcher.on('data-loaded.glass', data => {
+  makeGlass(select('section#glass'), dispatcher, data);
 });
 dispatcher.on('data-loaded.map', data => {
   makeMap(select('section#map'), dispatcher, data);

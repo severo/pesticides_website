@@ -19027,6 +19027,33 @@
     return features;
   }
 
+  function makeBreadcrumb(parent, dispatcher, data) {
+    startLoading(parent);
+    dispatcher.on('to-mun-view.breadcrumb', function (mun) {
+      var ul = parent.select('ul');
+      ul.html(null);
+      ul.append('li').append('a').attr('href', '#').text('Brazil').on('click', function (ft, element) {
+        // invoke callbacks
+        dispatcher.call('breadcrumb-click-brazil', null, data);
+      });
+      ul.append('li').classed('is-active', true).append('a').attr('href', '#').attr('aria-current', 'page').text(mun.properties.name);
+    });
+    dispatcher.on('to-brazil-view.breadcrumb', function (mun) {
+      var ul = parent.select('ul');
+      ul.html(null);
+      ul.append('li').classed('is-active', true).append('a').attr('href', '#').attr('aria-current', 'page').text('Brazil');
+    });
+    endLoading(parent);
+  }
+
+  function startLoading(element) {
+    element.classed('is-loading', true);
+  }
+
+  function endLoading(element) {
+    element.classed('is-loading', false);
+  }
+
   var pi$2 = Math.PI,
       tau$1 = 2 * pi$2,
       epsilon = 1e-6,
@@ -24599,51 +24626,33 @@
     });
   }
 
-  function makeBottle(parent, dispatcher, data) {
-    startLoading(parent);
+  function makeGlass(parent, dispatcher, data) {
+    startLoading$1(parent);
     makeBasis(parent); // Init
     // TODO: compute the mean color for Brazil
 
     var fakeNum = 17;
     makeUpperLayer(parent, dispatcher, 'Brazil', fakeNum);
-    dispatcher.on('to-brazil-view.bottle', function (brazilData) {
+    dispatcher.on('to-brazil-view.glass', function (brazilData) {
       makeUpperLayer(parent, dispatcher, 'Brazil', fakeNum);
     });
-    dispatcher.on('to-mun-view.bottle', function (mun) {
+    dispatcher.on('to-mun-view.glass', function (mun) {
       makeUpperLayer(parent, dispatcher, mun.properties.name, getValue$1(mun));
     });
-    endLoading(parent);
+    endLoading$1(parent);
   }
 
   function makeUpperLayer(parent, dispatcher, name, value) {
-    // Text on main sticker
-    var lines = getLines(name);
-    parent.select('#line2').text(lines[0]);
-
-    if (lines[1].length > 0) {
-      parent.select('#line3').text(lines[1]);
-    } else {
-      parent.select('#line3').text('');
-    }
-
-    if (Number.isInteger(value)) {
-      // TODO: differentiate when number == 0
-      parent.select('#alert-sticker').style('fill', 'white');
-      parent.select('#alert-sticker-text').text(value + ' agrotoxic(s) included');
-      parent.select('#liquid').style('fill', getColor(value));
-    } else {
-      parent.select('#alert-sticker').style('fill', 'none');
-      parent.select('#alert-sticker-text').text('');
+    if (!Number.isInteger(value)) {
       parent.select('#liquid').style('fill', 'none');
+    } else if (value === 0) {
+      // TODO: better manage the color
+      parent.select('#liquid').style('fill', '#5dadec');
+    } else {
+      parent.select('#liquid').style('fill', getColor(value));
     }
 
     makeSticker(parent.select('.composition-box'), name, value);
-  }
-
-  function getLines(text) {
-    // TODO: cut between words
-    // eslint-disable-next-line no-magic-numbers
-    return [text.slice(0, 10), text.slice(10, 20)];
   }
 
   var cfg$1 = {
@@ -24670,11 +24679,11 @@
     return null;
   }
 
-  function startLoading(element) {
+  function startLoading$1(element) {
     element.classed('is-loading', true);
   }
 
-  function endLoading(element) {
+  function endLoading$1(element) {
     element.classed('is-loading', false);
   }
 
@@ -24682,71 +24691,12 @@
     var vpW = 1000;
     var vpH = 1000;
     var svg = parent.append('svg').attr('viewBox', '0,0,' + vpW + ',' + vpH + '');
-    var bottle = svg.append('g').attr('id', 'svg-bottle');
-    var bottleWidth = 300;
-    var bottleHeight = 1000;
-    makeSvgBottle(bottle, bottleWidth, bottleHeight);
-    bottle.attr('transform', 'translate(50,0)');
     var glass = svg.append('g').attr('id', 'svg-glass');
     var glassWidth = 300;
     var glassHeight = 300;
     makeSvgGlass(glass, glassWidth, glassHeight);
     glass.attr('transform', 'translate(400,700)');
     parent.append('div').classed('composition-box', true);
-  }
-
-  function makeSvgBottle(bottle, width, height) {
-    /* eslint-disable no-magic-numbers */
-    var midWidth = width / 2;
-    var capWidth = width / 4;
-    var capMidWidth = capWidth / 2;
-    var capHeight = height / 20;
-    var bodyWidth = width;
-    var bodyHeight = height - capHeight;
-    var mainStickerWidth = width;
-    var mainStickerHeight = height / 5;
-    var mainStickerYPosition = 2 * height / 5;
-    var alertStickerWidth = width;
-    var alertStickerHeight = height / 10;
-    var alertStickerYPosition = mainStickerYPosition + mainStickerHeight + height / 20;
-    var mainStickerTextYPosition = mainStickerYPosition + height / 20;
-    var line2Y = height / 20;
-    var line3Y = line2Y + height / 20;
-    var alertStickerTextYPosition = alertStickerYPosition + height / 20; // cap
-
-    bottle.append('path').attr('d', function () {
-      var path$1 = path();
-      path$1.rect(0, 0, capWidth, capHeight);
-      return path$1.toString();
-    }).attr('transform', 'translate(' + (midWidth - capMidWidth) + ' 0)').style('fill', '#e7f3f8'); // body
-
-    bottle.append('path').attr('d', function () {
-      var path$1 = path();
-      path$1.rect(0, 0, bodyWidth, bodyHeight);
-      return path$1.toString();
-    }).attr('transform', 'translate(0 ' + capHeight + ')').style('fill', '#e7f3f8'); // main sticker
-
-    bottle.append('path').attr('d', function () {
-      var path$1 = path();
-      path$1.rect(0, 0, mainStickerWidth, mainStickerHeight);
-      return path$1.toString();
-    }).attr('transform', 'translate(0 ' + mainStickerYPosition + ')').style('fill', 'white'); // text on main sticker
-
-    var mainStickerText = bottle.append('g').attr('id', 'main-sticker-text');
-    mainStickerText.append('text').attr('id', 'line1').attr('text-anchor', 'middle').text('Water of');
-    mainStickerText.append('text').attr('id', 'line2').attr('text-anchor', 'middle').attr('y', line2Y).text('');
-    mainStickerText.append('text').attr('id', 'line3').attr('text-anchor', 'middle').attr('y', line3Y).text('');
-    mainStickerText.attr('transform', 'translate(' + midWidth + ' ' + mainStickerTextYPosition + ')'); // alert sticker
-
-    bottle.append('path').attr('id', 'alert-sticker').attr('d', function () {
-      var path$1 = path();
-      path$1.rect(0, 0, alertStickerWidth, alertStickerHeight);
-      return path$1.toString();
-    }).attr('transform', 'translate(0 ' + alertStickerYPosition + ')').style('fill', 'none'); // text on main sticker
-
-    var alertStickerText = bottle.append('text').attr('id', 'alert-sticker-text').attr('text-anchor', 'middle').text('');
-    alertStickerText.attr('transform', 'translate(' + midWidth + ' ' + alertStickerTextYPosition + ')');
-    /* eslint-enable no-magic-numbers */
   }
 
   function makeSvgGlass(glass, width, height) {
@@ -24774,33 +24724,6 @@
       return path$1.toString();
     }).style('fill', 'none');
     /* eslint-enable no-magic-numbers */
-  }
-
-  function makeBreadcrumb(parent, dispatcher, data) {
-    startLoading$1(parent);
-    dispatcher.on('to-mun-view.breadcrumb', function (mun) {
-      var ul = parent.select('ul');
-      ul.html(null);
-      ul.append('li').append('a').attr('href', '#').text('Brazil').on('click', function (ft, element) {
-        // invoke callbacks
-        dispatcher.call('breadcrumb-click-brazil', null, data);
-      });
-      ul.append('li').classed('is-active', true).append('a').attr('href', '#').attr('aria-current', 'page').text(mun.properties.name);
-    });
-    dispatcher.on('to-brazil-view.breadcrumb', function (mun) {
-      var ul = parent.select('ul');
-      ul.html(null);
-      ul.append('li').classed('is-active', true).append('a').attr('href', '#').attr('aria-current', 'page').text('Brazil');
-    });
-    endLoading$1(parent);
-  }
-
-  function startLoading$1(element) {
-    element.classed('is-loading', true);
-  }
-
-  function endLoading$1(element) {
-    element.classed('is-loading', false);
   }
 
   /* Reminder of the data available from the CSV
@@ -28974,8 +28897,8 @@
   dispatcher.on('data-loaded.breadcrumb', function (data) {
     makeBreadcrumb(select('nav#breadcrumb'), dispatcher, data);
   });
-  dispatcher.on('data-loaded.bottle', function (data) {
-    makeBottle(select('section#bottle'), dispatcher, data);
+  dispatcher.on('data-loaded.glass', function (data) {
+    makeGlass(select('section#glass'), dispatcher, data);
   });
   dispatcher.on('data-loaded.map', function (data) {
     makeMap(select('section#map'), dispatcher, data);
