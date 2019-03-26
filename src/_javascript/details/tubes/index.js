@@ -42,6 +42,7 @@ export function makeTubes(parent, name, mun, data) {
     .selectAll('abbr')
     .data(substances)
     .enter()
+    // TODO: manage a popup for touch / mouseover, instead of this temporal attr
     .append('abbr')
     .attr('title', subs => subs.name + ' - ' + subs.valueText)
     .append('svg')

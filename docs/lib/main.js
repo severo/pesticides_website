@@ -19337,7 +19337,8 @@
       };
     });
     var tubes = parent.append('div').classed('tubes', true);
-    var svg = tubes.selectAll('abbr').data(substances).enter().append('abbr').attr('title', function (subs) {
+    var svg = tubes.selectAll('abbr').data(substances).enter() // TODO: manage a popup for touch / mouseover, instead of this temporal attr
+    .append('abbr').attr('title', function (subs) {
       return subs.name + ' - ' + subs.valueText;
     }).append('svg').attr('width', dim.wi).attr('height', dim.he).attr('viewBox', '0,0,' + dim.vWi + ',' + dim.vHe + '');
     /* eslint-disable no-magic-numbers */
