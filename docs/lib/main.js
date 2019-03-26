@@ -19154,22 +19154,31 @@
   }
 
   function makeBreadcrumb(parent, dispatcher, data) {
-    startLoading(parent);
+    startLoading(parent); // Init
+
+    makeBrazil(parent);
     dispatcher.on('to-mun-view.breadcrumb', function (mun) {
-      var ul = parent.select('ul');
-      ul.html(null);
-      ul.append('li').append('a').attr('href', '#').text('Brazil').on('click', function (ft, element) {
-        // invoke callbacks
-        dispatcher.call('breadcrumb-click-brazil', null, data);
-      });
-      ul.append('li').classed('is-active', true).append('a').attr('href', '#').attr('aria-current', 'page').text(mun.properties.name);
+      makeMun(parent, dispatcher, data, mun);
     });
     dispatcher.on('to-brazil-view.breadcrumb', function (mun) {
-      var ul = parent.select('ul');
-      ul.html(null);
-      ul.append('li').classed('is-active', true).append('a').attr('href', '#').attr('aria-current', 'page').text('Brazil');
+      makeBrazil(parent);
     });
     endLoading(parent);
+  }
+
+  function makeBrazil(parent) {
+    parent.html(null);
+    parent.append('ul').append('li').classed('is-active', true).append('a').attr('href', '#').attr('aria-current', 'page').text('Brazil');
+  }
+
+  function makeMun(parent, dispatcher, data, mun) {
+    parent.html(null);
+    var ul = parent.append('ul');
+    ul.append('li').append('a').attr('href', '#').text('Brazil').on('click', function (ft, element) {
+      // invoke callbacks
+      dispatcher.call('breadcrumb-click-brazil', null, data);
+    });
+    ul.append('li').classed('is-active', true).append('a').attr('href', '#').attr('aria-current', 'page').text(mun.properties.name);
   }
 
   function startLoading(element) {
@@ -19320,7 +19329,7 @@
     vWi: 400,
     wi: 36
   };
-  function makeTubes(parent, name, mun, data) {
+  function makeTubesCocktail(parent, name, mun, data) {
     var DETECTED_VALUE = 1e-10;
     var substances = mun.properties.tests.filter(function (subs) {
       return subs.max > 0;
@@ -19344,7 +19353,34 @@
     /* eslint-disable no-magic-numbers */
 
     drawTube(svg, 300, 1000).attr('transform', 'translate(100, 0)');
-    drawLiquid(svg, 300, 1000).attr('transform', 'translate(100, 0)');
+    drawLiquid(svg, 300, 1000, 0.75).attr('transform', 'translate(100, 0)');
+    drawText(svg, 300, 1000).attr('transform', 'scale(6) rotate(-90) translate(-10 16)');
+  }
+  function makeTubesLimits(parent, name, mun, data) {
+    var DETECTED_VALUE = 1e-10;
+    var substances = mun.properties.tests.filter(function (subs) {
+      return subs.max > subs.substance.limit;
+    }).sort(function (subs1, subs2) {
+      // alphabetic order to get some coherence and stability between views
+      return subs1.substance.shortName > subs2.substance.shortName;
+    }).map(function (subs) {
+      return {
+        limit: subs.substance.limit,
+        name: subs.substance.name,
+        shortName: subs.substance.shortName,
+        value: subs.max,
+        valueText: subs.max === DETECTED_VALUE ? 'detected' : subs.max.toLocaleString('pt-BR') + ' μg/L (legal limit: ' + subs.substance.limit.toLocaleString('pt-BR') + ' μg/L)'
+      };
+    });
+    var tubes = parent.append('div').classed('tubes', true);
+    var svg = tubes.selectAll('abbr').data(substances).enter() // TODO: manage a popup for touch / mouseover, instead of this temporal attr
+    .append('abbr').attr('title', function (subs) {
+      return subs.name + ' - ' + subs.valueText;
+    }).append('svg').attr('width', dim.wi).attr('height', dim.he).attr('viewBox', '0,0,' + dim.vWi + ',' + dim.vHe + '');
+    /* eslint-disable no-magic-numbers */
+
+    drawTube(svg, 300, 1000).attr('transform', 'translate(100, 0)');
+    drawLiquid(svg, 300, 1000, 0.2).attr('transform', 'translate(100, 0)');
     drawText(svg, 300, 1000).attr('transform', 'scale(6) rotate(-90) translate(-10 16)');
   }
 
@@ -19382,14 +19418,13 @@
     /* eslint-enable no-magic-numbers */
   }
 
-  function drawLiquid(svg, width, height) {
+  function drawLiquid(svg, width, height, limitFactor) {
     /* eslint-disable no-magic-numbers */
     function getY(value, limit) {
       // Hand made limits. We lose the exact proportions, but avoid exagerated
       // bars
       var min = 0.1;
       var max = 0.95;
-      var limitFactor = 0.75;
       var ratio = limitFactor * value / limit;
 
       if (ratio > max) {
@@ -19445,25 +19480,29 @@
     /* eslint-enable no-magic-numbers */
   }
 
-  function makeDetails(parent, dispatcher, data) {
+  function makeDetails(parent, dispatcher, view, data) {
     startLoading$1(parent);
-    makeUpperLayerBrazil(parent, dispatcher, data);
+    makeBrazil$1(parent, dispatcher, data);
     dispatcher.on('to-brazil-view.details', function (brazilData) {
-      makeUpperLayerBrazil(parent, dispatcher, data);
+      makeBrazil$1(parent, dispatcher, data);
     });
     dispatcher.on('to-mun-view.details', function (mun) {
-      makeUpperLayer(parent, dispatcher, mun, data);
+      if (view === 'limits') {
+        makeLimits(parent, dispatcher, mun, data);
+      } else {
+        makeCocktail(parent, dispatcher, mun, data);
+      }
     });
     endLoading$1(parent);
   }
 
-  function makeUpperLayerBrazil(parent, dispatcher, data) {
+  function makeBrazil$1(parent, dispatcher, data) {
     parent.html(null);
     makeHeader(parent, 'Brazil');
     parent.append('p').html('[work in progress... show a message - search or click]');
   }
 
-  function makeUpperLayer(parent, dispatcher, mun, data) {
+  function makeCocktail(parent, dispatcher, mun, data) {
     parent.html(null);
     makeHeader(parent, mun.properties.name, mun.properties.fuName);
     parent.append('p').html('<strong>Population:</strong> ' + (+mun.properties.population).toLocaleString('pt-BR'));
@@ -19474,7 +19513,22 @@
       parent.append('header').html('No agrotoxics detected inside drinking water in ' + mun.properties.name + '.');
     } else {
       parent.append('header').html('The drinking water in ' + name + ' contains <strong>' + mun.properties.number.detected + ' different agrotoxics</strong>.');
-      makeTubes(parent, name, mun, data);
+      makeTubesCocktail(parent, name, mun, data);
+    }
+  }
+
+  function makeLimits(parent, dispatcher, mun, data) {
+    parent.html(null);
+    makeHeader(parent, mun.properties.name, mun.properties.fuName);
+    parent.append('p').html('<strong>Population:</strong> ' + (+mun.properties.population).toLocaleString('pt-BR'));
+
+    if (!('number' in mun.properties)) {
+      parent.append('header').html('No data about agrotoxics above legal limit in ' + mun.properties.name + '.');
+    } else if (mun.properties.number.supBr === 0) {
+      parent.append('header').html('No agrotoxics detected above legal limit in ' + mun.properties.name + '.');
+    } else {
+      parent.append('header').html('<strong>' + mun.properties.number.supBr + ' different agrotoxics</strong> detected above legal limit in ' + mun.properties.name + '.');
+      makeTubesLimits(parent, name, mun, data);
     }
   }
 
@@ -24925,9 +24979,9 @@
     },
     max: 27,
     typename: {
-      click: 'mun-click-cocktail',
-      mouseout: 'mun-mouseout-cocktail',
-      mouseover: 'mun-mouseover-cocktail'
+      click: 'mun-click',
+      mouseout: 'mun-mouseout',
+      mouseover: 'mun-mouseover'
     }
   };
   function createCocktailChoropleth(parent, path, data, dispatcher) {
@@ -28901,11 +28955,11 @@
   function createCocktailTooltip(parent, path, dispatcher) {
     // create a container for tooltips
     var tooltip = parent.append('g').classed('tooltip', true);
-    dispatcher.on('mun-mouseover-cocktail.tooltip', function (data) {
+    dispatcher.on('mun-mouseover.tooltip', function (data) {
       // TODO: factorize code - we copy/paste quickly for short term demo
       tooltip.call(createCocktailAnnotation(data));
     });
-    dispatcher.on('mun-mouseout-cocktail.ooltip', function (data) {
+    dispatcher.on('mun-mouseout.tooltip', function (data) {
       tooltip.html('');
     });
   } // this function will call d3.annotation when a tooltip has to be drawn
@@ -28956,9 +29010,9 @@
       width: 270
     },
     typename: {
-      click: 'mun-click-limits',
-      mouseout: 'mun-mouseout-limits',
-      mouseover: 'mun-mouseover-limits'
+      click: 'mun-click',
+      mouseout: 'mun-mouseout',
+      mouseover: 'mun-mouseover'
     }
   };
   function createLimitsChoropleth(parent, path, data, dispatcher) {
@@ -29031,10 +29085,10 @@
   function createLimitsTooltip(parent, path, dispatcher) {
     // create a container for tooltips
     var tooltip = parent.append('g').classed('tooltip', true);
-    dispatcher.on('mun-mouseover-limits.Tooltip', function (data) {
+    dispatcher.on('mun-mouseover.tooltip', function (data) {
       tooltip.call(createLimitsAnnotation(data));
     });
-    dispatcher.on('mun-mouseout-limits.Tooltip', function (data) {
+    dispatcher.on('mun-mouseout.tooltip', function (data) {
       tooltip.html('');
     });
   } // this function will call d3.annotation when a tooltip has to be drawn
@@ -29071,7 +29125,7 @@
       width: 960
     }
   };
-  function makeMap(parent, dispatcher, data) {
+  function makeMap(parent, dispatcher, view, data) {
     startLoading$2(parent); // Clean existing contents
     // TODO: be more clever?
 
@@ -29084,13 +29138,13 @@
     // to pass it a projection as an argument
 
     var path = geoPath();
-    createCocktail(svg, path, data, dispatcher);
-    dispatcher.on('show-cocktail.map', function () {
-      return createCocktail(svg, path, data, dispatcher);
-    });
-    dispatcher.on('show-limits.map', function () {
-      return createLimits(svg, path, data, dispatcher);
-    });
+
+    if (view === 'limits') {
+      createLimits(svg, path, data, dispatcher);
+    } else {
+      createCocktail(svg, path, data, dispatcher);
+    }
+
     endLoading$2(parent);
   }
 
@@ -29116,7 +29170,7 @@
     element.classed('is-loading', false);
   }
 
-  function makeNav(dispatcher) {
+  function makeNav(dispatcher, data) {
     // init
     select('.navbar-burger').on('click', function () {
       dispatcher.call('burger-show');
@@ -29125,10 +29179,10 @@
       dispatcher.call('burger-hide');
     });
     selectAll('.navbar-menu #nav-item-cocktail').on('click', function () {
-      dispatcher.call('show-cocktail');
+      dispatcher.call('make-app-cocktail', null, data);
     });
     selectAll('.navbar-menu #nav-item-limits').on('click', function () {
-      dispatcher.call('show-limits');
+      dispatcher.call('make-app-limits', null, data);
     });
     dispatcher.on('burger-show', function () {
       select('.navbar-burger').classed('is-active', true).on('click', function () {
@@ -29241,25 +29295,27 @@
     element.classed('is-loading', false);
   }
 
-  var dispatcher = dispatch('data-loaded', 'breadcrumb-click-brazil', 'to-brazil-view', 'search-results-updated', 'search-selected', 'mun-click-cocktail', 'mun-click-limits', 'to-mun-view', 'mun-mouseover-cocktail', 'mun-mouseout-cocktail', 'mun-mouseover-limits', 'mun-mouseout-limits', 'burger-show', 'burger-hide', 'show-cocktail', 'show-limits');
-  makeNav(dispatcher); // Asynchronous (promise)
+  var dispatcher = dispatch('data-loaded', 'breadcrumb-click-brazil', 'to-brazil-view', 'to-mun-view', 'search-results-updated', 'search-selected', 'make-app-cocktail', 'make-app-limits', 'mun-click', 'mun-mouseover', 'mun-mouseout', 'burger-show', 'burger-hide'); // Asynchronous (promise)
 
   loadData(dispatcher); // Create the layout
 
-  dispatcher.on('data-loaded.search', function (data) {
+  dispatcher.on('data-loaded', function (data) {
+    makeNav(dispatcher, data);
     makeSearch(select('section#search'), dispatcher, data);
+    dispatcher.call('make-app-cocktail', null, data);
   });
-  dispatcher.on('data-loaded.breadcrumb', function (data) {
+  dispatcher.on('make-app-cocktail', function (data) {
     makeBreadcrumb(select('nav#breadcrumb'), dispatcher, data);
+    makeDetails(select('section#details'), dispatcher, 'cocktail', data);
+    makeMap(select('section#map'), dispatcher, 'cocktail', data);
   });
-  dispatcher.on('data-loaded.details', function (data) {
-    makeDetails(select('section#details'), dispatcher, data);
-  });
-  dispatcher.on('data-loaded.map', function (data) {
-    makeMap(select('section#map'), dispatcher, data);
+  dispatcher.on('make-app-limits', function (data) {
+    makeBreadcrumb(select('nav#breadcrumb'), dispatcher, data);
+    makeDetails(select('section#details'), dispatcher, 'limits', data);
+    makeMap(select('section#map'), dispatcher, 'limits', data);
   }); // Mun / Brazil
 
-  dispatcher.on('mun-click-cocktail.state search-selected.state', function (mun) {
+  dispatcher.on('mun-click.state search-selected.state', function (mun) {
     dispatcher.call('to-mun-view', null, mun);
   });
   dispatcher.on('breadcrumb-click-brazil.state', function (data) {

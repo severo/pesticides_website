@@ -9,10 +9,10 @@ export function createLimitsTooltip(parent, path, dispatcher) {
   // create a container for tooltips
   const tooltip = parent.append('g').classed('tooltip', true);
 
-  dispatcher.on('mun-mouseover-limits.Tooltip', data => {
+  dispatcher.on('mun-mouseover.tooltip', data => {
     tooltip.call(createLimitsAnnotation(data));
   });
-  dispatcher.on('mun-mouseout-limits.Tooltip', data => {
+  dispatcher.on('mun-mouseout.tooltip', data => {
     tooltip.html('');
   });
 }

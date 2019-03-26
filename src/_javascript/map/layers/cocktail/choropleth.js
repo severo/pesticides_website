@@ -27,9 +27,9 @@ const cfg = {
   },
   max: 27,
   typename: {
-    click: 'mun-click-cocktail',
-    mouseout: 'mun-mouseout-cocktail',
-    mouseover: 'mun-mouseover-cocktail',
+    click: 'mun-click',
+    mouseout: 'mun-mouseout',
+    mouseover: 'mun-mouseover',
   },
 };
 

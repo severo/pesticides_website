@@ -1,6 +1,6 @@
 import {select, selectAll} from 'd3-selection';
 
-export function makeNav(dispatcher) {
+export function makeNav(dispatcher, data) {
   // init
   select('.navbar-burger').on('click', () => {
     dispatcher.call('burger-show');
@@ -9,10 +9,10 @@ export function makeNav(dispatcher) {
     dispatcher.call('burger-hide');
   });
   selectAll('.navbar-menu #nav-item-cocktail').on('click', () => {
-    dispatcher.call('show-cocktail');
+    dispatcher.call('make-app-cocktail', null, data);
   });
   selectAll('.navbar-menu #nav-item-limits').on('click', () => {
-    dispatcher.call('show-limits');
+    dispatcher.call('make-app-limits', null, data);
   });
 
   dispatcher.on('burger-show', () => {

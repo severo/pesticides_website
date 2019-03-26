@@ -1,22 +1,26 @@
-import {makeTubes} from './tubes';
+import {makeTubesCocktail, makeTubesLimits} from './tubes';
 
-export function makeDetails(parent, dispatcher, data) {
+export function makeDetails(parent, dispatcher, view, data) {
   startLoading(parent);
 
-  makeUpperLayerBrazil(parent, dispatcher, data);
+  makeBrazil(parent, dispatcher, data);
 
   dispatcher.on('to-brazil-view.details', brazilData => {
-    makeUpperLayerBrazil(parent, dispatcher, data);
+    makeBrazil(parent, dispatcher, data);
   });
 
   dispatcher.on('to-mun-view.details', mun => {
-    makeUpperLayer(parent, dispatcher, mun, data);
+    if (view === 'limits') {
+      makeLimits(parent, dispatcher, mun, data);
+    } else {
+      makeCocktail(parent, dispatcher, mun, data);
+    }
   });
 
   endLoading(parent);
 }
 
-function makeUpperLayerBrazil(parent, dispatcher, data) {
+function makeBrazil(parent, dispatcher, data) {
   parent.html(null);
   makeHeader(parent, 'Brazil');
   parent
@@ -24,7 +28,7 @@ function makeUpperLayerBrazil(parent, dispatcher, data) {
     .html('[work in progress... show a message - search or click]');
 }
 
-function makeUpperLayer(parent, dispatcher, mun, data) {
+function makeCocktail(parent, dispatcher, mun, data) {
   parent.html(null);
   makeHeader(parent, mun.properties.name, mun.properties.fuName);
   parent
@@ -60,7 +64,47 @@ function makeUpperLayer(parent, dispatcher, mun, data) {
           mun.properties.number.detected +
           ' different agrotoxics</strong>.'
       );
-    makeTubes(parent, name, mun, data);
+    makeTubesCocktail(parent, name, mun, data);
+  }
+}
+
+function makeLimits(parent, dispatcher, mun, data) {
+  parent.html(null);
+  makeHeader(parent, mun.properties.name, mun.properties.fuName);
+  parent
+    .append('p')
+    .html(
+      '<strong>Population:</strong> ' +
+        (+mun.properties.population).toLocaleString('pt-BR')
+    );
+
+  if (!('number' in mun.properties)) {
+    parent
+      .append('header')
+      .html(
+        'No data about agrotoxics above legal limit in ' +
+          mun.properties.name +
+          '.'
+      );
+  } else if (mun.properties.number.supBr === 0) {
+    parent
+      .append('header')
+      .html(
+        'No agrotoxics detected above legal limit in ' +
+          mun.properties.name +
+          '.'
+      );
+  } else {
+    parent
+      .append('header')
+      .html(
+        '<strong>' +
+          mun.properties.number.supBr +
+          ' different agrotoxics</strong> detected above legal limit in ' +
+          mun.properties.name +
+          '.'
+      );
+    makeTubesLimits(parent, name, mun, data);
   }
 }
 

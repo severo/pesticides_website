@@ -26,9 +26,9 @@ const cfg = {
     width: 270,
   },
   typename: {
-    click: 'mun-click-limits',
-    mouseout: 'mun-mouseout-limits',
-    mouseover: 'mun-mouseover-limits',
+    click: 'mun-click',
+    mouseout: 'mun-mouseout',
+    mouseover: 'mun-mouseover',
   },
 };
 

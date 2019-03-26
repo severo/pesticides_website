@@ -11,42 +11,42 @@ const dispatcher = dispatch(
   'data-loaded',
   'breadcrumb-click-brazil',
   'to-brazil-view',
+  'to-mun-view',
   'search-results-updated',
   'search-selected',
-  'mun-click-cocktail',
-  'mun-click-limits',
-  'to-mun-view',
-  'mun-mouseover-cocktail',
-  'mun-mouseout-cocktail',
-  'mun-mouseover-limits',
-  'mun-mouseout-limits',
+  'make-app-cocktail',
+  'make-app-limits',
+  'mun-click',
+  'mun-mouseover',
+  'mun-mouseout',
   'burger-show',
-  'burger-hide',
-  'show-cocktail',
-  'show-limits'
+  'burger-hide'
 );
-
-makeNav(dispatcher);
 
 // Asynchronous (promise)
 loadData(dispatcher);
 
 // Create the layout
-dispatcher.on('data-loaded.search', data => {
+dispatcher.on('data-loaded', data => {
+  makeNav(dispatcher, data);
   makeSearch(select('section#search'), dispatcher, data);
+  dispatcher.call('make-app-cocktail', null, data);
 });
-dispatcher.on('data-loaded.breadcrumb', data => {
+
+dispatcher.on('make-app-cocktail', data => {
   makeBreadcrumb(select('nav#breadcrumb'), dispatcher, data);
+  makeDetails(select('section#details'), dispatcher, 'cocktail', data);
+  makeMap(select('section#map'), dispatcher, 'cocktail', data);
 });
-dispatcher.on('data-loaded.details', data => {
-  makeDetails(select('section#details'), dispatcher, data);
-});
-dispatcher.on('data-loaded.map', data => {
-  makeMap(select('section#map'), dispatcher, data);
+
+dispatcher.on('make-app-limits', data => {
+  makeBreadcrumb(select('nav#breadcrumb'), dispatcher, data);
+  makeDetails(select('section#details'), dispatcher, 'limits', data);
+  makeMap(select('section#map'), dispatcher, 'limits', data);
 });
 
 // Mun / Brazil
-dispatcher.on('mun-click-cocktail.state search-selected.state', mun => {
+dispatcher.on('mun-click.state search-selected.state', mun => {
   dispatcher.call('to-mun-view', null, mun);
 });
 dispatcher.on('breadcrumb-click-brazil.state', data => {

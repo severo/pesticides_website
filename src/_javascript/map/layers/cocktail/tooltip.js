@@ -9,11 +9,11 @@ export function createCocktailTooltip(parent, path, dispatcher) {
   // create a container for tooltips
   const tooltip = parent.append('g').classed('tooltip', true);
 
-  dispatcher.on('mun-mouseover-cocktail.tooltip', data => {
+  dispatcher.on('mun-mouseover.tooltip', data => {
     // TODO: factorize code - we copy/paste quickly for short term demo
     tooltip.call(createCocktailAnnotation(data));
   });
-  dispatcher.on('mun-mouseout-cocktail.ooltip', data => {
+  dispatcher.on('mun-mouseout.tooltip', data => {
     tooltip.html('');
   });
 }

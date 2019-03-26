@@ -11,7 +11,7 @@ const dim = {
   wi: 36,
 };
 
-export function makeTubes(parent, name, mun, data) {
+export function makeTubesCocktail(parent, name, mun, data) {
   const DETECTED_VALUE = 1e-10;
 
   const substances = mun.properties.tests
@@ -52,7 +52,55 @@ export function makeTubes(parent, name, mun, data) {
   /* eslint-disable no-magic-numbers */
 
   drawTube(svg, 300, 1000).attr('transform', 'translate(100, 0)');
-  drawLiquid(svg, 300, 1000).attr('transform', 'translate(100, 0)');
+  drawLiquid(svg, 300, 1000, 0.75).attr('transform', 'translate(100, 0)');
+  drawText(svg, 300, 1000).attr(
+    'transform',
+    'scale(6) rotate(-90) translate(-10 16)'
+  );
+}
+
+export function makeTubesLimits(parent, name, mun, data) {
+  const DETECTED_VALUE = 1e-10;
+
+  const substances = mun.properties.tests
+    .filter(subs => subs.max > subs.substance.limit)
+    .sort((subs1, subs2) => {
+      // alphabetic order to get some coherence and stability between views
+      return subs1.substance.shortName > subs2.substance.shortName;
+    })
+    .map(subs => {
+      return {
+        limit: subs.substance.limit,
+        name: subs.substance.name,
+        shortName: subs.substance.shortName,
+        value: subs.max,
+        valueText:
+          subs.max === DETECTED_VALUE
+            ? 'detected'
+            : subs.max.toLocaleString('pt-BR') +
+              ' μg/L (legal limit: ' +
+              subs.substance.limit.toLocaleString('pt-BR') +
+              ' μg/L)',
+      };
+    });
+
+  const tubes = parent.append('div').classed('tubes', true);
+
+  const svg = tubes
+    .selectAll('abbr')
+    .data(substances)
+    .enter()
+    // TODO: manage a popup for touch / mouseover, instead of this temporal attr
+    .append('abbr')
+    .attr('title', subs => subs.name + ' - ' + subs.valueText)
+    .append('svg')
+    .attr('width', dim.wi)
+    .attr('height', dim.he)
+    .attr('viewBox', '0,0,' + dim.vWi + ',' + dim.vHe + '');
+  /* eslint-disable no-magic-numbers */
+
+  drawTube(svg, 300, 1000).attr('transform', 'translate(100, 0)');
+  drawLiquid(svg, 300, 1000, 0.2).attr('transform', 'translate(100, 0)');
   drawText(svg, 300, 1000).attr(
     'transform',
     'scale(6) rotate(-90) translate(-10 16)'
@@ -112,14 +160,13 @@ function drawTube(svg, width, height) {
   /* eslint-enable no-magic-numbers */
 }
 
-function drawLiquid(svg, width, height) {
+function drawLiquid(svg, width, height, limitFactor) {
   /* eslint-disable no-magic-numbers */
   function getY(value, limit) {
     // Hand made limits. We lose the exact proportions, but avoid exagerated
     // bars
     const min = 0.1;
     const max = 0.95;
-    const limitFactor = 0.75;
     let ratio = (limitFactor * value) / limit;
     if (ratio > max) {
       ratio = max;

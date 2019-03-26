@@ -13,7 +13,7 @@ const cfg = {
   },
 };
 
-export function makeMap(parent, dispatcher, data) {
+export function makeMap(parent, dispatcher, view, data) {
   startLoading(parent);
 
   // Clean existing contents
@@ -32,14 +32,12 @@ export function makeMap(parent, dispatcher, data) {
   // to pass it a projection as an argument
   const path = geoPath();
 
-  createCocktail(svg, path, data, dispatcher);
+  if (view === 'limits') {
+    createLimits(svg, path, data, dispatcher);
+  } else {
+    createCocktail(svg, path, data, dispatcher);
+  }
 
-  dispatcher.on('show-cocktail.map', () =>
-    createCocktail(svg, path, data, dispatcher)
-  );
-  dispatcher.on('show-limits.map', () =>
-    createLimits(svg, path, data, dispatcher)
-  );
   endLoading(parent);
 }
 
