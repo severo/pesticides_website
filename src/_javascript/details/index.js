@@ -62,7 +62,7 @@ function makeCocktail(parent, dispatcher, mun, data) {
           name +
           ' contains <strong>' +
           mun.properties.number.detected +
-          ' different agrotoxics</strong>.'
+          ' agrotoxic(s)</strong>.'
       );
     makeTubesCocktail(parent, name, mun, data);
   }
@@ -100,7 +100,7 @@ function makeLimits(parent, dispatcher, mun, data) {
       .html(
         '<strong>' +
           mun.properties.number.supBr +
-          ' different agrotoxics</strong> detected above legal limit in ' +
+          ' agrotoxic(s)</strong> detected above legal limit in ' +
           mun.properties.name +
           '.'
       );
