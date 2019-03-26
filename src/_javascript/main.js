@@ -16,6 +16,7 @@ const dispatcher = dispatch(
   'search-selected',
   'make-app-cocktail',
   'make-app-limits',
+  'make-app-substances',
   'mun-click',
   'mun-mouseover',
   'mun-mouseout',
@@ -43,6 +44,12 @@ dispatcher.on('make-app-limits', data => {
   makeBreadcrumb(select('nav#breadcrumb'), dispatcher, data);
   makeDetails(select('section#details'), dispatcher, 'limits', data);
   makeMap(select('section#map'), dispatcher, 'limits', data);
+});
+
+dispatcher.on('make-app-substances', data => {
+  makeBreadcrumb(select('nav#breadcrumb'), dispatcher, data);
+  makeDetails(select('section#details'), dispatcher, 'substances', data);
+  makeMap(select('section#map'), dispatcher, 'substances', data);
 });
 
 // Mun / Brazil

@@ -3,6 +3,8 @@ import {createCocktailTooltip} from './layers/cocktail/tooltip';
 import {createFuFrontiers} from './layers/fu';
 import {createLimitsChoropleth} from './layers/limits/choropleth';
 import {createLimitsTooltip} from './layers/limits/tooltip';
+//import {createSubstancesChoropleth} from './layers/substances/choropleth';
+//import {createSubstancesTooltip} from './layers/substances/tooltip';
 import {geoPath} from 'd3-geo';
 
 // The data is already projected, it's expressed in px, between 0 and 960px
@@ -34,6 +36,8 @@ export function makeMap(parent, dispatcher, view, data) {
 
   if (view === 'limits') {
     createLimits(svg, path, data, dispatcher);
+  } else if (view === 'substances') {
+    createSubstances(svg, path, data, dispatcher);
   } else {
     createCocktail(svg, path, data, dispatcher);
   }
@@ -53,6 +57,13 @@ function createLimits(svg, path, data, dispatcher) {
   createLimitsChoropleth(svg, path, data, dispatcher);
   createFuFrontiers(svg, path, data);
   createLimitsTooltip(svg, path, dispatcher);
+}
+
+function createSubstances(svg, path, data, dispatcher) {
+  svg.html(null);
+  //createSubstancesChoropleth(svg, path, data, dispatcher);
+  createFuFrontiers(svg, path, data);
+  //createSubstancesTooltip(svg, path, dispatcher);
 }
 
 function startLoading(element) {

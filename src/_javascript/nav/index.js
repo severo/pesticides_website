@@ -8,11 +8,14 @@ export function makeNav(dispatcher, data) {
   selectAll('.navbar-menu .navbar-item').on('click', () => {
     dispatcher.call('burger-hide');
   });
-  selectAll('.navbar-menu #nav-item-cocktail').on('click', () => {
+  select('.navbar-menu #nav-item-cocktail').on('click', () => {
     dispatcher.call('make-app-cocktail', null, data);
   });
-  selectAll('.navbar-menu #nav-item-limits').on('click', () => {
+  select('.navbar-menu #nav-item-limits').on('click', () => {
     dispatcher.call('make-app-limits', null, data);
+  });
+  select('.navbar-menu #nav-item-substances').on('click', () => {
+    dispatcher.call('make-app-substances', null, data);
   });
 
   dispatcher.on('burger-show', () => {

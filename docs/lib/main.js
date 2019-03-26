@@ -29141,6 +29141,8 @@
 
     if (view === 'limits') {
       createLimits(svg, path, data, dispatcher);
+    } else if (view === 'substances') {
+      createSubstances(svg, path, data, dispatcher);
     } else {
       createCocktail(svg, path, data, dispatcher);
     }
@@ -29162,6 +29164,12 @@
     createLimitsTooltip(svg, path, dispatcher);
   }
 
+  function createSubstances(svg, path, data, dispatcher) {
+    svg.html(null); //createSubstancesChoropleth(svg, path, data, dispatcher);
+
+    createFuFrontiers(svg, path, data); //createSubstancesTooltip(svg, path, dispatcher);
+  }
+
   function startLoading$2(element) {
     element.classed('is-loading', true);
   }
@@ -29178,11 +29186,14 @@
     selectAll('.navbar-menu .navbar-item').on('click', function () {
       dispatcher.call('burger-hide');
     });
-    selectAll('.navbar-menu #nav-item-cocktail').on('click', function () {
+    select('.navbar-menu #nav-item-cocktail').on('click', function () {
       dispatcher.call('make-app-cocktail', null, data);
     });
-    selectAll('.navbar-menu #nav-item-limits').on('click', function () {
+    select('.navbar-menu #nav-item-limits').on('click', function () {
       dispatcher.call('make-app-limits', null, data);
+    });
+    select('.navbar-menu #nav-item-substances').on('click', function () {
+      dispatcher.call('make-app-substances', null, data);
     });
     dispatcher.on('burger-show', function () {
       select('.navbar-burger').classed('is-active', true).on('click', function () {
@@ -29295,7 +29306,7 @@
     element.classed('is-loading', false);
   }
 
-  var dispatcher = dispatch('data-loaded', 'breadcrumb-click-brazil', 'to-brazil-view', 'to-mun-view', 'search-results-updated', 'search-selected', 'make-app-cocktail', 'make-app-limits', 'mun-click', 'mun-mouseover', 'mun-mouseout', 'burger-show', 'burger-hide'); // Asynchronous (promise)
+  var dispatcher = dispatch('data-loaded', 'breadcrumb-click-brazil', 'to-brazil-view', 'to-mun-view', 'search-results-updated', 'search-selected', 'make-app-cocktail', 'make-app-limits', 'make-app-substances', 'mun-click', 'mun-mouseover', 'mun-mouseout', 'burger-show', 'burger-hide'); // Asynchronous (promise)
 
   loadData(dispatcher); // Create the layout
 
@@ -29313,6 +29324,11 @@
     makeBreadcrumb(select('nav#breadcrumb'), dispatcher, data);
     makeDetails(select('section#details'), dispatcher, 'limits', data);
     makeMap(select('section#map'), dispatcher, 'limits', data);
+  });
+  dispatcher.on('make-app-substances', function (data) {
+    makeBreadcrumb(select('nav#breadcrumb'), dispatcher, data);
+    makeDetails(select('section#details'), dispatcher, 'substances', data);
+    makeMap(select('section#map'), dispatcher, 'substances', data);
   }); // Mun / Brazil
 
   dispatcher.on('mun-click.state search-selected.state', function (mun) {
