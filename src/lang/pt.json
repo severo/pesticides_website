@@ -4,6 +4,11 @@
     "title": "Quem bebe agrotóxicos?"
   },
   "lang": "pt",
+  "nav": {
+    "cocktail": "Cocktail",
+    "concentrations": "High concentrations",
+    "substances": "Substances"
+  },
   "search": {
     "placeholder": "São Paulo [work in progress...]",
     "title": "Check your municipality"

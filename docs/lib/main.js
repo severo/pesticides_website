@@ -28956,6 +28956,27 @@
     element.classed('is-loading', false);
   }
 
+  function makeNav(dispatcher) {
+    // init
+    select('.navbar-burger').on('click', function () {
+      dispatcher.call('burger-show');
+    });
+    dispatcher.on('burger-show', function () {
+      // Toggle the "is-active" class on both the "navbar-burger" and the "navbar-menu"
+      select('.navbar-burger').classed('is-active', true).on('click', function () {
+        dispatcher.call('burger-hide');
+      });
+      select('.navbar-menu').classed('is-active', true);
+    });
+    dispatcher.on('burger-hide', function () {
+      // Toggle the "is-active" class on both the "navbar-burger" and the "navbar-menu"
+      select('.navbar-burger').classed('is-active', false).on('click', function () {
+        dispatcher.call('burger-show');
+      });
+      select('.navbar-menu').classed('is-active', false);
+    });
+  }
+
   var limit = 5;
   function makeSearch(parent, dispatcher, data) {
     startLoading$3(parent); // TODO: add unit tests to verify that the cities are ordered as expected for
@@ -29053,7 +29074,8 @@
     element.classed('is-loading', false);
   }
 
-  var dispatcher = dispatch('breadcrumb-click-brazil', 'data-loaded', 'mun-click', 'mun-mouseover', 'mun-mouseout', 'search-results-updated', 'search-selected', 'to-mun-view', 'to-brazil-view'); // Asynchronous (promise)
+  var dispatcher = dispatch('breadcrumb-click-brazil', 'data-loaded', 'mun-click', 'mun-mouseover', 'mun-mouseout', 'search-results-updated', 'search-selected', 'to-mun-view', 'to-brazil-view', 'burger-show', 'burger-hide');
+  makeNav(dispatcher); // Asynchronous (promise)
 
   loadData(dispatcher); // Create the layout
 

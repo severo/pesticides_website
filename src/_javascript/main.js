@@ -3,6 +3,7 @@ import {loadData} from './data';
 import {makeBreadcrumb} from './breadcrumb';
 import {makeDetails} from './details';
 import {makeMap} from './map';
+import {makeNav} from './nav';
 import {makeSearch} from './search';
 import {select} from 'd3-selection';
 
@@ -15,8 +16,12 @@ const dispatcher = dispatch(
   'search-results-updated',
   'search-selected',
   'to-mun-view',
-  'to-brazil-view'
+  'to-brazil-view',
+  'burger-show',
+  'burger-hide'
 );
+
+makeNav(dispatcher);
 
 // Asynchronous (promise)
 loadData(dispatcher);

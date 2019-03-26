@@ -4,6 +4,11 @@
     "title": "Who drinks agrotoxics?"
   },
   "lang": "en",
+  "nav": {
+    "cocktail": "Cocktail",
+    "concentrations": "High concentrations",
+    "substances": "Substances"
+  },
   "search": {
     "placeholder": "São Paulo [work in progress...]",
     "title": "Check your municipality"
