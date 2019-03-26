@@ -10,7 +10,7 @@ export function createLimitsTooltip(parent, path, dispatcher) {
   const tooltip = parent.append('g').classed('tooltip', true);
 
   dispatcher.on('mun-mouseover.tooltip', data => {
-    tooltip.call(createLimitsAnnotation(data));
+    tooltip.call(createAnnotation(data));
   });
   dispatcher.on('mun-mouseout.tooltip', data => {
     tooltip.html('');
@@ -18,7 +18,7 @@ export function createLimitsTooltip(parent, path, dispatcher) {
 }
 
 // this function will call d3.annotation when a tooltip has to be drawn
-function createLimitsAnnotation(data) {
+function createAnnotation(data) {
   return annotation()
     .type(annotationCalloutElbow)
     .annotations([

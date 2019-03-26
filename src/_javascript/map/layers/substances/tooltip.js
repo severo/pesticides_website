@@ -5,12 +5,12 @@ const cfg = {
   ny: 700,
 };
 
-export function createLimitsTooltip(parent, path, dispatcher) {
+export function createSubstancesTooltip(parent, path, dispatcher, substance) {
   // create a container for tooltips
   const tooltip = parent.append('g').classed('tooltip', true);
 
   dispatcher.on('mun-mouseover.tooltip', data => {
-    tooltip.call(createLimitsAnnotation(data));
+    tooltip.call(createAnnotation(data, substance));
   });
   dispatcher.on('mun-mouseout.tooltip', data => {
     tooltip.html('');
@@ -18,14 +18,14 @@ export function createLimitsTooltip(parent, path, dispatcher) {
 }
 
 // this function will call d3.annotation when a tooltip has to be drawn
-function createLimitsAnnotation(data) {
+function createAnnotation(data, substance) {
   return annotation()
     .type(annotationCalloutElbow)
     .annotations([
       {
         data: data,
         note: {
-          label: message(data.value),
+          label: message(data.value, substance),
           title: data.properties.name + ' (' + data.properties.fuName + ')',
         },
         nx: cfg.nx,
@@ -36,11 +36,15 @@ function createLimitsAnnotation(data) {
     ]);
 }
 
-function message(value) {
-  if (!Number.isInteger(value)) {
+const DETECTED_VALUE = 1e-10;
+
+function message(value, substance) {
+  if (value === null) {
     return 'Never tested.';
   } else if (value === 0) {
-    return 'No pesticide found above the legal limit.';
+    return 'Never detected.';
+  } else if (value === DETECTED_VALUE) {
+    return 'Detected, but not quantized.';
   }
-  return value + ' pesticide(s) found above the legal limit.';
+  return 'Max concentration: ' + value.toLocaleString('pt-BR') + ' μg/L';
 }

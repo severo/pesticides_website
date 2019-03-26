@@ -11,7 +11,7 @@ export function createCocktailTooltip(parent, path, dispatcher) {
 
   dispatcher.on('mun-mouseover.tooltip', data => {
     // TODO: factorize code - we copy/paste quickly for short term demo
-    tooltip.call(createCocktailAnnotation(data));
+    tooltip.call(createAnnotation(data));
   });
   dispatcher.on('mun-mouseout.tooltip', data => {
     tooltip.html('');
@@ -19,7 +19,7 @@ export function createCocktailTooltip(parent, path, dispatcher) {
 }
 
 // this function will call d3.annotation when a tooltip has to be drawn
-function createCocktailAnnotation(data) {
+function createAnnotation(data) {
   return annotation()
     .type(annotationCalloutElbow)
     .annotations([

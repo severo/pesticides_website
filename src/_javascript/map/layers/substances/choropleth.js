@@ -17,7 +17,6 @@ number: {
 },
 */
 const cfg = {
-  field: 'supBr',
   legend: {
     height: 10,
     subtitleOffset: 8,
@@ -32,16 +31,24 @@ const cfg = {
   },
 };
 
-export function createLimitsChoropleth(parent, path, data, dispatcher) {
-  const maxNumberSupBr = data.mun.features.reduce((acc, ft) => {
-    if ('number' in ft.properties && ft.properties.number.supBr > acc) {
-      acc = ft.properties.number.supBr;
+export function createSubstancesChoropleth(
+  parent,
+  path,
+  data,
+  dispatcher,
+  substance
+) {
+  // TODO - avoid outliers setting a cap on max Concentration to substance limit
+  // or about (2x, 3x)
+  const maxConcentration = data.mun.features.reduce((acc, ft) => {
+    if (value(ft, substance.code) && value(ft, substance.code) > acc) {
+      acc = value(ft, substance.code);
     }
     return acc;
   }, 0);
 
   const color = scaleLinear()
-    .domain([0, maxNumberSupBr])
+    .domain([0, maxConcentration])
     .interpolate(() => interpolateYlOrRd);
 
   parent
@@ -54,8 +61,10 @@ export function createLimitsChoropleth(parent, path, data, dispatcher) {
     .attr('id', ft => 'id-' + ft.properties.ibgeCode)
     .attr('d', path)
     .style('fill', ft => {
-      if (Number.isInteger(value(ft))) {
-        return color(value(ft));
+      // TODO - We use 1e-10 to encode not-quantized - it's the same visual
+      //  encoding as no detection - we should make it better
+      if (value(ft, substance.code) && value(ft, substance.code) >= 0) {
+        return color(value(ft, substance.code));
       }
       return null;
     })
@@ -63,7 +72,7 @@ export function createLimitsChoropleth(parent, path, data, dispatcher) {
       // invoke callbacks
       dispatcher.call(cfg.typename.mouseover, null, {
         properties: ft.properties,
-        value: value(ft),
+        value: value(ft, substance.code),
       });
     })
     .on('mouseout', (ft, element) => {
@@ -74,17 +83,24 @@ export function createLimitsChoropleth(parent, path, data, dispatcher) {
       // invoke callbacks
       dispatcher.call(cfg.typename.click, null, ft);
     });
-  makeLegend(parent, maxNumberSupBr, color);
+  makeLegend(parent, maxConcentration, color, substance.shortName);
 }
 
-function value(ft) {
-  if ('number' in ft.properties) {
-    return ft.properties.number[cfg.field];
+function value(ft, code) {
+  // TODO - suboptimal, it would be simpler (and quicker?) with a lookup table
+  if ('tests' in ft.properties) {
+    const subst = ft.properties.tests.filter(
+      sub => sub.substance.code === code
+    );
+    if (subst.length === 1) {
+      return subst[0].max;
+    }
+    return null;
   }
   return null;
 }
 
-function makeLegend(parent, maxNumber, color) {
+function makeLegend(parent, maxConcentration, color, name) {
   // TODO: should be a scheme (27 colors), not a continuous scale
   const xx = scaleLinear()
     .domain(color.domain())
@@ -98,12 +114,12 @@ function makeLegend(parent, maxNumber, color) {
 
   legend
     .selectAll('rect')
-    .data(range(0, maxNumber, 1))
+    .data(range(0, maxConcentration, 1))
     .enter()
     .append('rect')
     .attr('height', cfg.legend.height)
     .attr('x', el => xx(el))
-    .attr('width', cfg.legend.width / maxNumber)
+    .attr('width', cfg.legend.width / maxConcentration)
     .attr('fill', el => color(el));
 
   const label = legend
@@ -116,14 +132,16 @@ function makeLegend(parent, maxNumber, color) {
     .append('text')
     .attr('y', -cfg.legend.titleOffset)
     .attr('font-weight', 'bold')
-    .text('Number of pesticides detected above the legal limit');
+    .text('Max detected concentration of ' + name);
 
   // TODO: i18n
   label
     .append('text')
     .attr('y', -cfg.legend.subtitleOffset)
     .text(
-      '(white: no pesticide, purple: ' + maxNumber + ' different pesticides)'
+      '(white: no detection, purple: ' +
+        maxConcentration.toLocaleString('pt-BR') +
+        ' μg/L)'
     );
 
   // Scale

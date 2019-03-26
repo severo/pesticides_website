@@ -3,8 +3,8 @@ import {createCocktailTooltip} from './layers/cocktail/tooltip';
 import {createFuFrontiers} from './layers/fu';
 import {createLimitsChoropleth} from './layers/limits/choropleth';
 import {createLimitsTooltip} from './layers/limits/tooltip';
-//import {createSubstancesChoropleth} from './layers/substances/choropleth';
-//import {createSubstancesTooltip} from './layers/substances/tooltip';
+import {createSubstancesChoropleth} from './layers/substances/choropleth';
+import {createSubstancesTooltip} from './layers/substances/tooltip';
 import {geoPath} from 'd3-geo';
 
 // The data is already projected, it's expressed in px, between 0 and 960px
@@ -60,10 +60,12 @@ function createLimits(svg, path, data, dispatcher) {
 }
 
 function createSubstances(svg, path, data, dispatcher) {
+  // TODO - select control to choose the parameter (Tebuconazol meanwhile)
+  const substance = data.substancesLut['25'];
   svg.html(null);
-  //createSubstancesChoropleth(svg, path, data, dispatcher);
+  createSubstancesChoropleth(svg, path, data, dispatcher, substance);
   createFuFrontiers(svg, path, data);
-  //createSubstancesTooltip(svg, path, dispatcher);
+  createSubstancesTooltip(svg, path, dispatcher, substance);
 }
 
 function startLoading(element) {

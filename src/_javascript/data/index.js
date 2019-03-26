@@ -188,6 +188,7 @@ export function loadData(dispatcher) {
           limit: sub.limit,
           medianConcentration: medianConcentration,
           name: sub.name,
+          shortName: sub.shortName,
           testedIn: testedIn.length,
         };
       });

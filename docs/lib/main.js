@@ -19075,6 +19075,7 @@
           limit: sub.limit,
           medianConcentration: medianConcentration,
           name: sub.name,
+          shortName: sub.shortName,
           testedIn: testedIn.length
         };
       });
@@ -28957,14 +28958,14 @@
     var tooltip = parent.append('g').classed('tooltip', true);
     dispatcher.on('mun-mouseover.tooltip', function (data) {
       // TODO: factorize code - we copy/paste quickly for short term demo
-      tooltip.call(createCocktailAnnotation(data));
+      tooltip.call(createAnnotation(data));
     });
     dispatcher.on('mun-mouseout.tooltip', function (data) {
       tooltip.html('');
     });
   } // this function will call d3.annotation when a tooltip has to be drawn
 
-  function createCocktailAnnotation(data) {
+  function createAnnotation(data) {
     return annotation().type(d3CalloutElbow).annotations([{
       data: data,
       note: {
@@ -29086,14 +29087,14 @@
     // create a container for tooltips
     var tooltip = parent.append('g').classed('tooltip', true);
     dispatcher.on('mun-mouseover.tooltip', function (data) {
-      tooltip.call(createLimitsAnnotation(data));
+      tooltip.call(createAnnotation$1(data));
     });
     dispatcher.on('mun-mouseout.tooltip', function (data) {
       tooltip.html('');
     });
   } // this function will call d3.annotation when a tooltip has to be drawn
 
-  function createLimitsAnnotation(data) {
+  function createAnnotation$1(data) {
     return annotation().type(d3CalloutElbow).annotations([{
       data: data,
       note: {
@@ -29119,7 +29120,158 @@
     return value + ' pesticide(s) found above the legal limit.';
   }
 
+  /* Reminder of the data available from the CSV
+  category: {
+    atrAvgCat: row.atrazine_atrazine_category,
+    atrMaxCat: row.atrazine_category,
+    ibgeBode: row.ibge_code,
+    simAvgCat: row.simazine_atrazina_category,
+    simMaxCat: row.simazine_category,
+  },
+  number: {
+    detected: +row.detected,
+    eqBr: +row.eq_br,
+    supBr: +row.sup_br,
+    supEu: +row.sup_eu,
+  },
+  */
+
   var cfg$5 = {
+    legend: {
+      height: 10,
+      subtitleOffset: 8,
+      tickSize: 15,
+      titleOffset: 22,
+      width: 270
+    },
+    typename: {
+      click: 'mun-click',
+      mouseout: 'mun-mouseout',
+      mouseover: 'mun-mouseover'
+    }
+  };
+  function createSubstancesChoropleth(parent, path, data, dispatcher, substance) {
+    // TODO - avoid outliers setting a cap on max Concentration to substance limit
+    // or about (2x, 3x)
+    var maxConcentration = data.mun.features.reduce(function (acc, ft) {
+      if (value$2(ft, substance.code) && value$2(ft, substance.code) > acc) {
+        acc = value$2(ft, substance.code);
+      }
+
+      return acc;
+    }, 0);
+    var color = linear$1().domain([0, maxConcentration]).interpolate(function () {
+      return interpolateYlOrRd;
+    });
+    parent.append('g').classed('choropleth', true).selectAll('path').data(data.mun.features).enter().append('path').attr('id', function (ft) {
+      return 'id-' + ft.properties.ibgeCode;
+    }).attr('d', path).style('fill', function (ft) {
+      // TODO - We use 1e-10 to encode not-quantized - it's the same visual
+      //  encoding as no detection - we should make it better
+      if (value$2(ft, substance.code) && value$2(ft, substance.code) >= 0) {
+        return color(value$2(ft, substance.code));
+      }
+
+      return null;
+    }).on('mouseover', function (ft, element) {
+      // invoke callbacks
+      dispatcher.call(cfg$5.typename.mouseover, null, {
+        properties: ft.properties,
+        value: value$2(ft, substance.code)
+      });
+    }).on('mouseout', function (ft, element) {
+      // invoke callbacks
+      dispatcher.call(cfg$5.typename.mouseout);
+    }).on('click', function (ft, element) {
+      // invoke callbacks
+      dispatcher.call(cfg$5.typename.click, null, ft);
+    });
+    makeLegend$2(parent, maxConcentration, color, substance.shortName);
+  }
+
+  function value$2(ft, code) {
+    // TODO - suboptimal, it would be simpler (and quicker?) with a lookup table
+    if ('tests' in ft.properties) {
+      var subst = ft.properties.tests.filter(function (sub) {
+        return sub.substance.code === code;
+      });
+
+      if (subst.length === 1) {
+        return subst[0].max;
+      }
+
+      return null;
+    }
+
+    return null;
+  }
+
+  function makeLegend$2(parent, maxConcentration, color, name) {
+    // TODO: should be a scheme (27 colors), not a continuous scale
+    var xx = linear$1().domain(color.domain()).rangeRound([0, cfg$5.legend.width]);
+    var legend = parent.append('g') //.style('font-size', '0.8rem')
+    //.style('font-family', 'sans-serif')
+    .attr('transform', 'translate(550,50)');
+    legend.selectAll('rect').data(sequence(0, maxConcentration, 1)).enter().append('rect').attr('height', cfg$5.legend.height).attr('x', function (el) {
+      return xx(el);
+    }).attr('width', cfg$5.legend.width / maxConcentration).attr('fill', function (el) {
+      return color(el);
+    });
+    var label = legend.append('g').attr('fill', '#000').attr('text-anchor', 'start'); // TODO: i18n
+
+    label.append('text').attr('y', -cfg$5.legend.titleOffset).attr('font-weight', 'bold').text('Max detected concentration of ' + name); // TODO: i18n
+
+    label.append('text').attr('y', -cfg$5.legend.subtitleOffset).text('(white: no detection, purple: ' + maxConcentration.toLocaleString('pt-BR') + ' μg/L)'); // Scale
+
+    legend.append('g').call(axisBottom(xx).tickSize(cfg$5.legend.tickSize)).select('.domain').remove();
+  }
+
+  var cfg$6 = {
+    nx: 200,
+    ny: 700
+  };
+  function createSubstancesTooltip(parent, path, dispatcher, substance) {
+    // create a container for tooltips
+    var tooltip = parent.append('g').classed('tooltip', true);
+    dispatcher.on('mun-mouseover.tooltip', function (data) {
+      tooltip.call(createAnnotation$2(data, substance));
+    });
+    dispatcher.on('mun-mouseout.tooltip', function (data) {
+      tooltip.html('');
+    });
+  } // this function will call d3.annotation when a tooltip has to be drawn
+
+  function createAnnotation$2(data, substance) {
+    return annotation().type(d3CalloutElbow).annotations([{
+      data: data,
+      note: {
+        label: message$1(data.value, substance),
+        title: data.properties.name + ' (' + data.properties.fuName + ')'
+      },
+      nx: cfg$6.nx,
+      ny: cfg$6.ny,
+      x: data.properties.centroid[0],
+      // eslint-disable-line id-length
+      y: data.properties.centroid[1] // eslint-disable-line id-length
+
+    }]);
+  }
+
+  var DETECTED_VALUE = 1e-10;
+
+  function message$1(value, substance) {
+    if (value === null) {
+      return 'Never tested.';
+    } else if (value === 0) {
+      return 'Never detected.';
+    } else if (value === DETECTED_VALUE) {
+      return 'Detected, but not quantized.';
+    }
+
+    return 'Max concentration: ' + value.toLocaleString('pt-BR') + ' μg/L';
+  }
+
+  var cfg$7 = {
     viewport: {
       height: 960,
       width: 960
@@ -29130,7 +29282,7 @@
     // TODO: be more clever?
 
     parent.html(null);
-    var svg = parent.append('svg').attr('viewBox', '0,0,' + cfg$5.viewport.width + ',' + cfg$5.viewport.height); // Path is a function that transforms a geometry (a point, a line, a
+    var svg = parent.append('svg').attr('viewBox', '0,0,' + cfg$7.viewport.width + ',' + cfg$7.viewport.height); // Path is a function that transforms a geometry (a point, a line, a
     // polygon) into a SVG path (also allows to generate canvas paths, for
     // example)
     // Note that it takes geographic coordinates as an input, not planar ones
@@ -29165,9 +29317,12 @@
   }
 
   function createSubstances(svg, path, data, dispatcher) {
-    svg.html(null); //createSubstancesChoropleth(svg, path, data, dispatcher);
-
-    createFuFrontiers(svg, path, data); //createSubstancesTooltip(svg, path, dispatcher);
+    // TODO - select control to choose the parameter (Tebuconazol meanwhile)
+    var substance = data.substancesLut['25'];
+    svg.html(null);
+    createSubstancesChoropleth(svg, path, data, dispatcher, substance);
+    createFuFrontiers(svg, path, data);
+    createSubstancesTooltip(svg, path, dispatcher, substance);
   }
 
   function startLoading$2(element) {
