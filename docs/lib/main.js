@@ -20519,6 +20519,12 @@
         : new Selection([[selector]], root$1);
   }
 
+  function selectAll(selector) {
+    return typeof selector === "string"
+        ? new Selection([document.querySelectorAll(selector)], [document.documentElement])
+        : new Selection([selector == null ? [] : selector], root$1);
+  }
+
   function define(constructor, factory, prototype) {
     constructor.prototype = factory.prototype = prototype;
     prototype.constructor = constructor;
@@ -24919,12 +24925,12 @@
     },
     max: 27,
     typename: {
-      click: 'mun-click',
-      mouseout: 'mun-mouseout',
-      mouseover: 'mun-mouseover'
+      click: 'mun-click-cocktail',
+      mouseout: 'mun-mouseout-cocktail',
+      mouseover: 'mun-mouseover-cocktail'
     }
   };
-  function createChoropleth(parent, path, data, dispatcher) {
+  function createCocktailChoropleth(parent, path, data, dispatcher) {
     parent.append('g').classed('choropleth', true).selectAll('path').data(data.mun.features).enter().append('path').attr('id', function (ft) {
       return 'id-' + ft.properties.ibgeCode;
     }).attr('d', path).style('fill', function (ft) {
@@ -24979,10 +24985,6 @@
     label.append('text').attr('y', -cfg$1.legend.subtitleOffset).text('(white: no pesticide, purple: 27 different pesticides)'); // Scale
 
     legend.append('g').call(axisBottom(xx).tickSize(cfg$1.legend.tickSize)).select('.domain').remove();
-  }
-
-  function createFuFrontiers(parent, path, data) {
-    return parent.append('g').classed('fu-frontiers', true).selectAll('path').data(data.internalFu.features).enter().append('path').attr('d', path);
   }
 
   var xhtml$1 = "http://www.w3.org/1999/xhtml";
@@ -28896,18 +28898,19 @@
     nx: 200,
     ny: 700
   };
-  function createTooltip(parent, path, dispatcher) {
+  function createCocktailTooltip(parent, path, dispatcher) {
     // create a container for tooltips
     var tooltip = parent.append('g').classed('tooltip', true);
-    dispatcher.on('mun-mouseover.tooltip', function (data) {
-      tooltip.call(createAnnotation(data));
+    dispatcher.on('mun-mouseover-cocktail.tooltip', function (data) {
+      // TODO: factorize code - we copy/paste quickly for short term demo
+      tooltip.call(createCocktailAnnotation(data));
     });
-    dispatcher.on('mun-mouseout.tooltip', function (data) {
+    dispatcher.on('mun-mouseout-cocktail.ooltip', function (data) {
       tooltip.html('');
     });
   } // this function will call d3.annotation when a tooltip has to be drawn
 
-  function createAnnotation(data) {
+  function createCocktailAnnotation(data) {
     return annotation().type(d3CalloutElbow).annotations([{
       data: data,
       note: {
@@ -28923,7 +28926,146 @@
     }]);
   }
 
+  function createFuFrontiers(parent, path, data) {
+    return parent.append('g').classed('fu-frontiers', true).selectAll('path').data(data.internalFu.features).enter().append('path').attr('d', path);
+  }
+
+  /* Reminder of the data available from the CSV
+  category: {
+    atrAvgCat: row.atrazine_atrazine_category,
+    atrMaxCat: row.atrazine_category,
+    ibgeBode: row.ibge_code,
+    simAvgCat: row.simazine_atrazina_category,
+    simMaxCat: row.simazine_category,
+  },
+  number: {
+    detected: +row.detected,
+    eqBr: +row.eq_br,
+    supBr: +row.sup_br,
+    supEu: +row.sup_eu,
+  },
+  */
+
   var cfg$3 = {
+    field: 'supBr',
+    legend: {
+      height: 10,
+      subtitleOffset: 8,
+      tickSize: 15,
+      titleOffset: 22,
+      width: 270
+    },
+    typename: {
+      click: 'mun-click-limits',
+      mouseout: 'mun-mouseout-limits',
+      mouseover: 'mun-mouseover-limits'
+    }
+  };
+  function createLimitsChoropleth(parent, path, data, dispatcher) {
+    var maxNumberSupBr = data.mun.features.reduce(function (acc, ft) {
+      if ('number' in ft.properties && ft.properties.number.supBr > acc) {
+        acc = ft.properties.number.supBr;
+      }
+
+      return acc;
+    }, 0);
+    var color = linear$1().domain([0, maxNumberSupBr]).interpolate(function () {
+      return interpolateYlOrRd;
+    });
+    parent.append('g').classed('choropleth', true).selectAll('path').data(data.mun.features).enter().append('path').attr('id', function (ft) {
+      return 'id-' + ft.properties.ibgeCode;
+    }).attr('d', path).style('fill', function (ft) {
+      if (Number.isInteger(value$1(ft))) {
+        return color(value$1(ft));
+      }
+
+      return null;
+    }).on('mouseover', function (ft, element) {
+      // invoke callbacks
+      dispatcher.call(cfg$3.typename.mouseover, null, {
+        properties: ft.properties,
+        value: value$1(ft)
+      });
+    }).on('mouseout', function (ft, element) {
+      // invoke callbacks
+      dispatcher.call(cfg$3.typename.mouseout);
+    }).on('click', function (ft, element) {
+      // invoke callbacks
+      dispatcher.call(cfg$3.typename.click, null, ft);
+    });
+    makeLegend$1(parent, maxNumberSupBr, color);
+  }
+
+  function value$1(ft) {
+    if ('number' in ft.properties) {
+      return ft.properties.number[cfg$3.field];
+    }
+
+    return null;
+  }
+
+  function makeLegend$1(parent, maxNumber, color) {
+    // TODO: should be a scheme (27 colors), not a continuous scale
+    var xx = linear$1().domain(color.domain()).rangeRound([0, cfg$3.legend.width]);
+    var legend = parent.append('g') //.style('font-size', '0.8rem')
+    //.style('font-family', 'sans-serif')
+    .attr('transform', 'translate(550,50)');
+    legend.selectAll('rect').data(sequence(0, maxNumber, 1)).enter().append('rect').attr('height', cfg$3.legend.height).attr('x', function (el) {
+      return xx(el);
+    }).attr('width', cfg$3.legend.width / maxNumber).attr('fill', function (el) {
+      return color(el);
+    });
+    var label = legend.append('g').attr('fill', '#000').attr('text-anchor', 'start'); // TODO: i18n
+
+    label.append('text').attr('y', -cfg$3.legend.titleOffset).attr('font-weight', 'bold').text('Number of pesticides detected above the legal limit'); // TODO: i18n
+
+    label.append('text').attr('y', -cfg$3.legend.subtitleOffset).text('(white: no pesticide, purple: ' + maxNumber + ' different pesticides)'); // Scale
+
+    legend.append('g').call(axisBottom(xx).tickSize(cfg$3.legend.tickSize)).select('.domain').remove();
+  }
+
+  var cfg$4 = {
+    nx: 200,
+    ny: 700
+  };
+  function createLimitsTooltip(parent, path, dispatcher) {
+    // create a container for tooltips
+    var tooltip = parent.append('g').classed('tooltip', true);
+    dispatcher.on('mun-mouseover-limits.Tooltip', function (data) {
+      tooltip.call(createLimitsAnnotation(data));
+    });
+    dispatcher.on('mun-mouseout-limits.Tooltip', function (data) {
+      tooltip.html('');
+    });
+  } // this function will call d3.annotation when a tooltip has to be drawn
+
+  function createLimitsAnnotation(data) {
+    return annotation().type(d3CalloutElbow).annotations([{
+      data: data,
+      note: {
+        label: message(data.value),
+        title: data.properties.name + ' (' + data.properties.fuName + ')'
+      },
+      nx: cfg$4.nx,
+      ny: cfg$4.ny,
+      x: data.properties.centroid[0],
+      // eslint-disable-line id-length
+      y: data.properties.centroid[1] // eslint-disable-line id-length
+
+    }]);
+  }
+
+  function message(value) {
+    if (!Number.isInteger(value)) {
+      return 'Never tested.';
+    } else if (value === 0) {
+      return 'No pesticide found above the legal limit.';
+    }
+
+    return value + ' pesticide(s) found above the legal limit.';
+  }
+
+  var cfg$5 = {
     viewport: {
       height: 960,
       width: 960
@@ -28934,7 +29076,7 @@
     // TODO: be more clever?
 
     parent.html(null);
-    var svg = parent.append('svg').attr('viewBox', '0,0,' + cfg$3.viewport.width + ',' + cfg$3.viewport.height); // Path is a function that transforms a geometry (a point, a line, a
+    var svg = parent.append('svg').attr('viewBox', '0,0,' + cfg$5.viewport.width + ',' + cfg$5.viewport.height); // Path is a function that transforms a geometry (a point, a line, a
     // polygon) into a SVG path (also allows to generate canvas paths, for
     // example)
     // Note that it takes geographic coordinates as an input, not planar ones
@@ -28942,10 +29084,28 @@
     // to pass it a projection as an argument
 
     var path = geoPath();
-    createChoropleth(svg, path, data, dispatcher);
-    createFuFrontiers(svg, path, data);
-    createTooltip(svg, path, dispatcher);
+    createCocktail(svg, path, data, dispatcher);
+    dispatcher.on('show-cocktail.map', function () {
+      return createCocktail(svg, path, data, dispatcher);
+    });
+    dispatcher.on('show-limits.map', function () {
+      return createLimits(svg, path, data, dispatcher);
+    });
     endLoading$2(parent);
+  }
+
+  function createCocktail(svg, path, data, dispatcher) {
+    svg.html(null);
+    createCocktailChoropleth(svg, path, data, dispatcher);
+    createFuFrontiers(svg, path, data);
+    createCocktailTooltip(svg, path, dispatcher);
+  }
+
+  function createLimits(svg, path, data, dispatcher) {
+    svg.html(null);
+    createLimitsChoropleth(svg, path, data, dispatcher);
+    createFuFrontiers(svg, path, data);
+    createLimitsTooltip(svg, path, dispatcher);
   }
 
   function startLoading$2(element) {
@@ -28961,15 +29121,22 @@
     select('.navbar-burger').on('click', function () {
       dispatcher.call('burger-show');
     });
+    selectAll('.navbar-menu .navbar-item').on('click', function () {
+      dispatcher.call('burger-hide');
+    });
+    selectAll('.navbar-menu #nav-item-cocktail').on('click', function () {
+      dispatcher.call('show-cocktail');
+    });
+    selectAll('.navbar-menu #nav-item-limits').on('click', function () {
+      dispatcher.call('show-limits');
+    });
     dispatcher.on('burger-show', function () {
-      // Toggle the "is-active" class on both the "navbar-burger" and the "navbar-menu"
       select('.navbar-burger').classed('is-active', true).on('click', function () {
         dispatcher.call('burger-hide');
       });
       select('.navbar-menu').classed('is-active', true);
     });
     dispatcher.on('burger-hide', function () {
-      // Toggle the "is-active" class on both the "navbar-burger" and the "navbar-menu"
       select('.navbar-burger').classed('is-active', false).on('click', function () {
         dispatcher.call('burger-show');
       });
@@ -29074,7 +29241,7 @@
     element.classed('is-loading', false);
   }
 
-  var dispatcher = dispatch('breadcrumb-click-brazil', 'data-loaded', 'mun-click', 'mun-mouseover', 'mun-mouseout', 'search-results-updated', 'search-selected', 'to-mun-view', 'to-brazil-view', 'burger-show', 'burger-hide');
+  var dispatcher = dispatch('data-loaded', 'breadcrumb-click-brazil', 'to-brazil-view', 'search-results-updated', 'search-selected', 'mun-click-cocktail', 'mun-click-limits', 'to-mun-view', 'mun-mouseover-cocktail', 'mun-mouseout-cocktail', 'mun-mouseover-limits', 'mun-mouseout-limits', 'burger-show', 'burger-hide', 'show-cocktail', 'show-limits');
   makeNav(dispatcher); // Asynchronous (promise)
 
   loadData(dispatcher); // Create the layout
@@ -29092,7 +29259,7 @@
     makeMap(select('section#map'), dispatcher, data);
   }); // Mun / Brazil
 
-  dispatcher.on('mun-click.state search-selected.state', function (mun) {
+  dispatcher.on('mun-click-cocktail.state search-selected.state', function (mun) {
     dispatcher.call('to-mun-view', null, mun);
   });
   dispatcher.on('breadcrumb-click-brazil.state', function (data) {

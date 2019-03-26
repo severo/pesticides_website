@@ -8,17 +8,22 @@ import {makeSearch} from './search';
 import {select} from 'd3-selection';
 
 const dispatcher = dispatch(
-  'breadcrumb-click-brazil',
   'data-loaded',
-  'mun-click',
-  'mun-mouseover',
-  'mun-mouseout',
+  'breadcrumb-click-brazil',
+  'to-brazil-view',
   'search-results-updated',
   'search-selected',
+  'mun-click-cocktail',
+  'mun-click-limits',
   'to-mun-view',
-  'to-brazil-view',
+  'mun-mouseover-cocktail',
+  'mun-mouseout-cocktail',
+  'mun-mouseover-limits',
+  'mun-mouseout-limits',
   'burger-show',
-  'burger-hide'
+  'burger-hide',
+  'show-cocktail',
+  'show-limits'
 );
 
 makeNav(dispatcher);
@@ -41,7 +46,7 @@ dispatcher.on('data-loaded.map', data => {
 });
 
 // Mun / Brazil
-dispatcher.on('mun-click.state search-selected.state', mun => {
+dispatcher.on('mun-click-cocktail.state search-selected.state', mun => {
   dispatcher.call('to-mun-view', null, mun);
 });
 dispatcher.on('breadcrumb-click-brazil.state', data => {

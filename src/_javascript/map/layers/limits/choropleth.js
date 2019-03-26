@@ -17,23 +17,33 @@ number: {
 },
 */
 const cfg = {
-  field: 'detected',
+  field: 'supBr',
   legend: {
     height: 10,
     subtitleOffset: 8,
     tickSize: 15,
     titleOffset: 22,
-    width: 10,
+    width: 270,
   },
-  max: 27,
   typename: {
-    click: 'mun-click',
-    mouseout: 'mun-mouseout',
-    mouseover: 'mun-mouseover',
+    click: 'mun-click-limits',
+    mouseout: 'mun-mouseout-limits',
+    mouseover: 'mun-mouseover-limits',
   },
 };
 
-export function createChoropleth(parent, path, data, dispatcher) {
+export function createLimitsChoropleth(parent, path, data, dispatcher) {
+  const maxNumberSupBr = data.mun.features.reduce((acc, ft) => {
+    if ('number' in ft.properties && ft.properties.number.supBr > acc) {
+      acc = ft.properties.number.supBr;
+    }
+    return acc;
+  }, 0);
+
+  const color = scaleLinear()
+    .domain([0, maxNumberSupBr])
+    .interpolate(() => interpolateYlOrRd);
+
   parent
     .append('g')
     .classed('choropleth', true)
@@ -64,7 +74,7 @@ export function createChoropleth(parent, path, data, dispatcher) {
       // invoke callbacks
       dispatcher.call(cfg.typename.click, null, ft);
     });
-  makeLegend(parent);
+  makeLegend(parent, maxNumberSupBr, color);
 }
 
 function value(ft) {
@@ -74,15 +84,11 @@ function value(ft) {
   return null;
 }
 
-const color = scaleLinear()
-  .domain([0, cfg.max])
-  .interpolate(() => interpolateYlOrRd);
-
-function makeLegend(parent) {
+function makeLegend(parent, maxNumber, color) {
   // TODO: should be a scheme (27 colors), not a continuous scale
   const xx = scaleLinear()
     .domain(color.domain())
-    .rangeRound([0, cfg.legend.width * cfg.max]);
+    .rangeRound([0, cfg.legend.width]);
 
   const legend = parent
     .append('g')
@@ -92,12 +98,12 @@ function makeLegend(parent) {
 
   legend
     .selectAll('rect')
-    .data(range(0, cfg.max, 1))
+    .data(range(0, maxNumber, 1))
     .enter()
     .append('rect')
     .attr('height', cfg.legend.height)
     .attr('x', el => xx(el))
-    .attr('width', cfg.legend.width)
+    .attr('width', cfg.legend.width / maxNumber)
     .attr('fill', el => color(el));
 
   const label = legend
@@ -110,13 +116,15 @@ function makeLegend(parent) {
     .append('text')
     .attr('y', -cfg.legend.titleOffset)
     .attr('font-weight', 'bold')
-    .text('Number of pesticides detected in drinking water');
+    .text('Number of pesticides detected above the legal limit');
 
   // TODO: i18n
   label
     .append('text')
     .attr('y', -cfg.legend.subtitleOffset)
-    .text('(white: no pesticide, purple: 27 different pesticides)');
+    .text(
+      '(white: no pesticide, purple: ' + maxNumber + ' different pesticides)'
+    );
 
   // Scale
   legend

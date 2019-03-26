@@ -1,6 +1,8 @@
-import {createChoropleth} from './layers/choropleth';
+import {createCocktailChoropleth} from './layers/cocktail/choropleth';
+import {createCocktailTooltip} from './layers/cocktail/tooltip';
 import {createFuFrontiers} from './layers/fu';
-import {createTooltip} from './layers/tooltip';
+import {createLimitsChoropleth} from './layers/limits/choropleth';
+import {createLimitsTooltip} from './layers/limits/tooltip';
 import {geoPath} from 'd3-geo';
 
 // The data is already projected, it's expressed in px, between 0 and 960px
@@ -30,11 +32,29 @@ export function makeMap(parent, dispatcher, data) {
   // to pass it a projection as an argument
   const path = geoPath();
 
-  createChoropleth(svg, path, data, dispatcher);
-  createFuFrontiers(svg, path, data);
-  createTooltip(svg, path, dispatcher);
+  createCocktail(svg, path, data, dispatcher);
 
+  dispatcher.on('show-cocktail.map', () =>
+    createCocktail(svg, path, data, dispatcher)
+  );
+  dispatcher.on('show-limits.map', () =>
+    createLimits(svg, path, data, dispatcher)
+  );
   endLoading(parent);
+}
+
+function createCocktail(svg, path, data, dispatcher) {
+  svg.html(null);
+  createCocktailChoropleth(svg, path, data, dispatcher);
+  createFuFrontiers(svg, path, data);
+  createCocktailTooltip(svg, path, dispatcher);
+}
+
+function createLimits(svg, path, data, dispatcher) {
+  svg.html(null);
+  createLimitsChoropleth(svg, path, data, dispatcher);
+  createFuFrontiers(svg, path, data);
+  createLimitsTooltip(svg, path, dispatcher);
 }
 
 function startLoading(element) {

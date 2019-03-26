@@ -5,20 +5,21 @@ const cfg = {
   ny: 700,
 };
 
-export function createTooltip(parent, path, dispatcher) {
+export function createCocktailTooltip(parent, path, dispatcher) {
   // create a container for tooltips
   const tooltip = parent.append('g').classed('tooltip', true);
 
-  dispatcher.on('mun-mouseover.tooltip', data => {
-    tooltip.call(createAnnotation(data));
+  dispatcher.on('mun-mouseover-cocktail.tooltip', data => {
+    // TODO: factorize code - we copy/paste quickly for short term demo
+    tooltip.call(createCocktailAnnotation(data));
   });
-  dispatcher.on('mun-mouseout.tooltip', data => {
+  dispatcher.on('mun-mouseout-cocktail.ooltip', data => {
     tooltip.html('');
   });
 }
 
 // this function will call d3.annotation when a tooltip has to be drawn
-function createAnnotation(data) {
+function createCocktailAnnotation(data) {
   return annotation()
     .type(annotationCalloutElbow)
     .annotations([
