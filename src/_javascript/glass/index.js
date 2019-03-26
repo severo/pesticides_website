@@ -2,7 +2,7 @@ import * as d3Path from 'd3-path';
 import {interpolateYlOrRd, scaleLinear} from 'd3';
 import {makeSticker} from './sticker';
 
-export function makeGlass(parent, dispatcher, data) {
+export function makeDetails(parent, dispatcher, data) {
   startLoading(parent);
 
   const substances = data.substances;

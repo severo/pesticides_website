@@ -31,52 +31,8 @@ $primary-invert: $pink-invert;
 #search {
 }
 
-#glass {
-  min-height: 150px;
-
-  #droplet {
-    strike: none;
-  }
-
-  #liquid {
-    //mix-blend-mode: multiply;
-  }
-
-  #composition-box {
-    border: solid 1px black;
-    padding: 1em;
-
-    // See https://www.w3.org/Style/Examples/007/leaders.en.html
-    ul.substances-list {
-      max-width: 40em;
-      margin-left: 0;
-      padding: 0;
-      overflow-x: hidden;
-      list-style: none;
-    }
-    ul.substances-list li:before {
-      float: left;
-      width: 0;
-      white-space: nowrap;
-      content: '. . . . . . . . . . . . . . . . . . . . '
-        '. . . . . . . . . . . . . . . . . . . . '
-        '. . . . . . . . . . . . . . . . . . . . '
-        '. . . . . . . . . . . . . . . . . . . . '
-        '. . . . . . . . . . . . . . . . . . . . ';
-    }
-    ul.substances-list span:first-child {
-      padding-right: 0.33em;
-      background: white;
-    }
-    ul.substances-list span + span {
-      float: right;
-      padding-left: 0.33em;
-      background: white;
-    }
-  }
-}
-
 #details {
+  min-height: 150px;
   header#idCard {
     h2,
     h3 {
@@ -92,7 +48,7 @@ $primary-invert: $pink-invert;
   }
   .tubes {
     svg {
-      margin: 6px;
+      margin: 20px;
     }
   }
 }

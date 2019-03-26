@@ -8,7 +8,7 @@ import {geoPath} from 'd3-geo';
 export const cfg = {
   substances: {
     integrityHash:
-      'sha384-Zof0DJEE8OqGUJu3ZfX9VMnbz6QlmFDenZUfSgMi6PWQpr6k3cDaBWVG0A8OvJyS',
+      'sha384-x+8+LkBPHNpxP0N0MaCZmnQKUWbjXvnpJ/FHVu7wNBWj8jpcixzDZZXxVAGRXkAg',
     url:
       'https://raw.githubusercontent.com/severo/data_brazil/master/substances.csv',
   },
@@ -103,6 +103,7 @@ export function loadData(dispatcher) {
           code: cur.code,
           limit: +cur.limit,
           name: cur.name,
+          shortName: cur.shortName,
         };
       });
       const substancesRawLut = substancesRaw.reduce((acc, cur) => {

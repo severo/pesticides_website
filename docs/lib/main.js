@@ -18911,7 +18911,7 @@
 
   var cfg = {
     substances: {
-      integrityHash: 'sha384-Zof0DJEE8OqGUJu3ZfX9VMnbz6QlmFDenZUfSgMi6PWQpr6k3cDaBWVG0A8OvJyS',
+      integrityHash: 'sha384-x+8+LkBPHNpxP0N0MaCZmnQKUWbjXvnpJ/FHVu7wNBWj8jpcixzDZZXxVAGRXkAg',
       url: 'https://raw.githubusercontent.com/severo/data_brazil/master/substances.csv'
     },
     // Produced by https://framagit.org/severo/sisagua - export_tests_data()
@@ -18999,7 +18999,8 @@
         return {
           code: cur.code,
           limit: +cur.limit,
-          name: cur.name
+          name: cur.name,
+          shortName: cur.shortName
         };
       });
       var substancesRawLut = substancesRaw.reduce(function (acc, cur) {
@@ -19307,6 +19308,193 @@
       return this._;
     }
   };
+
+  var colorsList = {
+    green: ['#007D73', '#006860'],
+    purple: ['#8F0078', '#770064'],
+    red: ['#c63400', '#A92B00']
+  };
+  var dim = {
+    he: 80,
+    vHe: 1000,
+    vWi: 400,
+    wi: 36
+  };
+  function makeTubes(parent, name, mun, data) {
+    var DETECTED_VALUE = 1e-10;
+    var substances = mun.properties.tests.filter(function (subs) {
+      return subs.max > 0;
+    }).sort(function (subs1, subs2) {
+      // alphabetic order to get some coherence and stability between views
+      return subs1.substance.shortName > subs2.substance.shortName;
+    }).map(function (subs) {
+      return {
+        limit: subs.substance.limit,
+        name: subs.substance.name,
+        shortName: subs.substance.shortName,
+        value: subs.max,
+        valueText: subs.max === DETECTED_VALUE ? 'detected' : subs.max.toLocaleString('pt-BR') + ' μg/L (legal limit: ' + subs.substance.limit.toLocaleString('pt-BR') + ' μg/L)'
+      };
+    });
+    var tubes = parent.append('div').classed('tubes', true);
+    var svg = tubes.selectAll('abbr').data(substances).enter().append('abbr').attr('title', function (subs) {
+      return subs.name + ' - ' + subs.valueText;
+    }).append('svg').attr('width', dim.wi).attr('height', dim.he).attr('viewBox', '0,0,' + dim.vWi + ',' + dim.vHe + '');
+    /* eslint-disable no-magic-numbers */
+
+    drawTube(svg, 300, 1000).attr('transform', 'translate(100, 0)');
+    drawLiquid(svg, 300, 1000).attr('transform', 'translate(100, 0)');
+    drawText(svg, 300, 1000).attr('transform', 'scale(6) rotate(-90) translate(-10 16)');
+  }
+
+  function drawTube(svg, width, height) {
+    /* eslint-disable no-magic-numbers */
+    var tube = svg.append('g');
+    var wid = 1.5 * width / 10;
+    var hei = height - 3 * wid;
+    var mid = width / 2;
+    var colg_a = '#e7f3f8';
+    var colg_b = '#bfdde3';
+    var colg_c = '#cce8eb';
+    var colg_d = '#b1d8df';
+    var da = path();
+    da.rect(0, 0, mid, wid);
+    tube.append('path').attr('fill', colg_a).attr('d', da.toString());
+    var db = path();
+    db.rect(mid, 0, mid, wid);
+    tube.append('path').attr('fill', colg_b).attr('d', db.toString());
+    var dc = path();
+    dc.moveTo(wid, wid);
+    dc.lineTo(wid, hei + wid);
+    dc.quadraticCurveTo(wid, hei + 3 * wid, mid, hei + 3 * wid);
+    dc.lineTo(mid, wid);
+    dc.closePath();
+    tube.append('path').attr('fill', colg_c).attr('d', dc.toString());
+    var dd = path();
+    dd.moveTo(2 * mid - wid, wid);
+    dd.lineTo(2 * mid - wid, hei + wid);
+    dd.quadraticCurveTo(2 * mid - wid, hei + 3 * wid, mid, hei + 3 * wid);
+    dd.lineTo(mid, wid);
+    dd.closePath();
+    tube.append('path').attr('fill', colg_d).attr('d', dd.toString());
+    return tube;
+    /* eslint-enable no-magic-numbers */
+  }
+
+  function drawLiquid(svg, width, height) {
+    /* eslint-disable no-magic-numbers */
+    function getY(value, limit) {
+      // Hand made limits. We lose the exact proportions, but avoid exagerated
+      // bars
+      var min = 0.1;
+      var max = 0.95;
+      var limitFactor = 0.75;
+      var ratio = limitFactor * value / limit;
+
+      if (ratio > max) {
+        ratio = max;
+      } else if (ratio < min) {
+        ratio = min;
+      }
+
+      return 1 - ratio;
+    }
+
+    var colors = colorsList.red;
+    var liquid = svg.append('g');
+    var wid = 1.5 * width / 10;
+    var hei = height - 3 * wid;
+    var mid = width / 2;
+    var coll_a = colors[0];
+    var coll_b = colors[1];
+    liquid.append('path').attr('fill', coll_a).attr('d', function (subs) {
+      var pesY = wid + getY(subs.value, subs.limit) * hei;
+      var dlb = path();
+      dlb.moveTo(2 * mid - 2 * wid, pesY);
+      dlb.lineTo(2 * mid - 2 * wid, hei + wid);
+      dlb.quadraticCurveTo(2 * mid - 2 * wid, hei + 2 * wid, mid, hei + 2 * wid);
+      dlb.lineTo(mid, pesY);
+      dlb.closePath();
+      return dlb.toString();
+    });
+    liquid.append('path').attr('fill', coll_b).attr('d', function (subs) {
+      var pesY = wid + getY(subs.value, subs.limit) * hei;
+      var dlb = path();
+      dlb.moveTo(2 * wid, pesY);
+      dlb.lineTo(2 * wid, hei + wid);
+      dlb.quadraticCurveTo(2 * wid, hei + 2 * wid, mid, hei + 2 * wid);
+      dlb.lineTo(mid, pesY);
+      dlb.closePath();
+      return dlb.toString();
+    });
+    return liquid;
+  }
+
+  function drawText(svg, width, height) {
+    /* eslint-disable no-magic-numbers */
+    var name = svg.append('g');
+    /*const wid = (1.5 * dim.vWi) / 10;
+    const hei = dim.vHe - 3 * wid;
+    const mid = dim.vWi / 2;*/
+
+    name.append('text').attr('x', 0).attr('y', 0).style('text-anchor', 'end').text(function (subs) {
+      return subs.shortName;
+    });
+    return name;
+    /* eslint-enable no-magic-numbers */
+  }
+
+  function makeDetails(parent, dispatcher, data) {
+    startLoading$1(parent);
+    makeUpperLayerBrazil(parent, dispatcher, data);
+    dispatcher.on('to-brazil-view.details', function (brazilData) {
+      makeUpperLayerBrazil(parent, dispatcher, data);
+    });
+    dispatcher.on('to-mun-view.details', function (mun) {
+      makeUpperLayer(parent, dispatcher, mun, data);
+    });
+    endLoading$1(parent);
+  }
+
+  function makeUpperLayerBrazil(parent, dispatcher, data) {
+    parent.html(null);
+    makeHeader(parent, 'Brazil');
+    parent.append('p').html('[work in progress... show a message - search or click]');
+  }
+
+  function makeUpperLayer(parent, dispatcher, mun, data) {
+    parent.html(null);
+    makeHeader(parent, mun.properties.name, mun.properties.fuName);
+    parent.append('p').html('<strong>Population:</strong> ' + (+mun.properties.population).toLocaleString('pt-BR'));
+
+    if (!('number' in mun.properties)) {
+      parent.append('header').html('No data about agrotoxics inside drinking water in ' + mun.properties.name + '.');
+    } else if (mun.properties.number.detected === 0) {
+      parent.append('header').html('No agrotoxics detected inside drinking water in ' + mun.properties.name + '.');
+    } else {
+      parent.append('header').html('The drinking water in ' + name + ' contains <strong>' + mun.properties.number.detected + ' different agrotoxics</strong>.');
+      makeTubes(parent, name, mun, data);
+    }
+  }
+
+  function makeHeader(parent, title, subtitle) {
+    var header = parent.append('header').attr('id', 'idCard');
+    header.append('h2').text(title);
+
+    if (subtitle) {
+      var fu = header.append('h3'); // TODO: add an icon
+
+      fu.append('span').text('📌 ' + subtitle);
+    }
+  }
+
+  function startLoading$1(element) {
+    element.classed('is-loading', true);
+  }
+
+  function endLoading$1(element) {
+    element.classed('is-loading', false);
+  }
 
   var slice$1 = Array.prototype.slice;
 
@@ -24703,169 +24891,6 @@
     bezierCurveTo: function(x1, y1, x2, y2, x, y) { this._context.bezierCurveTo(y1, x1, y2, x2, y, x); }
   };
 
-  function makeSticker(box, name, value, substancesLut, mun) {
-    /* eslint-disable */
-    var DETECTED_VALUE = 1e-10;
-    var substances = [{
-      emoji: '💧',
-      name: 'Water',
-      value: ''
-    }];
-    mun.properties.tests.sort(function (test1, test2) {
-      return test2.max > test1.max;
-    }).forEach(function (test) {
-      if (test.max > 0) {
-        substances.push({
-          emoji: '💀',
-          name: test.substance.name,
-          value: test.max === DETECTED_VALUE ? '' : test.max.toLocaleString('pt-BR')
-        });
-      }
-    });
-    /* eslint-enable */
-
-    box.html(null);
-    var header = box.append('header').classed('has-text-centered', true);
-    header.append('h2').classed('is-4', true).text('Composition in mg/L');
-    header.append('h4').classed('is-6', true).text(name);
-    var list = box.append('ul').classed('substances-list', true).selectAll('li').data(substances).enter().append('li');
-    list.append('span').classed('name', true) // TODO: replace emoji by an SVG icon
-    .text(function (substance) {
-      return substance.emoji + ' ' + substance.name;
-    });
-    list.append('span').classed('value', true).text(function (substance) {
-      return substance.value;
-    });
-  }
-
-  function makeGlass(parent, dispatcher, data) {
-    startLoading$1(parent);
-    var substances = data.substances;
-    makeBasis(parent); // Init
-
-    makeUpperLayerBrazil(parent, dispatcher, data);
-    dispatcher.on('to-brazil-view.glass', function (brazilData) {
-      makeUpperLayerBrazil(parent, dispatcher, data);
-    });
-    dispatcher.on('to-mun-view.glass', function (mun) {
-      makeUpperLayer(parent, dispatcher, mun.properties.name, getValue$1(mun), substances, mun);
-    });
-    endLoading$1(parent);
-  }
-
-  function makeUpperLayerBrazil(parent, dispatcher, data) {
-    makeUpperLayer(parent, dispatcher, 'Brazil', data.brazil.features[0].properties.tests.filter(function (test) {
-      return test.max > 0;
-    }).length, data.substances, data.brazil.features[0]);
-  }
-
-  function makeUpperLayer(parent, dispatcher, name, value, substances, mun) {
-    if (!Number.isInteger(value)) {
-      parent.select('header.header').html('No data about agrotoxics inside drinking water in ' + name + '.');
-      parent.select('#droplet').style('fill', '#eee');
-      parent.select('#liquid').style('fill', '#eee');
-      parent.select('#composition-box').classed('is-hidden', true);
-    } else if (value === 0) {
-      // TODO: better manage the color
-      parent.select('header.header').html('No agrotoxics detected inside drinking water in ' + name + '.');
-      parent.select('#droplet').style('fill', '#5dadec');
-      parent.select('#liquid').style('fill', '#5dadec');
-      parent.select('#composition-box').classed('is-hidden', false);
-    } else {
-      parent.select('header.header').html('The drinking water in ' + name + ' contains <strong>' + value + ' different agrotoxics</strong>.');
-      parent.select('#droplet').style('fill', getColor(value));
-      parent.select('#liquid').style('fill', getColor(value));
-      parent.select('#composition-box').classed('is-hidden', false);
-    }
-
-    makeSticker(parent.select('#composition-box'), name, value, substances, mun);
-  }
-
-  var cfg$1 = {
-    field: 'detected',
-    max: 27
-  };
-  var colorScale = linear$1().domain([0, cfg$1.max]).interpolate(function () {
-    return interpolateYlOrRd;
-  });
-
-  function getValue$1(ft) {
-    if ('number' in ft.properties) {
-      return ft.properties.number[cfg$1.field];
-    }
-
-    return null;
-  }
-
-  function getColor(value) {
-    if (Number.isInteger(value)) {
-      return colorScale(value);
-    }
-
-    return null;
-  }
-
-  function startLoading$1(element) {
-    element.classed('is-loading', true);
-  }
-
-  function endLoading$1(element) {
-    element.classed('is-loading', false);
-  }
-
-  function makeBasis(parent) {
-    parent.append('header').classed('header', true);
-    var vpW = 1000;
-    var vpH = 500;
-    var svg = parent.append('svg').attr('viewBox', '0,0,' + vpW + ',' + vpH + '');
-    var droplet = svg.append('g').attr('id', 'svg-droplet');
-    makeSvgDroplet(droplet);
-    droplet.attr('transform', 'translate(455,30) scale(3)');
-    var glass = svg.append('g').attr('id', 'svg-glass');
-    var glassWidth = 300;
-    var glassHeight = 300;
-    makeSvgGlass(glass, glassWidth, glassHeight);
-    glass.attr('transform', 'translate(350,200)');
-    parent.append('div').attr('id', 'composition-box');
-  }
-
-  function makeSvgDroplet(droplet) {
-    /* eslint-disable no-magic-numbers */
-    // droplet - see https://stackoverflow.com/a/30712432/7351594
-    droplet.html("<path\n      id=\"droplet\"\n      d=\"M15 3\n           Q16.5 6.8 25 18\n           A12.8 12.8 0 1 1 5 18\n           Q13.5 6.8 15 3z\"\n    />");
-    /* eslint-enable no-magic-numbers */
-  }
-
-  function makeSvgGlass(glass, width, height) {
-    /* eslint-disable no-magic-numbers */
-    var qWidth = width / 4;
-    var qqWidth = qWidth / 4;
-    var qHeight = height / 4;
-    var thickness = width / 20; // glass
-
-    glass.append('path').attr('d', function () {
-      var path$1 = path();
-      path$1.moveTo(0, 0);
-      path$1.lineTo(qWidth, height);
-      path$1.lineTo(width - qWidth, height);
-      path$1.lineTo(width, 0);
-      path$1.closePath();
-      return path$1.toString();
-    }).style('fill', '#d5e5f2'); //'#e7f3f8');
-    // liquid
-
-    glass.append('path').attr('id', 'liquid').attr('d', function () {
-      var path$1 = path();
-      path$1.moveTo(qqWidth + thickness, qHeight);
-      path$1.lineTo(qWidth + thickness, height - thickness);
-      path$1.lineTo(width - qWidth - thickness, height - thickness);
-      path$1.lineTo(width - qqWidth - thickness, qHeight);
-      path$1.closePath();
-      return path$1.toString();
-    }).style('fill', 'none');
-    /* eslint-enable no-magic-numbers */
-  }
-
   /* Reminder of the data available from the CSV
   category: {
     atrAvgCat: row.atrazine_atrazine_category,
@@ -24882,7 +24907,7 @@
   },
   */
 
-  var cfg$2 = {
+  var cfg$1 = {
     field: 'detected',
     legend: {
       height: 10,
@@ -24909,50 +24934,50 @@
       return null;
     }).on('mouseover', function (ft, element) {
       // invoke callbacks
-      dispatcher.call(cfg$2.typename.mouseover, null, {
+      dispatcher.call(cfg$1.typename.mouseover, null, {
         properties: ft.properties,
         value: value(ft)
       });
     }).on('mouseout', function (ft, element) {
       // invoke callbacks
-      dispatcher.call(cfg$2.typename.mouseout);
+      dispatcher.call(cfg$1.typename.mouseout);
     }).on('click', function (ft, element) {
       // invoke callbacks
-      dispatcher.call(cfg$2.typename.click, null, ft);
+      dispatcher.call(cfg$1.typename.click, null, ft);
     });
     makeLegend(parent);
   }
 
   function value(ft) {
     if ('number' in ft.properties) {
-      return ft.properties.number[cfg$2.field];
+      return ft.properties.number[cfg$1.field];
     }
 
     return null;
   }
 
-  var color$1 = linear$1().domain([0, cfg$2.max]).interpolate(function () {
+  var color$1 = linear$1().domain([0, cfg$1.max]).interpolate(function () {
     return interpolateYlOrRd;
   });
 
   function makeLegend(parent) {
     // TODO: should be a scheme (27 colors), not a continuous scale
-    var xx = linear$1().domain(color$1.domain()).rangeRound([0, cfg$2.legend.width * cfg$2.max]);
+    var xx = linear$1().domain(color$1.domain()).rangeRound([0, cfg$1.legend.width * cfg$1.max]);
     var legend = parent.append('g') //.style('font-size', '0.8rem')
     //.style('font-family', 'sans-serif')
     .attr('transform', 'translate(550,50)');
-    legend.selectAll('rect').data(sequence(0, cfg$2.max, 1)).enter().append('rect').attr('height', cfg$2.legend.height).attr('x', function (el) {
+    legend.selectAll('rect').data(sequence(0, cfg$1.max, 1)).enter().append('rect').attr('height', cfg$1.legend.height).attr('x', function (el) {
       return xx(el);
-    }).attr('width', cfg$2.legend.width).attr('fill', function (el) {
+    }).attr('width', cfg$1.legend.width).attr('fill', function (el) {
       return color$1(el);
     });
     var label = legend.append('g').attr('fill', '#000').attr('text-anchor', 'start'); // TODO: i18n
 
-    label.append('text').attr('y', -cfg$2.legend.titleOffset).attr('font-weight', 'bold').text('Number of pesticides detected in drinking water'); // TODO: i18n
+    label.append('text').attr('y', -cfg$1.legend.titleOffset).attr('font-weight', 'bold').text('Number of pesticides detected in drinking water'); // TODO: i18n
 
-    label.append('text').attr('y', -cfg$2.legend.subtitleOffset).text('(white: no pesticide, purple: 27 different pesticides)'); // Scale
+    label.append('text').attr('y', -cfg$1.legend.subtitleOffset).text('(white: no pesticide, purple: 27 different pesticides)'); // Scale
 
-    legend.append('g').call(axisBottom(xx).tickSize(cfg$2.legend.tickSize)).select('.domain').remove();
+    legend.append('g').call(axisBottom(xx).tickSize(cfg$1.legend.tickSize)).select('.domain').remove();
   }
 
   function createFuFrontiers(parent, path, data) {
@@ -28866,7 +28891,7 @@
     return annotation;
   }
 
-  var cfg$3 = {
+  var cfg$2 = {
     nx: 200,
     ny: 700
   };
@@ -28888,8 +28913,8 @@
         label: Number.isInteger(data.value) ? data.value + ' pesticide(s) found in the drinking water.' : 'Never tested.',
         title: data.properties.name + ' (' + data.properties.fuName + ')'
       },
-      nx: cfg$3.nx,
-      ny: cfg$3.ny,
+      nx: cfg$2.nx,
+      ny: cfg$2.ny,
       x: data.properties.centroid[0],
       // eslint-disable-line id-length
       y: data.properties.centroid[1] // eslint-disable-line id-length
@@ -28897,7 +28922,7 @@
     }]);
   }
 
-  var cfg$4 = {
+  var cfg$3 = {
     viewport: {
       height: 960,
       width: 960
@@ -28908,7 +28933,7 @@
     // TODO: be more clever?
 
     parent.html(null);
-    var svg = parent.append('svg').attr('viewBox', '0,0,' + cfg$4.viewport.width + ',' + cfg$4.viewport.height); // Path is a function that transforms a geometry (a point, a line, a
+    var svg = parent.append('svg').attr('viewBox', '0,0,' + cfg$3.viewport.width + ',' + cfg$3.viewport.height); // Path is a function that transforms a geometry (a point, a line, a
     // polygon) into a SVG path (also allows to generate canvas paths, for
     // example)
     // Note that it takes geographic coordinates as an input, not planar ones
@@ -29037,8 +29062,8 @@
   dispatcher.on('data-loaded.breadcrumb', function (data) {
     makeBreadcrumb(select('nav#breadcrumb'), dispatcher, data);
   });
-  dispatcher.on('data-loaded.glass', function (data) {
-    makeGlass(select('section#glass'), dispatcher, data);
+  dispatcher.on('data-loaded.details', function (data) {
+    makeDetails(select('section#details'), dispatcher, data);
   });
   dispatcher.on('data-loaded.map', function (data) {
     makeMap(select('section#map'), dispatcher, data);
