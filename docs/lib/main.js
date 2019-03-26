@@ -18907,7 +18907,21 @@
     return path.projection(projection).context(context);
   }
 
+  // cat substances.csv | openssl dgst -sha384 -binary | openssl base64 -A
+
   var cfg = {
+    substances: {
+      integrityHash: 'sha384-Zof0DJEE8OqGUJu3ZfX9VMnbz6QlmFDenZUfSgMi6PWQpr6k3cDaBWVG0A8OvJyS',
+      url: 'https://raw.githubusercontent.com/severo/data_brazil/master/substances.csv'
+    },
+    // Produced by https://framagit.org/severo/sisagua - export_tests_data()
+    // Exported in CSV in https://gist.github.com/severo/55c718f7a22ede328332496bf7b0d1af
+    // Transformed in JSON in https://observablehq.com/d/157dd55cf0b24e0c
+    // Published in https://github.com/severo/data_brazil
+    tests: {
+      integrityHash: 'sha384-A0apYNqz52d3JYGAxIZ0NAZL62PfXiD0EvxqA79yyqteRm526Thk7HSx4RkbTHmS',
+      url: 'https://raw.githubusercontent.com/severo/data_brazil/master/tests_data.json'
+    },
     topojson: {
       integrityHash: 'sha384-T57m5+BaBiLe7uyAZrKOU/BqCXtK9t0ZIj+YXAUES8EOxrngeVCKflSzZXnB9kVd',
       url: 'data/br-px-topo.2019031701.json'
@@ -18949,7 +18963,11 @@
   function loadData(dispatcher) {
     var _this = this;
 
-    var promises = [json(cfg.topojson.url, {
+    var promises = [json(cfg.tests.url, {
+      integrity: cfg.tests.integrityHash
+    }), csv$1(cfg.substances.url, {
+      integrity: cfg.substances.integrityHash
+    }), json(cfg.topojson.url, {
       integrity: cfg.topojson.integrityHash
     }), csv$1(cfg.values.url, {
       integrity: cfg.values.integrityHash
@@ -18972,8 +18990,21 @@
     })];
     return Promise.all(promises).then(function (results) {
       // All datasets have been loaded and checked successfully
-      var topo = results[0];
-      var values = results[1].reduce(function (acc, cur) {
+      var TESTS_IDX = 0;
+      var SUBST_IDX = 1;
+      var TOPO_IDX = 2;
+      var VALUES_IDX = 3;
+      var tests = results[TESTS_IDX];
+      var substancesLut = results[SUBST_IDX].reduce(function (acc, cur) {
+        acc[cur.code] = {
+          code: cur.code,
+          limit: +cur.limit,
+          name: cur.name
+        };
+        return acc;
+      }, {});
+      var topo = results[TOPO_IDX];
+      var values = results[VALUES_IDX].reduce(function (acc, cur) {
         acc[cur.ibgeCode] = cur;
         return acc;
       }, {});
@@ -18981,14 +19012,17 @@
         brazil: toFeatures(topo, 'republic'),
         fu: toFeatures(topo, 'federative-units'),
         internalFu: toFeatures(topo, 'internal-federative-units'),
-        mun: toFeatures(topo, 'municipalities')
+        mun: toFeatures(topo, 'municipalities'),
+        substancesLut: substancesLut
       };
       data.mun.features = data.mun.features.map(function (ft) {
         if (ft.properties.ibgeCode in values) {
           ft.properties.category = values[ft.properties.ibgeCode].category;
           ft.properties.number = values[ft.properties.ibgeCode].number;
-        } else {
-          ft.properties.values = {};
+        }
+
+        if (ft.properties.ibgeCode in tests) {
+          ft.properties.tests = parseTests(tests[ft.properties.ibgeCode], substancesLut);
         } // TODO: added for use in the search input. But the search could be
         // improved with Intl.Collator. In case it's improved in search/index.js
         // don't forget to modify here.
@@ -19025,6 +19059,34 @@
       return ft;
     });
     return features;
+  }
+
+  function parseTests(tests, substancesLut) {
+    // Placeholder to compute max
+    var DETECTED_VALUE = 1e-10;
+    var keys = Object.keys(tests);
+    return keys.reduce(function (acc, substanceCode) {
+      var test = tests[substanceCode];
+      var fTest = {
+        substance: substancesLut[substanceCode],
+        tests: test.map(function (str) {
+          if (str === 'NA') {
+            return DETECTED_VALUE;
+          }
+
+          return +str;
+        })
+      };
+      fTest.max = fTest.tests.reduce(function (max, cur) {
+        if (cur > max) {
+          max = cur;
+        }
+
+        return max;
+      }, -Infinity);
+      acc.push(fTest);
+      return acc;
+    }, []);
   }
 
   function makeBreadcrumb(parent, dispatcher, data) {
@@ -23284,6 +23346,8 @@
   var saturday = weekday(6);
 
   var sundays = sunday.range;
+  var mondays = monday.range;
+  var thursdays = thursday.range;
 
   var month = newInterval(function(date) {
     date.setDate(1);
@@ -23373,6 +23437,8 @@
   var utcSaturday = utcWeekday(6);
 
   var utcSundays = utcSunday.range;
+  var utcMondays = utcMonday.range;
+  var utcThursdays = utcThursday.range;
 
   var utcMonth = newInterval(function(date) {
     date.setUTCDate(1);
@@ -24581,7 +24647,7 @@
   var water = {
     emoji: '💧',
     name: 'Water',
-    value: NaN
+    value: ''
   };
   var pesticides = [{
     emoji: '💀',
@@ -24596,18 +24662,34 @@
     name: 'Gliphosate',
     value: 0.4
   }];
-  function makeSticker(box, name, value) {
+  function makeSticker(box, name, value, substancesLut, mun) {
     /* eslint-disable */
+    var DETECTED_VALUE = 1e-10;
     var substances = [water];
 
-    if (Number.isInteger(value)) {
-      Array.from({
-        length: value
-      }, function (_, i) {
-        return i;
-      }).forEach(function (i) {
-        substances.push(pesticides[i % 3]);
+    if ('properties' in mun && 'tests' in mun.properties) {
+      var tests = mun.properties.tests.sort(function (test1, test2) {
+        return test2.max > test1.max;
+      }).forEach(function (test) {
+        if (test.max > 0) {
+          substances.push({
+            emoji: '💀',
+            name: test.substance.name,
+            value: test.max === DETECTED_VALUE ? 'detected' : test.max.toLocaleString('pt-BR')
+          });
+        }
       });
+    } else {
+      // Fake data for Brazil for now
+      if (Number.isInteger(value)) {
+        Array.from({
+          length: value
+        }, function (_, i) {
+          return i;
+        }).forEach(function (i) {
+          substances.push(pesticides[i % 3]);
+        });
+      }
     }
     /* eslint-enable */
 
@@ -24622,27 +24704,28 @@
       return substance.emoji + ' ' + substance.name;
     });
     list.append('span').classed('value', true).text(function (substance) {
-      return isNaN(substance.value) ? '' : substance.value.toLocaleString('pt-BR');
+      return substance.value;
     });
   }
 
   function makeGlass(parent, dispatcher, data) {
     startLoading$1(parent);
+    var substances = data.substances;
     makeBasis(parent); // Init
     // TODO: compute the mean color for Brazil
 
     var fakeNum = 17;
-    makeUpperLayer(parent, dispatcher, 'Brazil', fakeNum);
+    makeUpperLayer(parent, dispatcher, 'Brazil', fakeNum, substances, {});
     dispatcher.on('to-brazil-view.glass', function (brazilData) {
-      makeUpperLayer(parent, dispatcher, 'Brazil', fakeNum);
+      makeUpperLayer(parent, dispatcher, 'Brazil', fakeNum, substances, {});
     });
     dispatcher.on('to-mun-view.glass', function (mun) {
-      makeUpperLayer(parent, dispatcher, mun.properties.name, getValue$1(mun));
+      makeUpperLayer(parent, dispatcher, mun.properties.name, getValue$1(mun), substances, mun);
     });
     endLoading$1(parent);
   }
 
-  function makeUpperLayer(parent, dispatcher, name, value) {
+  function makeUpperLayer(parent, dispatcher, name, value, substances, mun) {
     if (!Number.isInteger(value)) {
       parent.select('header.header').html('No data about agrotoxics inside drinking water in ' + name + '.');
       parent.select('#droplet').style('fill', '#eee');
@@ -24661,11 +24744,11 @@
       parent.select('#composition-box').classed('is-hidden', false);
     }
 
-    makeSticker(parent.select('#composition-box'), name, value);
+    makeSticker(parent.select('#composition-box'), name, value, substances, mun);
   }
 
   var cfg$1 = {
-    field: 'supEu',
+    field: 'detected',
     max: 27
   };
   var colorScale = linear$1().domain([0, cfg$1.max]).interpolate(function () {
@@ -24766,7 +24849,7 @@
   */
 
   var cfg$2 = {
-    field: 'supEu',
+    field: 'detected',
     legend: {
       height: 10,
       subtitleOffset: 8,

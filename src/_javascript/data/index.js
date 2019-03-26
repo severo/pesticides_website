@@ -3,7 +3,25 @@ import {deburr} from 'lodash-es';
 import {feature} from 'topojson';
 import {geoPath} from 'd3-geo';
 
+// integrity hash computed with:
+// cat substances.csv | openssl dgst -sha384 -binary | openssl base64 -A
 export const cfg = {
+  substances: {
+    integrityHash:
+      'sha384-Zof0DJEE8OqGUJu3ZfX9VMnbz6QlmFDenZUfSgMi6PWQpr6k3cDaBWVG0A8OvJyS',
+    url:
+      'https://raw.githubusercontent.com/severo/data_brazil/master/substances.csv',
+  },
+  // Produced by https://framagit.org/severo/sisagua - export_tests_data()
+  // Exported in CSV in https://gist.github.com/severo/55c718f7a22ede328332496bf7b0d1af
+  // Transformed in JSON in https://observablehq.com/d/157dd55cf0b24e0c
+  // Published in https://github.com/severo/data_brazil
+  tests: {
+    integrityHash:
+      'sha384-A0apYNqz52d3JYGAxIZ0NAZL62PfXiD0EvxqA79yyqteRm526Thk7HSx4RkbTHmS',
+    url:
+      'https://raw.githubusercontent.com/severo/data_brazil/master/tests_data.json',
+  },
   topojson: {
     integrityHash:
       'sha384-T57m5+BaBiLe7uyAZrKOU/BqCXtK9t0ZIj+YXAUES8EOxrngeVCKflSzZXnB9kVd',
@@ -49,6 +67,8 @@ const fuNames = {
 
 export function loadData(dispatcher) {
   const promises = [
+    json(cfg.tests.url, {integrity: cfg.tests.integrityHash}),
+    csv(cfg.substances.url, {integrity: cfg.substances.integrityHash}),
     json(cfg.topojson.url, {integrity: cfg.topojson.integrityHash}),
     csv(cfg.values.url, {integrity: cfg.values.integrityHash}, row => {
       return {
@@ -72,8 +92,21 @@ export function loadData(dispatcher) {
   return Promise.all(promises)
     .then(results => {
       // All datasets have been loaded and checked successfully
-      const topo = results[0];
-      const values = results[1].reduce((acc, cur) => {
+      const TESTS_IDX = 0;
+      const SUBST_IDX = 1;
+      const TOPO_IDX = 2;
+      const VALUES_IDX = 3;
+      const tests = results[TESTS_IDX];
+      const substancesLut = results[SUBST_IDX].reduce((acc, cur) => {
+        acc[cur.code] = {
+          code: cur.code,
+          limit: +cur.limit,
+          name: cur.name,
+        };
+        return acc;
+      }, {});
+      const topo = results[TOPO_IDX];
+      const values = results[VALUES_IDX].reduce((acc, cur) => {
         acc[cur.ibgeCode] = cur;
         return acc;
       }, {});
@@ -83,19 +116,25 @@ export function loadData(dispatcher) {
         fu: toFeatures(topo, 'federative-units'),
         internalFu: toFeatures(topo, 'internal-federative-units'),
         mun: toFeatures(topo, 'municipalities'),
+        substancesLut: substancesLut,
       };
       data.mun.features = data.mun.features.map(ft => {
         if (ft.properties.ibgeCode in values) {
           ft.properties.category = values[ft.properties.ibgeCode].category;
           ft.properties.number = values[ft.properties.ibgeCode].number;
-        } else {
-          ft.properties.values = {};
+        }
+        if (ft.properties.ibgeCode in tests) {
+          ft.properties.tests = parseTests(
+            tests[ft.properties.ibgeCode],
+            substancesLut
+          );
         }
         // TODO: added for use in the search input. But the search could be
         // improved with Intl.Collator. In case it's improved in search/index.js
         // don't forget to modify here.
         ft.properties.deburredName = deburr(ft.properties.name);
         ft.properties.fuName = fuNames[ft.properties.fu];
+
         return ft;
       });
 
@@ -131,4 +170,30 @@ function toFeatures(topojson, key) {
     return ft;
   });
   return features;
+}
+
+function parseTests(tests, substancesLut) {
+  // Placeholder to compute max
+  const DETECTED_VALUE = 1e-10;
+  const keys = Object.keys(tests);
+  return keys.reduce((acc, substanceCode) => {
+    const test = tests[substanceCode];
+    const fTest = {
+      substance: substancesLut[substanceCode],
+      tests: test.map(str => {
+        if (str === 'NA') {
+          return DETECTED_VALUE;
+        }
+        return +str;
+      }),
+    };
+    fTest.max = fTest.tests.reduce((max, cur) => {
+      if (cur > max) {
+        max = cur;
+      }
+      return max;
+    }, -Infinity);
+    acc.push(fTest);
+    return acc;
+  }, []);
 }

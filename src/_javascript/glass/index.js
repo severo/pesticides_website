@@ -5,25 +5,33 @@ import {makeSticker} from './sticker';
 export function makeGlass(parent, dispatcher, data) {
   startLoading(parent);
 
+  const substances = data.substances;
   makeBasis(parent);
 
   // Init
   // TODO: compute the mean color for Brazil
   const fakeNum = 17;
-  makeUpperLayer(parent, dispatcher, 'Brazil', fakeNum);
+  makeUpperLayer(parent, dispatcher, 'Brazil', fakeNum, substances, {});
 
   dispatcher.on('to-brazil-view.glass', brazilData => {
-    makeUpperLayer(parent, dispatcher, 'Brazil', fakeNum);
+    makeUpperLayer(parent, dispatcher, 'Brazil', fakeNum, substances, {});
   });
 
   dispatcher.on('to-mun-view.glass', mun => {
-    makeUpperLayer(parent, dispatcher, mun.properties.name, getValue(mun));
+    makeUpperLayer(
+      parent,
+      dispatcher,
+      mun.properties.name,
+      getValue(mun),
+      substances,
+      mun
+    );
   });
 
   endLoading(parent);
 }
 
-function makeUpperLayer(parent, dispatcher, name, value) {
+function makeUpperLayer(parent, dispatcher, name, value, substances, mun) {
   if (!Number.isInteger(value)) {
     parent
       .select('header.header')
@@ -54,11 +62,11 @@ function makeUpperLayer(parent, dispatcher, name, value) {
     parent.select('#composition-box').classed('is-hidden', false);
   }
 
-  makeSticker(parent.select('#composition-box'), name, value);
+  makeSticker(parent.select('#composition-box'), name, value, substances, mun);
 }
 
 const cfg = {
-  field: 'supEu',
+  field: 'detected',
   max: 27,
 };
 

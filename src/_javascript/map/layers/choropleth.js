@@ -17,7 +17,7 @@ number: {
 },
 */
 const cfg = {
-  field: 'supEu',
+  field: 'detected',
   legend: {
     height: 10,
     subtitleOffset: 8,
