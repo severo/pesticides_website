@@ -19481,15 +19481,20 @@
     /* eslint-enable no-magic-numbers */
   }
 
+  var DETECTED_VALUE = 1e-10;
   function makeDetails(parent, dispatcher, view, data) {
     startLoading$1(parent);
     makeBrazil$1(parent, dispatcher, data);
     dispatcher.on('to-brazil-view.details', function (brazilData) {
       makeBrazil$1(parent, dispatcher, data);
-    });
+    }); // TODO - select control to choose the parameter (Tebuconazol meanwhile)
+
+    var substance = data.substancesLut['25'];
     dispatcher.on('to-mun-view.details', function (mun) {
       if (view === 'limits') {
         makeLimits(parent, dispatcher, mun, data);
+      } else if (view === 'substances') {
+        makeSubstance(parent, dispatcher, mun, data, substance);
       } else {
         makeCocktail(parent, dispatcher, mun, data);
       }
@@ -19530,6 +19535,51 @@
     } else {
       parent.append('header').html('<strong>' + mun.properties.number.supBr + ' agrotoxic(s)</strong> detected above legal limit in ' + mun.properties.name + '.');
       makeTubesLimits(parent, name, mun, data);
+    }
+  }
+
+  function makeSubstance(parent, dispatcher, mun, data, substance) {
+    parent.html(null);
+    makeHeader(parent, mun.properties.name, mun.properties.fuName);
+    parent.append('p').html('<strong>Population:</strong> ' + (+mun.properties.population).toLocaleString('pt-BR'));
+
+    if (!('tests' in mun.properties)) {
+      parent.append('header').html(substance.name + ' has never been tested  in ' + mun.properties.name + '.');
+    } else {
+      var subst = mun.properties.tests.filter(function (sub) {
+        return sub.substance.code === substance.code;
+      });
+
+      if (subst.length === 0) {
+        parent.append('header').html(substance.name + ' has never been tested  in ' + mun.properties.name + '.');
+      } else {
+        // eslint-disable-next-line no-inner-declarations
+        var pct = function pct(val) {
+          return (// eslint-disable-next-line no-magic-numbers
+            (Math.floor(10000 * val / tests.length) / 100).toLocaleString('pt-BR') + '%'
+          );
+        };
+
+        var tests = subst[0].tests;
+        parent.append('header').html('<strong>' + tests.length + ' measurement(s)</strong> for ' + substance.name + ' in ' + mun.properties.name + '. The detail is:');
+        var ul = parent.append('ul');
+        var detected = tests.filter(function (test) {
+          return test > 0;
+        }).length;
+        ul.append('li').text(detected + ' detections (' + pct(detected) + ')');
+        var equal = tests.filter(function (test) {
+          return test === substance.limit;
+        }).length;
+        ul.append('li').text(equal + ' measurements exactly equal to the legal limit (' + pct(equal) + ')');
+        var above = tests.filter(function (test) {
+          return test > substance.limit;
+        }).length;
+        ul.append('li').text(above + ' measurements above the legal limit (' + pct(above) + ')');
+
+        if (subst[0].max && subst[0].max > DETECTED_VALUE) {
+          ul.append('li').text('Max detected concentration: ' + subst[0].max.toLocaleString('pt-BR') + ' μg/L');
+        }
+      }
     }
   }
 
@@ -23659,6 +23709,8 @@
   var saturday = weekday(6);
 
   var sundays = sunday.range;
+  var mondays = monday.range;
+  var thursdays = thursday.range;
 
   var month = newInterval(function(date) {
     date.setDate(1);
@@ -23748,6 +23800,8 @@
   var utcSaturday = utcWeekday(6);
 
   var utcSundays = utcSunday.range;
+  var utcMondays = utcMonday.range;
+  var utcThursdays = utcThursday.range;
 
   var utcMonth = newInterval(function(date) {
     date.setUTCDate(1);
@@ -29257,14 +29311,14 @@
     }]);
   }
 
-  var DETECTED_VALUE = 1e-10;
+  var DETECTED_VALUE$1 = 1e-10;
 
   function message$1(value, substance) {
     if (value === null) {
       return 'Never tested.';
     } else if (value === 0) {
       return 'Never detected.';
-    } else if (value === DETECTED_VALUE) {
+    } else if (value === DETECTED_VALUE$1) {
       return 'Detected, but not quantized.';
     }
 
