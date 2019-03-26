@@ -96,29 +96,35 @@ export function loadData(dispatcher) {
       const SUBST_IDX = 1;
       const TOPO_IDX = 2;
       const VALUES_IDX = 3;
-      const tests = results[TESTS_IDX];
-      const substancesLut = results[SUBST_IDX].reduce((acc, cur) => {
-        acc[cur.code] = {
+
+      // Substances
+      const substancesRaw = results[SUBST_IDX].map(cur => {
+        return {
           code: cur.code,
           limit: +cur.limit,
           name: cur.name,
         };
+      });
+      const substancesRawLut = substancesRaw.reduce((acc, cur) => {
+        acc[cur.code] = cur;
         return acc;
       }, {});
+
+      // Tests
+      const tests = results[TESTS_IDX];
+
+      // Topologic data
       const topo = results[TOPO_IDX];
+
+      // Statistics
       const values = results[VALUES_IDX].reduce((acc, cur) => {
         acc[cur.ibgeCode] = cur;
         return acc;
       }, {});
 
-      const data = {
-        brazil: toFeatures(topo, 'republic'),
-        fu: toFeatures(topo, 'federative-units'),
-        internalFu: toFeatures(topo, 'internal-federative-units'),
-        mun: toFeatures(topo, 'municipalities'),
-        substancesLut: substancesLut,
-      };
-      data.mun.features = data.mun.features.map(ft => {
+      // Municipalities
+      const mun = toFeatures(topo, 'municipalities');
+      mun.features = mun.features.map(ft => {
         if (ft.properties.ibgeCode in values) {
           ft.properties.category = values[ft.properties.ibgeCode].category;
           ft.properties.number = values[ft.properties.ibgeCode].number;
@@ -126,9 +132,10 @@ export function loadData(dispatcher) {
         if (ft.properties.ibgeCode in tests) {
           ft.properties.tests = parseTests(
             tests[ft.properties.ibgeCode],
-            substancesLut
+            substancesRawLut
           );
         }
+        //data.brazil.features[0].properties
         // TODO: added for use in the search input. But the search could be
         // improved with Intl.Collator. In case it's improved in search/index.js
         // don't forget to modify here.
@@ -137,6 +144,72 @@ export function loadData(dispatcher) {
 
         return ft;
       });
+
+      // Add statistical data to substances
+      function median(arr) {
+        /* eslint-disable */
+        arr = arr.sort((v1, v2) => {
+          return v1 - v2;
+        });
+        const half = arr.length / 2;
+        return half % 1 == 0
+          ? (arr[half - 1] + arr[half]) / 2
+          : arr[Math.floor(half)];
+        /* eslint-enable */
+      }
+      const substances = substancesRaw.map(sub => {
+        const testedIn = mun.features.filter(ft => {
+          if (!('tests' in ft.properties)) {
+            return false;
+          }
+          return (
+            ft.properties.tests.filter(test => test.substance.code === sub.code)
+              .length === 1
+          );
+        });
+        const detectedIn = testedIn.filter(ft => {
+          const subTest = ft.properties.tests.filter(
+            test => test.substance.code === sub.code
+          )[0];
+          return subTest.max > 0;
+        });
+        const medianConcentration = median(
+          testedIn.map(ft => {
+            const subTest = ft.properties.tests.filter(
+              test => test.substance.code === sub.code
+            )[0];
+            return subTest.max;
+          })
+        );
+        return {
+          code: sub.code,
+          detectedIn: detectedIn.length,
+          limit: sub.limit,
+          medianConcentration: medianConcentration,
+          name: sub.name,
+          testedIn: testedIn.length,
+        };
+      });
+      const substancesLut = substances.reduce((acc, cur) => {
+        acc[cur.code] = cur;
+        return acc;
+      }, {});
+
+      const brazil = toFeatures(topo, 'republic');
+      brazil.features[0].properties.tests = substances.map(sub => {
+        return {
+          max: sub.medianConcentration,
+          substance: sub,
+        };
+      });
+
+      const data = {
+        brazil: brazil,
+        fu: toFeatures(topo, 'federative-units'),
+        internalFu: toFeatures(topo, 'internal-federative-units'),
+        mun: mun,
+        substancesLut: substancesLut,
+      };
 
       // Publish the data with the "data-loaded" event
       dispatcher.call('data-loaded', this, data);

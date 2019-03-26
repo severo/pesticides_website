@@ -18993,37 +18993,40 @@
       var TESTS_IDX = 0;
       var SUBST_IDX = 1;
       var TOPO_IDX = 2;
-      var VALUES_IDX = 3;
-      var tests = results[TESTS_IDX];
-      var substancesLut = results[SUBST_IDX].reduce(function (acc, cur) {
-        acc[cur.code] = {
+      var VALUES_IDX = 3; // Substances
+
+      var substancesRaw = results[SUBST_IDX].map(function (cur) {
+        return {
           code: cur.code,
           limit: +cur.limit,
           name: cur.name
         };
+      });
+      var substancesRawLut = substancesRaw.reduce(function (acc, cur) {
+        acc[cur.code] = cur;
         return acc;
-      }, {});
-      var topo = results[TOPO_IDX];
+      }, {}); // Tests
+
+      var tests = results[TESTS_IDX]; // Topologic data
+
+      var topo = results[TOPO_IDX]; // Statistics
+
       var values = results[VALUES_IDX].reduce(function (acc, cur) {
         acc[cur.ibgeCode] = cur;
         return acc;
-      }, {});
-      var data = {
-        brazil: toFeatures(topo, 'republic'),
-        fu: toFeatures(topo, 'federative-units'),
-        internalFu: toFeatures(topo, 'internal-federative-units'),
-        mun: toFeatures(topo, 'municipalities'),
-        substancesLut: substancesLut
-      };
-      data.mun.features = data.mun.features.map(function (ft) {
+      }, {}); // Municipalities
+
+      var mun = toFeatures(topo, 'municipalities');
+      mun.features = mun.features.map(function (ft) {
         if (ft.properties.ibgeCode in values) {
           ft.properties.category = values[ft.properties.ibgeCode].category;
           ft.properties.number = values[ft.properties.ibgeCode].number;
         }
 
         if (ft.properties.ibgeCode in tests) {
-          ft.properties.tests = parseTests(tests[ft.properties.ibgeCode], substancesLut);
-        } // TODO: added for use in the search input. But the search could be
+          ft.properties.tests = parseTests(tests[ft.properties.ibgeCode], substancesRawLut);
+        } //data.brazil.features[0].properties
+        // TODO: added for use in the search input. But the search could be
         // improved with Intl.Collator. In case it's improved in search/index.js
         // don't forget to modify here.
 
@@ -19031,7 +19034,67 @@
         ft.properties.deburredName = deburr(ft.properties.name);
         ft.properties.fuName = fuNames[ft.properties.fu];
         return ft;
-      }); // Publish the data with the "data-loaded" event
+      }); // Add statistical data to substances
+
+      function median(arr) {
+        /* eslint-disable */
+        arr = arr.sort(function (v1, v2) {
+          return v1 - v2;
+        });
+        var half = arr.length / 2;
+        return half % 1 == 0 ? (arr[half - 1] + arr[half]) / 2 : arr[Math.floor(half)];
+        /* eslint-enable */
+      }
+
+      var substances = substancesRaw.map(function (sub) {
+        var testedIn = mun.features.filter(function (ft) {
+          if (!('tests' in ft.properties)) {
+            return false;
+          }
+
+          return ft.properties.tests.filter(function (test) {
+            return test.substance.code === sub.code;
+          }).length === 1;
+        });
+        var detectedIn = testedIn.filter(function (ft) {
+          var subTest = ft.properties.tests.filter(function (test) {
+            return test.substance.code === sub.code;
+          })[0];
+          return subTest.max > 0;
+        });
+        var medianConcentration = median(testedIn.map(function (ft) {
+          var subTest = ft.properties.tests.filter(function (test) {
+            return test.substance.code === sub.code;
+          })[0];
+          return subTest.max;
+        }));
+        return {
+          code: sub.code,
+          detectedIn: detectedIn.length,
+          limit: sub.limit,
+          medianConcentration: medianConcentration,
+          name: sub.name,
+          testedIn: testedIn.length
+        };
+      });
+      var substancesLut = substances.reduce(function (acc, cur) {
+        acc[cur.code] = cur;
+        return acc;
+      }, {});
+      var brazil = toFeatures(topo, 'republic');
+      brazil.features[0].properties.tests = substances.map(function (sub) {
+        return {
+          max: sub.medianConcentration,
+          substance: sub
+        };
+      });
+      var data = {
+        brazil: brazil,
+        fu: toFeatures(topo, 'federative-units'),
+        internalFu: toFeatures(topo, 'internal-federative-units'),
+        mun: mun,
+        substancesLut: substancesLut
+      }; // Publish the data with the "data-loaded" event
 
       dispatcher.call('data-loaded', _this, data);
     }).catch(function (error) {
@@ -23346,8 +23409,6 @@
   var saturday = weekday(6);
 
   var sundays = sunday.range;
-  var mondays = monday.range;
-  var thursdays = thursday.range;
 
   var month = newInterval(function(date) {
     date.setDate(1);
@@ -23437,8 +23498,6 @@
   var utcSaturday = utcWeekday(6);
 
   var utcSundays = utcSunday.range;
-  var utcMondays = utcMonday.range;
-  var utcThursdays = utcThursday.range;
 
   var utcMonth = newInterval(function(date) {
     date.setUTCDate(1);
@@ -24644,55 +24703,26 @@
     bezierCurveTo: function(x1, y1, x2, y2, x, y) { this._context.bezierCurveTo(y1, x1, y2, x2, y, x); }
   };
 
-  var water = {
-    emoji: '💧',
-    name: 'Water',
-    value: ''
-  };
-  var pesticides = [{
-    emoji: '💀',
-    name: 'Atrazine',
-    value: 1.5
-  }, {
-    emoji: '💀',
-    name: 'Simazine',
-    value: 0.7
-  }, {
-    emoji: '💀',
-    name: 'Gliphosate',
-    value: 0.4
-  }];
   function makeSticker(box, name, value, substancesLut, mun) {
     /* eslint-disable */
     var DETECTED_VALUE = 1e-10;
-    var substances = [water];
-
-    if ('properties' in mun && 'tests' in mun.properties) {
-      var tests = mun.properties.tests.sort(function (test1, test2) {
-        return test2.max > test1.max;
-      }).forEach(function (test) {
-        if (test.max > 0) {
-          substances.push({
-            emoji: '💀',
-            name: test.substance.name,
-            value: test.max === DETECTED_VALUE ? 'detected' : test.max.toLocaleString('pt-BR')
-          });
-        }
-      });
-    } else {
-      // Fake data for Brazil for now
-      if (Number.isInteger(value)) {
-        Array.from({
-          length: value
-        }, function (_, i) {
-          return i;
-        }).forEach(function (i) {
-          substances.push(pesticides[i % 3]);
+    var substances = [{
+      emoji: '💧',
+      name: 'Water',
+      value: ''
+    }];
+    mun.properties.tests.sort(function (test1, test2) {
+      return test2.max > test1.max;
+    }).forEach(function (test) {
+      if (test.max > 0) {
+        substances.push({
+          emoji: '💀',
+          name: test.substance.name,
+          value: test.max === DETECTED_VALUE ? '' : test.max.toLocaleString('pt-BR')
         });
       }
-    }
+    });
     /* eslint-enable */
-
 
     box.html(null);
     var header = box.append('header').classed('has-text-centered', true);
@@ -24712,17 +24742,21 @@
     startLoading$1(parent);
     var substances = data.substances;
     makeBasis(parent); // Init
-    // TODO: compute the mean color for Brazil
 
-    var fakeNum = 17;
-    makeUpperLayer(parent, dispatcher, 'Brazil', fakeNum, substances, {});
+    makeUpperLayerBrazil(parent, dispatcher, data);
     dispatcher.on('to-brazil-view.glass', function (brazilData) {
-      makeUpperLayer(parent, dispatcher, 'Brazil', fakeNum, substances, {});
+      makeUpperLayerBrazil(parent, dispatcher, data);
     });
     dispatcher.on('to-mun-view.glass', function (mun) {
       makeUpperLayer(parent, dispatcher, mun.properties.name, getValue$1(mun), substances, mun);
     });
     endLoading$1(parent);
+  }
+
+  function makeUpperLayerBrazil(parent, dispatcher, data) {
+    makeUpperLayer(parent, dispatcher, 'Brazil', data.brazil.features[0].properties.tests.filter(function (test) {
+      return test.max > 0;
+    }).length, data.substances, data.brazil.features[0]);
   }
 
   function makeUpperLayer(parent, dispatcher, name, value, substances, mun) {

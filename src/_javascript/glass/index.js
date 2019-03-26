@@ -9,12 +9,10 @@ export function makeGlass(parent, dispatcher, data) {
   makeBasis(parent);
 
   // Init
-  // TODO: compute the mean color for Brazil
-  const fakeNum = 17;
-  makeUpperLayer(parent, dispatcher, 'Brazil', fakeNum, substances, {});
+  makeUpperLayerBrazil(parent, dispatcher, data);
 
   dispatcher.on('to-brazil-view.glass', brazilData => {
-    makeUpperLayer(parent, dispatcher, 'Brazil', fakeNum, substances, {});
+    makeUpperLayerBrazil(parent, dispatcher, data);
   });
 
   dispatcher.on('to-mun-view.glass', mun => {
@@ -30,7 +28,17 @@ export function makeGlass(parent, dispatcher, data) {
 
   endLoading(parent);
 }
-
+function makeUpperLayerBrazil(parent, dispatcher, data) {
+  makeUpperLayer(
+    parent,
+    dispatcher,
+    'Brazil',
+    data.brazil.features[0].properties.tests.filter(test => test.max > 0)
+      .length,
+    data.substances,
+    data.brazil.features[0]
+  );
+}
 function makeUpperLayer(parent, dispatcher, name, value, substances, mun) {
   if (!Number.isInteger(value)) {
     parent

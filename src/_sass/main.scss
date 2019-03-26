@@ -38,6 +38,10 @@ $primary-invert: $pink-invert;
     strike: none;
   }
 
+  #liquid {
+    //mix-blend-mode: multiply;
+  }
+
   #composition-box {
     border: solid 1px black;
     padding: 1em;
@@ -55,6 +59,7 @@ $primary-invert: $pink-invert;
       width: 0;
       white-space: nowrap;
       content: '. . . . . . . . . . . . . . . . . . . . '
+        '. . . . . . . . . . . . . . . . . . . . '
         '. . . . . . . . . . . . . . . . . . . . '
         '. . . . . . . . . . . . . . . . . . . . '
         '. . . . . . . . . . . . . . . . . . . . ';
