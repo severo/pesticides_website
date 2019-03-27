@@ -22,7 +22,8 @@ const dispatcher = dispatch(
   'mun-mouseover',
   'mun-mouseout',
   'burger-show',
-  'burger-hide'
+  'burger-hide',
+  'substance-selected'
 );
 
 // Asynchronous (promise)

@@ -11,14 +11,17 @@ export function makeDetails(parent, dispatcher, view, data) {
     makeBrazil(parent, dispatcher, data);
   });
 
-  // TODO - select control to choose the parameter (Tebuconazol meanwhile)
-  const substance = data.substancesLut['25'];
-
   dispatcher.on('to-mun-view.details', mun => {
     if (view === 'limits') {
       makeLimits(parent, dispatcher, mun, data);
     } else if (view === 'substances') {
-      makeSubstance(parent, dispatcher, mun, data, substance);
+      // init
+      const defaultSubstance = data.substancesLut['25'];
+      makeSubstance(parent, dispatcher, mun, data, defaultSubstance);
+
+      dispatcher.on('substance-selected', substance =>
+        makeSubstance(parent, dispatcher, mun, data, substance)
+      );
     } else {
       makeCocktail(parent, dispatcher, mun, data);
     }

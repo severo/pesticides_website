@@ -1,3 +1,5 @@
+import {select} from 'd3-selection';
+
 export function makeSubstanceSelect(parent, dispatcher, data) {
   const substances = Object.keys(data.substancesLut).map(key => {
     return data.substancesLut[key];
@@ -21,6 +23,7 @@ export function makeSubstanceSelect(parent, dispatcher, data) {
     .append('div')
     .classed('select is-fullwidth', true)
     .append('select')
+    .attr('id', 'substance-select-control')
     .selectAll('option')
     .data(substances)
     .enter()
@@ -30,28 +33,11 @@ export function makeSubstanceSelect(parent, dispatcher, data) {
 
   parent.classed('is-hidden', false);
 
-  /*  select('#search-input').on('input', (aa, bb, cc) => {
+  select('#substance-select-control').on('change', (aa, bb, cc) => {
     // TODO: launch promises, and cancel any previous running promise
-
-    const text = cc[0].value;
-    dispatcher.call(
-      'search-results-updated',
-      null,
-      // Maybe use Intl.Collator instead
-      // https://github.com/nol13/fuzzball.js#collation-and-unicode-stuff
-      // But I think it will not change anything in the result, and make it
-      // slower
-      fuzz.extract(deburr(text), choices, options)
-    );
+    const value = cc[0].value;
+    dispatcher.call('substance-selected', null, data.substancesLut[value]);
   });
-
-  dispatcher.on('search-results-updated.search', fuseResults => {
-    updateResults(fuseResults, dispatcher);
-  });
-
-  dispatcher.on('search-selected.search', mun => {
-    parent.select('#search-input').property('value', '');
-  });*/
 }
 
 export function removeSubstanceSelect(parent) {

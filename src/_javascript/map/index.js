@@ -37,7 +37,13 @@ export function makeMap(parent, dispatcher, view, data) {
   if (view === 'limits') {
     createLimits(svg, path, data, dispatcher);
   } else if (view === 'substances') {
-    createSubstances(svg, path, data, dispatcher);
+    // init
+    const defaultSubstance = data.substancesLut['25'];
+    createSubstances(svg, path, data, dispatcher, defaultSubstance);
+
+    dispatcher.on('substance-selected', substance =>
+      createSubstances(svg, path, data, dispatcher, substance)
+    );
   } else {
     createCocktail(svg, path, data, dispatcher);
   }
@@ -59,9 +65,7 @@ function createLimits(svg, path, data, dispatcher) {
   createLimitsTooltip(svg, path, dispatcher);
 }
 
-function createSubstances(svg, path, data, dispatcher) {
-  // TODO - select control to choose the parameter (Tebuconazol meanwhile)
-  const substance = data.substancesLut['25'];
+function createSubstances(svg, path, data, dispatcher, substance) {
   svg.html(null);
   createSubstancesChoropleth(svg, path, data, dispatcher, substance);
   createFuFrontiers(svg, path, data);

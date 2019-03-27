@@ -19487,14 +19487,17 @@
     makeBrazil$1(parent, dispatcher, data);
     dispatcher.on('to-brazil-view.details', function (brazilData) {
       makeBrazil$1(parent, dispatcher, data);
-    }); // TODO - select control to choose the parameter (Tebuconazol meanwhile)
-
-    var substance = data.substancesLut['25'];
+    });
     dispatcher.on('to-mun-view.details', function (mun) {
       if (view === 'limits') {
         makeLimits(parent, dispatcher, mun, data);
       } else if (view === 'substances') {
-        makeSubstance(parent, dispatcher, mun, data, substance);
+        // init
+        var defaultSubstance = data.substancesLut['25'];
+        makeSubstance(parent, dispatcher, mun, data, defaultSubstance);
+        dispatcher.on('substance-selected', function (substance) {
+          return makeSubstance(parent, dispatcher, mun, data, substance);
+        });
       } else {
         makeCocktail(parent, dispatcher, mun, data);
       }
@@ -29344,7 +29347,12 @@
     if (view === 'limits') {
       createLimits(svg, path, data, dispatcher);
     } else if (view === 'substances') {
-      createSubstances(svg, path, data, dispatcher);
+      // init
+      var defaultSubstance = data.substancesLut['25'];
+      createSubstances(svg, path, data, dispatcher, defaultSubstance);
+      dispatcher.on('substance-selected', function (substance) {
+        return createSubstances(svg, path, data, dispatcher, substance);
+      });
     } else {
       createCocktail(svg, path, data, dispatcher);
     }
@@ -29366,9 +29374,7 @@
     createLimitsTooltip(svg, path, dispatcher);
   }
 
-  function createSubstances(svg, path, data, dispatcher) {
-    // TODO - select control to choose the parameter (Tebuconazol meanwhile)
-    var substance = data.substancesLut['25'];
+  function createSubstances(svg, path, data, dispatcher, substance) {
     svg.html(null);
     createSubstancesChoropleth(svg, path, data, dispatcher, substance);
     createFuFrontiers(svg, path, data);
@@ -29512,7 +29518,7 @@
   }
 
   //import {makeSubstanceSelect, removeSubstanceSelect} from './substance';
-  var dispatcher = dispatch('data-loaded', 'breadcrumb-click-brazil', 'to-brazil-view', 'to-mun-view', 'search-results-updated', 'search-selected', 'make-app-cocktail', 'make-app-limits', 'make-app-substances', 'mun-click', 'mun-mouseover', 'mun-mouseout', 'burger-show', 'burger-hide'); // Asynchronous (promise)
+  var dispatcher = dispatch('data-loaded', 'breadcrumb-click-brazil', 'to-brazil-view', 'to-mun-view', 'search-results-updated', 'search-selected', 'make-app-cocktail', 'make-app-limits', 'make-app-substances', 'mun-click', 'mun-mouseover', 'mun-mouseout', 'burger-show', 'burger-hide', 'substance-selected'); // Asynchronous (promise)
 
   loadData(dispatcher); // Create the layout
 
