@@ -1,3 +1,4 @@
+import {makeSubstanceSelect, removeSubstanceSelect} from './substance';
 import {dispatch} from 'd3-dispatch';
 import {loadData} from './data';
 import {makeBreadcrumb} from './breadcrumb';
@@ -35,12 +36,14 @@ dispatcher.on('data-loaded', data => {
 });
 
 dispatcher.on('make-app-cocktail', data => {
+  removeSubstanceSelect(select('#substance-select'));
   makeBreadcrumb(select('nav#breadcrumb'), dispatcher, data);
   makeDetails(select('section#details'), dispatcher, 'cocktail', data);
   makeMap(select('section#map'), dispatcher, 'cocktail', data);
 });
 
 dispatcher.on('make-app-limits', data => {
+  removeSubstanceSelect(select('#substance-select'));
   makeBreadcrumb(select('nav#breadcrumb'), dispatcher, data);
   makeDetails(select('section#details'), dispatcher, 'limits', data);
   makeMap(select('section#map'), dispatcher, 'limits', data);
@@ -48,6 +51,7 @@ dispatcher.on('make-app-limits', data => {
 
 dispatcher.on('make-app-substances', data => {
   makeBreadcrumb(select('nav#breadcrumb'), dispatcher, data);
+  makeSubstanceSelect(select('#substance-select'), dispatcher, data);
   makeDetails(select('section#details'), dispatcher, 'substances', data);
   makeMap(select('section#map'), dispatcher, 'substances', data);
 });

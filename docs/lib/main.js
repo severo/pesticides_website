@@ -1,6 +1,43 @@
 (function () {
   'use strict';
 
+  function makeSubstanceSelect(parent, dispatcher, data) {
+    var substances = Object.keys(data.substancesLut).map(function (key) {
+      return data.substancesLut[key];
+    });
+    parent.html(null);
+    parent.append('div').classed('field-label is-normal', true).append('label').classed('label', true).text('Select a substance');
+    parent.append('div').classed('field-body', true).append('div').classed('field is-expanded', true).append('div').classed('control', true).append('div').classed('select is-fullwidth', true).append('select').selectAll('option').data(substances).enter().append('option').property('value', function (sub) {
+      return sub.code;
+    }).text(function (sub) {
+      return sub.shortName;
+    });
+    parent.classed('is-hidden', false);
+    /*  select('#search-input').on('input', (aa, bb, cc) => {
+      // TODO: launch promises, and cancel any previous running promise
+       const text = cc[0].value;
+      dispatcher.call(
+        'search-results-updated',
+        null,
+        // Maybe use Intl.Collator instead
+        // https://github.com/nol13/fuzzball.js#collation-and-unicode-stuff
+        // But I think it will not change anything in the result, and make it
+        // slower
+        fuzz.extract(deburr(text), choices, options)
+      );
+    });
+     dispatcher.on('search-results-updated.search', fuseResults => {
+      updateResults(fuseResults, dispatcher);
+    });
+     dispatcher.on('search-selected.search', mun => {
+      parent.select('#search-input').property('value', '');
+    });*/
+  }
+  function removeSubstanceSelect(parent) {
+    parent.classed('is-hidden', true);
+    parent.html(null);
+  }
+
   var noop = {value: function() {}};
 
   function dispatch() {
@@ -23709,8 +23746,6 @@
   var saturday = weekday(6);
 
   var sundays = sunday.range;
-  var mondays = monday.range;
-  var thursdays = thursday.range;
 
   var month = newInterval(function(date) {
     date.setDate(1);
@@ -23800,8 +23835,6 @@
   var utcSaturday = utcWeekday(6);
 
   var utcSundays = utcSunday.range;
-  var utcMondays = utcMonday.range;
-  var utcThursdays = utcThursday.range;
 
   var utcMonth = newInterval(function(date) {
     date.setUTCDate(1);
@@ -29525,17 +29558,20 @@
     dispatcher.call('make-app-cocktail', null, data);
   });
   dispatcher.on('make-app-cocktail', function (data) {
+    removeSubstanceSelect(select('#substance-select'));
     makeBreadcrumb(select('nav#breadcrumb'), dispatcher, data);
     makeDetails(select('section#details'), dispatcher, 'cocktail', data);
     makeMap(select('section#map'), dispatcher, 'cocktail', data);
   });
   dispatcher.on('make-app-limits', function (data) {
+    removeSubstanceSelect(select('#substance-select'));
     makeBreadcrumb(select('nav#breadcrumb'), dispatcher, data);
     makeDetails(select('section#details'), dispatcher, 'limits', data);
     makeMap(select('section#map'), dispatcher, 'limits', data);
   });
   dispatcher.on('make-app-substances', function (data) {
     makeBreadcrumb(select('nav#breadcrumb'), dispatcher, data);
+    makeSubstanceSelect(select('#substance-select'), dispatcher, data);
     makeDetails(select('section#details'), dispatcher, 'substances', data);
     makeMap(select('section#map'), dispatcher, 'substances', data);
   }); // Mun / Brazil
