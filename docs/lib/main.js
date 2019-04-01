@@ -18907,6 +18907,16 @@
     return path.projection(projection).context(context);
   }
 
+  var EUROPEAN_LIMIT = 0.1;
+  var MAP2 = {
+    CATEGORY: {
+      BELOW: 1,
+      EQ_BR: 3,
+      NO_TEST: 0,
+      SUP_BR: 4,
+      SUP_EU: 2
+    }
+  }; // integrity hash computed with:
   // cat substances.csv | openssl dgst -sha384 -binary | openssl base64 -A
 
   var cfg = {
@@ -19030,8 +19040,16 @@
           ft.properties.map1Number = ft.properties.tests.filter(function (sub) {
             return sub.max > 0;
           }).length;
+          ft.properties.map2Category = ft.properties.tests.reduce(function (acc, cur) {
+            if (cur.map2Category > acc) {
+              acc = cur.map2Category;
+            }
+
+            return acc;
+          }, MAP2.CATEGORY.BELOW);
         } else {
           ft.properties.map1Number = NaN;
+          ft.properties.map2Category = MAP2.CATEGORY.NO_TEST;
         } //data.brazil.features[0].properties
         // TODO: added for use in the search input. But the search could be
         // improved with Intl.Collator. In case it's improved in search/index.js
@@ -19155,9 +19173,23 @@
 
         return max;
       }, -Infinity);
+      fTest.map2Category = getMap2Category(fTest.max, fTest.substance);
       acc.push(fTest);
       return acc;
     }, []);
+  }
+
+  function getMap2Category(max, substance) {
+    if (max > substance.limit) {
+      return MAP2.CATEGORY.SUP_BR;
+    } else if (max === substance.limit) {
+      return MAP2.CATEGORY.EQ_BR;
+    } else if (max > EUROPEAN_LIMIT) {
+      return MAP2.CATEGORY.SUP_EU;
+    } // Handle both no detection, and detected but lower than EU and BR limits
+
+
+    return MAP2.CATEGORY.BELOW;
   }
 
   function makeBreadcrumb(parent, dispatcher, state) {
@@ -19341,8 +19373,18 @@
     vWi: 400,
     wi: 36
   };
+
+  function getColors(colorName) {
+    if (colorName in colorsList) {
+      return colorsList[colorName];
+    }
+
+    return colorsList.red;
+  }
+
   function makeTubesCocktail(parent, substances, titleHtml, colorName) {
-    var preparedSubstances = substances.filter(function (subs) {
+    var preparedSubstances = substances // useless filter?
+    .filter(function (subs) {
       return subs.max > 0;
     }).sort(function (subs1, subs2) {
       // alphabetic order to get some coherence and stability between views
@@ -19376,36 +19418,41 @@
     /* eslint-disable no-magic-numbers */
 
     drawTube(svg, 300, 1000).attr('transform', 'translate(100, 0)');
-    drawLiquid(svg, 300, 1000, colorName).attr('transform', 'translate(100, 0)');
+    drawLiquid(svg, 300, 1000, getColors(colorName)).attr('transform', 'translate(100, 0)');
     drawText(svg, 300, 1000).attr('transform', 'scale(6) rotate(-90) translate(-10 16)');
   }
-  function makeTubesLimits(parent, name, mun, data) {
-    var DETECTED_VALUE = 1e-10;
-    var substances = mun.properties.tests.filter(function (subs) {
-      return subs.max > subs.substance.limit;
-    }).sort(function (subs1, subs2) {
+  function makeTubesLimits(parent, substances, titleHtml, color) {
+    var preparedSubstances = substances.sort(function (subs1, subs2) {
       // alphabetic order to get some coherence and stability between views
       return subs1.substance.shortName.localeCompare(subs2.substance.shortName, 'pt', {
         sensitivity: 'base'
       });
     }).map(function (subs) {
+      // TODO: define which level to set in the tubes. Meanwhile: constant 100%
+      var ratio = 1;
       return {
-        limit: subs.substance.limit,
-        name: subs.substance.name,
         shortName: subs.substance.shortName,
-        value: subs.max,
-        valueText: subs.max === DETECTED_VALUE ? 'detected' : subs.max.toLocaleString('pt-BR') + ' μg/L (legal limit: ' + subs.substance.limit.toLocaleString('pt-BR') + ' μg/L)'
+        value: ratio,
+        valueText: subs.substance.name
       };
     });
     var tubes = parent.append('div').classed('tubes', true);
-    var svg = tubes.selectAll('abbr').data(substances).enter() // TODO: manage a popup for touch / mouseover, instead of this temporal attr
+
+    if (titleHtml !== '') {
+      tubes.append('header').html(titleHtml);
+    }
+
+    var svg = tubes.selectAll('abbr').data(preparedSubstances).enter() // TODO: manage a popup for touch / mouseover, instead of this temporal attr
     .append('abbr').attr('title', function (subs) {
-      return subs.name + ' - ' + subs.valueText;
+      return subs.valueText;
     }).append('svg').attr('width', dim.wi).attr('height', dim.he).attr('viewBox', '0,0,' + dim.vWi + ',' + dim.vHe + '');
     /* eslint-disable no-magic-numbers */
 
-    drawTube(svg, 300, 1000).attr('transform', 'translate(100, 0)');
-    drawLiquid(svg, 300, 1000).attr('transform', 'translate(100, 0)');
+    drawTube(svg, 300, 1000).attr('transform', 'translate(100, 0)'); // TODO: find a way to automatically a pair of colors (color + darkened color)
+    // instead of showing both sides with the same color
+    // maybe "mix-blend-mod: darken", or SASS "darken"
+
+    drawLiquid(svg, 300, 1000, [color, color]).attr('transform', 'translate(100, 0)');
     drawText(svg, 300, 1000).attr('transform', 'scale(6) rotate(-90) translate(-10 16)');
   }
 
@@ -19443,22 +19490,13 @@
     /* eslint-enable no-magic-numbers */
   }
 
-  function drawLiquid(svg, width, height, colorName) {
+  function drawLiquid(svg, width, height, colors) {
     /* eslint-disable no-magic-numbers */
     function getY(ratio, max, margin) {
       // Value must be between 0 and 1
       return max * (1 - ratio) + margin;
     }
 
-    function getColors() {
-      if (colorName in colorsList) {
-        return colorsList[colorName];
-      }
-
-      return colorsList.red;
-    }
-
-    var colors = getColors();
     var liquid = svg.append('g');
     var wid = 1.5 * width / 10;
     var hei = height - 3 * wid;
@@ -19500,155 +19538,6 @@
     });
     return name;
     /* eslint-enable no-magic-numbers */
-  }
-
-  var DETECTED_VALUE = 1e-10;
-  function makeDetails(parent, dispatcher, view, state) {
-    startLoading$1(parent);
-
-    if ('mun' in state) {
-      makeMun$1(parent, dispatcher, view, state.data, state.mun);
-    } else {
-      makeBrazil$1(parent, dispatcher, state.data);
-    }
-
-    dispatcher.on('to-brazil-view.details', function () {
-      makeBrazil$1(parent, dispatcher, state.data);
-    });
-    dispatcher.on('to-mun-view.details', function (mun) {
-      makeMun$1(parent, dispatcher, view, state.data, mun);
-    });
-    endLoading$1(parent);
-  }
-
-  function makeBrazil$1(parent, dispatcher, data) {
-    parent.html(null);
-    makeHeader(parent, 'Brazil');
-    parent.append('p').html('[work in progress... show a message - search or click]');
-  }
-
-  function makeMun$1(parent, dispatcher, view, data, mun) {
-    if (view === 'limits') {
-      makeLimits(parent, dispatcher, mun, data);
-    } else if (view === 'substances') {
-      // init
-      var defaultSubstance = data.substancesLut['25'];
-      makeSubstance(parent, dispatcher, mun, data, defaultSubstance);
-      dispatcher.on('substance-selected', function (substance) {
-        return makeSubstance(parent, dispatcher, mun, data, substance);
-      });
-    } else {
-      makeCocktail(parent, dispatcher, mun, data);
-    }
-  }
-
-  function makeCocktail(parent, dispatcher, mun, data) {
-    parent.html(null);
-    makeHeader(parent, mun.properties.name, mun.properties.fuName);
-    parent.append('p').html('<strong>Population:</strong> ' + (+mun.properties.population).toLocaleString('pt-BR')); // map1Number should always be present - NaN if no tests
-
-    if (isNaN(mun.properties.map1Number)) {
-      parent.append('header').html('<strong class="is-size-4">' + 'No data</strong> about agrotoxics inside drinking water in ' + mun.properties.name + '.');
-    } else if (mun.properties.map1Number === 0) {
-      parent.append('header').html('<strong class="is-size-4">' + 'No agrotoxics</strong> detected inside drinking water in ' + mun.properties.name + '.');
-    } else {
-      parent.append('header').html('<strong class="is-size-4"><span class="is-size-2">' + mun.properties.map1Number + '</span> agrotoxic(s)</strong> detected in drinking water in ' + mun.properties.name + '.');
-      var hhceSubstances = mun.properties.tests.filter(function (sub) {
-        return sub.substance.isHhce && sub.max > 0;
-      });
-
-      if (hhceSubstances.length > 0) {
-        makeTubesCocktail(parent, hhceSubstances, '<strong class="is-size-4">' + hhceSubstances.length + '</strong> out of ' + mun.properties.map1Number + ': associated with chronic dieses such as cancer', 'purple');
-        var otherSubstances = mun.properties.tests.filter(function (sub) {
-          return !sub.substance.isHhce && sub.max > 0;
-        });
-
-        if (otherSubstances.length > 0) {
-          makeTubesCocktail(parent, otherSubstances, '<strong class="is-size-4">' + otherSubstances.length + '</strong> out of ' + mun.properties.map1Number + ': other pesticides', 'red');
-        }
-      } else {
-        makeTubesCocktail(parent, mun.properties.tests, '', 'red');
-      }
-    }
-  }
-
-  function makeLimits(parent, dispatcher, mun, data) {
-    parent.html(null);
-    makeHeader(parent, mun.properties.name, mun.properties.fuName);
-    parent.append('p').html('<strong>Population:</strong> ' + (+mun.properties.population).toLocaleString('pt-BR'));
-
-    if (!('number' in mun.properties)) {
-      parent.append('header').html('No data about agrotoxics above legal limit in ' + mun.properties.name + '.');
-    } else if (mun.properties.number.supBr === 0) {
-      parent.append('header').html('No agrotoxics detected above legal limit in ' + mun.properties.name + '.');
-    } else {
-      parent.append('header').html('<strong>' + mun.properties.number.detected + ' agrotoxic(s)</strong> detected above legal limit in drinking water in ' + mun.properties.name + '.');
-      makeTubesLimits(parent, mun.properties.name, mun, data);
-    }
-  }
-
-  function makeSubstance(parent, dispatcher, mun, data, substance) {
-    parent.html(null);
-    makeHeader(parent, mun.properties.name, mun.properties.fuName);
-    parent.append('p').html('<strong>Population:</strong> ' + (+mun.properties.population).toLocaleString('pt-BR'));
-
-    if (!('tests' in mun.properties)) {
-      parent.append('header').html(substance.name + ' has never been tested  in ' + mun.properties.name + '.');
-    } else {
-      var subst = mun.properties.tests.filter(function (sub) {
-        return sub.substance.code === substance.code;
-      });
-
-      if (subst.length === 0) {
-        parent.append('header').html(substance.name + ' has never been tested  in ' + mun.properties.name + '.');
-      } else {
-        // eslint-disable-next-line no-inner-declarations
-        var pct = function pct(val) {
-          return (// eslint-disable-next-line no-magic-numbers
-            (Math.floor(10000 * val / tests.length) / 100).toLocaleString('pt-BR') + '%'
-          );
-        };
-
-        var tests = subst[0].tests;
-        parent.append('header').html('<strong>' + tests.length + ' measurement(s)</strong> for ' + substance.name + ' in ' + mun.properties.name + '. The detail is:');
-        var ul = parent.append('ul');
-        var detected = tests.filter(function (test) {
-          return test > 0;
-        }).length;
-        ul.append('li').text(detected + ' detections (' + pct(detected) + ')');
-        var equal = tests.filter(function (test) {
-          return test === substance.limit;
-        }).length;
-        ul.append('li').text(equal + ' measurements exactly equal to the legal limit (' + pct(equal) + ')');
-        var above = tests.filter(function (test) {
-          return test > substance.limit;
-        }).length;
-        ul.append('li').text(above + ' measurements above the legal limit (' + pct(above) + ')');
-
-        if (subst[0].max && subst[0].max > DETECTED_VALUE) {
-          ul.append('li').text('Max detected concentration: ' + subst[0].max.toLocaleString('pt-BR') + ' μg/L');
-        }
-      }
-    }
-  }
-
-  function makeHeader(parent, title, subtitle) {
-    var header = parent.append('header').attr('id', 'idCard');
-    header.append('h2').text(title);
-
-    if (subtitle) {
-      var fu = header.append('h3'); // TODO: add an icon
-
-      fu.append('span').text('📌 ' + subtitle);
-    }
-  }
-
-  function startLoading$1(element) {
-    element.classed('is-loading', true);
-  }
-
-  function endLoading$1(element) {
-    element.classed('is-loading', false);
   }
 
   var slice$1 = Array.prototype.slice;
@@ -25052,6 +24941,183 @@
     bezierCurveTo: function(x1, y1, x2, y2, x, y) { this._context.bezierCurveTo(y1, x1, y2, x2, y, x); }
   };
 
+  var DETECTED_VALUE = 1e-10;
+  function makeDetails(parent, dispatcher, view, state) {
+    startLoading$1(parent);
+
+    if ('mun' in state) {
+      makeMun$1(parent, dispatcher, view, state.data, state.mun);
+    } else {
+      makeBrazil$1(parent, dispatcher, state.data);
+    }
+
+    dispatcher.on('to-brazil-view.details', function () {
+      makeBrazil$1(parent, dispatcher, state.data);
+    });
+    dispatcher.on('to-mun-view.details', function (mun) {
+      makeMun$1(parent, dispatcher, view, state.data, mun);
+    });
+    endLoading$1(parent);
+  }
+
+  function makeBrazil$1(parent, dispatcher, data) {
+    parent.html(null);
+    makeHeader(parent, 'Brazil');
+    parent.append('p').html('[work in progress... show a message - search or click]');
+  }
+
+  function makeMun$1(parent, dispatcher, view, data, mun) {
+    if (view === 'limits') {
+      makeLimits(parent, dispatcher, mun, data);
+    } else if (view === 'substances') {
+      // init
+      var defaultSubstance = data.substancesLut['25'];
+      makeSubstance(parent, dispatcher, mun, data, defaultSubstance);
+      dispatcher.on('substance-selected', function (substance) {
+        return makeSubstance(parent, dispatcher, mun, data, substance);
+      });
+    } else {
+      makeCocktail(parent, dispatcher, mun, data);
+    }
+  }
+
+  function makeCocktail(parent, dispatcher, mun, data) {
+    parent.html(null);
+    makeHeader(parent, mun.properties.name, mun.properties.fuName);
+    parent.append('p').html('<strong>Population:</strong> ' + (+mun.properties.population).toLocaleString('pt-BR')); // map1Number should always be present - NaN if no tests
+
+    if (isNaN(mun.properties.map1Number)) {
+      parent.append('header').html('<strong class="is-size-4">' + 'No data</strong> about agrotoxics inside drinking water in ' + mun.properties.name + '.');
+    } else if (mun.properties.map1Number === 0) {
+      parent.append('header').html('<strong class="is-size-4">' + 'No agrotoxics</strong> detected inside drinking water in ' + mun.properties.name + '.');
+    } else {
+      parent.append('header').html('<strong class="is-size-4"><span class="is-size-2">' + mun.properties.map1Number + '</span> agrotoxic(s)</strong> detected in drinking water in ' + mun.properties.name + '.');
+      var hhceSubstances = mun.properties.tests.filter(function (sub) {
+        return sub.substance.isHhce && sub.max > 0;
+      });
+
+      if (hhceSubstances.length > 0) {
+        makeTubesCocktail(parent, hhceSubstances, '<strong class="is-size-4">' + hhceSubstances.length + '</strong> out of ' + mun.properties.map1Number + ': associated with chronic dieses such as cancer', 'purple');
+        var otherSubstances = mun.properties.tests.filter(function (sub) {
+          return !sub.substance.isHhce && sub.max > 0;
+        });
+
+        if (otherSubstances.length > 0) {
+          makeTubesCocktail(parent, otherSubstances, '<strong class="is-size-4">' + otherSubstances.length + '</strong> out of ' + mun.properties.map1Number + ': other pesticides', 'red');
+        }
+      } else {
+        makeTubesCocktail(parent, mun.properties.tests, '', 'red');
+      }
+    }
+  }
+
+  function makeLimits(parent, dispatcher, mun, data) {
+    var NO_TEST_COLOR = null;
+    var colorPalette = [NO_TEST_COLOR].concat(scheme$l[Object.keys(MAP2.CATEGORY).length - 1]); // map2Category field should be present in all the municipalities
+
+    var color = function color(category) {
+      return colorPalette[category];
+    };
+
+    parent.html(null);
+    makeHeader(parent, mun.properties.name, mun.properties.fuName);
+    parent.append('p').html('<strong>Population:</strong> ' + (+mun.properties.population).toLocaleString('pt-BR')); // map2Category should always be present
+
+    if (mun.properties.map2Category === MAP2.CATEGORY.NO_TEST) {
+      parent.append('header').html('<strong class="is-size-4">' + 'No data</strong> about agrotoxics inside drinking water in ' + mun.properties.name + '.');
+    } else if (mun.properties.map2Category === MAP2.CATEGORY.BELOW) {
+      parent.append('header').html('<strong class="is-size-4">' + 'No agrotoxics</strong> detected above the legal or European limits in ' + mun.properties.name + '.');
+    } else {
+      var supBrSubstances = mun.properties.tests.filter(function (sub) {
+        return sub.map2Category === MAP2.CATEGORY.SUP_BR;
+      });
+
+      if (supBrSubstances.length > 0) {
+        makeTubesLimits(parent, supBrSubstances, '<strong class="is-size-4">' + supBrSubstances.length + '</strong> agrotoxic(s) detected above the legal limit', color(MAP2.CATEGORY.SUP_BR));
+      }
+
+      var eqBrSubstances = mun.properties.tests.filter(function (sub) {
+        return sub.map2Category === MAP2.CATEGORY.EQ_BR;
+      });
+
+      if (eqBrSubstances.length > 0) {
+        makeTubesLimits(parent, eqBrSubstances, '<strong class="is-size-4">' + eqBrSubstances.length + '</strong> agrotoxic(s) detected exactly at the legal limit', color(MAP2.CATEGORY.EQ_BR));
+      }
+
+      var supEuSubstances = mun.properties.tests.filter(function (sub) {
+        return sub.map2Category === MAP2.CATEGORY.SUP_EU;
+      });
+
+      if (supEuSubstances.length > 0) {
+        makeTubesLimits(parent, supEuSubstances, '<strong class="is-size-4">' + supEuSubstances.length + '</strong> agrotoxic(s) detected above the European limit', color(MAP2.CATEGORY.SUP_EU));
+      }
+    }
+  }
+
+  function makeSubstance(parent, dispatcher, mun, data, substance) {
+    parent.html(null);
+    makeHeader(parent, mun.properties.name, mun.properties.fuName);
+    parent.append('p').html('<strong>Population:</strong> ' + (+mun.properties.population).toLocaleString('pt-BR'));
+
+    if (!('tests' in mun.properties)) {
+      parent.append('header').html(substance.name + ' has never been tested  in ' + mun.properties.name + '.');
+    } else {
+      var subst = mun.properties.tests.filter(function (sub) {
+        return sub.substance.code === substance.code;
+      });
+
+      if (subst.length === 0) {
+        parent.append('header').html(substance.name + ' has never been tested  in ' + mun.properties.name + '.');
+      } else {
+        // eslint-disable-next-line no-inner-declarations
+        var pct = function pct(val) {
+          return (// eslint-disable-next-line no-magic-numbers
+            (Math.floor(10000 * val / tests.length) / 100).toLocaleString('pt-BR') + '%'
+          );
+        };
+
+        var tests = subst[0].tests;
+        parent.append('header').html('<strong>' + tests.length + ' measurement(s)</strong> for ' + substance.name + ' in ' + mun.properties.name + '. The detail is:');
+        var ul = parent.append('ul');
+        var detected = tests.filter(function (test) {
+          return test > 0;
+        }).length;
+        ul.append('li').text(detected + ' detections (' + pct(detected) + ')');
+        var equal = tests.filter(function (test) {
+          return test === substance.limit;
+        }).length;
+        ul.append('li').text(equal + ' measurements exactly equal to the legal limit (' + pct(equal) + ')');
+        var above = tests.filter(function (test) {
+          return test > substance.limit;
+        }).length;
+        ul.append('li').text(above + ' measurements above the legal limit (' + pct(above) + ')');
+
+        if (subst[0].max && subst[0].max > DETECTED_VALUE) {
+          ul.append('li').text('Max detected concentration: ' + subst[0].max.toLocaleString('pt-BR') + ' μg/L');
+        }
+      }
+    }
+  }
+
+  function makeHeader(parent, title, subtitle) {
+    var header = parent.append('header').attr('id', 'idCard');
+    header.append('h2').text(title);
+
+    if (subtitle) {
+      var fu = header.append('h3'); // TODO: add an icon
+
+      fu.append('span').text('📌 ' + subtitle);
+    }
+  }
+
+  function startLoading$1(element) {
+    element.classed('is-loading', true);
+  }
+
+  function endLoading$1(element) {
+    element.classed('is-loading', false);
+  }
+
   /* Reminder of the data available from the CSV
   category: {
     atrAvgCat: row.atrazine_atrazine_category,
@@ -29084,22 +29150,7 @@
     return parent.append('g').classed('fu-frontiers', true).selectAll('path').data(data.internalFu.features).enter().append('path').attr('d', path);
   }
 
-  /* Reminder of the data available from the CSV
-  category: {
-    atrAvgCat: row.atrazine_atrazine_category,
-    atrMaxCat: row.atrazine_category,
-    ibgeBode: row.ibge_code,
-    simAvgCat: row.simazine_atrazina_category,
-    simMaxCat: row.simazine_category,
-  },
-  number: {
-    detected: +row.detected,
-    eqBr: +row.eq_br,
-    supBr: +row.sup_br,
-    supEu: +row.sup_eu,
-  },
-  */
-
+  //import {axisBottom, interpolateYlOrRd, range, scaleLinear} from 'd3';
   var cfg$3 = {
     field: 'supBr',
     legend: {
@@ -29115,30 +29166,23 @@
       mouseover: 'mun-mouseover'
     }
   };
+  var NO_TEST_COLOR = null;
   function createLimitsChoropleth(parent, path, data, dispatcher) {
-    var maxNumberSupBr = data.mun.features.reduce(function (acc, ft) {
-      if ('number' in ft.properties && ft.properties.number.supBr > acc) {
-        acc = ft.properties.number.supBr;
-      }
+    var colorPalette = [NO_TEST_COLOR].concat(scheme$l[Object.keys(MAP2.CATEGORY).length - 1]); // map2Category field should be present in all the municipalities
 
-      return acc;
-    }, 0);
-    var color = linear$1().domain([0, maxNumberSupBr]).interpolate(function () {
-      return interpolateYlOrRd;
-    });
+    var color = function color(ft) {
+      return colorPalette[ft.properties.map2Category];
+    };
+
     parent.append('g').classed('choropleth', true).selectAll('path').data(data.mun.features).enter().append('path').attr('id', function (ft) {
       return 'id-' + ft.properties.ibgeCode;
     }).attr('d', path).style('fill', function (ft) {
-      if (Number.isInteger(value$1(ft))) {
-        return color(value$1(ft));
-      }
-
-      return null;
+      return color(ft);
     }).on('mouseover', function (ft, element) {
       // invoke callbacks
       dispatcher.call(cfg$3.typename.mouseover, null, {
         properties: ft.properties,
-        value: value$1(ft)
+        value: ft.properties.map2Category
       });
     }).on('mouseout', function (ft, element) {
       // invoke callbacks
@@ -29146,38 +29190,61 @@
     }).on('click', function (ft, element) {
       // invoke callbacks
       dispatcher.call(cfg$3.typename.click, null, ft);
-    });
-    makeLegend$1(parent, maxNumberSupBr, color);
+    }); //makeLegend(parent, maxNumberSupBr, color);
   }
-
-  function value$1(ft) {
-    if ('number' in ft.properties) {
-      return ft.properties.number[cfg$3.field];
-    }
-
-    return null;
-  }
-
-  function makeLegend$1(parent, maxNumber, color) {
+  /*
+  function makeLegend(parent, maxNumber, color) {
     // TODO: should be a scheme (27 colors), not a continuous scale
-    var xx = linear$1().domain(color.domain()).rangeRound([0, cfg$3.legend.width]);
-    var legend = parent.append('g') //.style('font-size', '0.8rem')
-    //.style('font-family', 'sans-serif')
-    .attr('transform', 'translate(550,50)');
-    legend.selectAll('rect').data(sequence(0, maxNumber, 1)).enter().append('rect').attr('height', cfg$3.legend.height).attr('x', function (el) {
-      return xx(el);
-    }).attr('width', cfg$3.legend.width / maxNumber).attr('fill', function (el) {
-      return color(el);
-    });
-    var label = legend.append('g').attr('fill', '#000').attr('text-anchor', 'start'); // TODO: i18n
+    const xx = scaleLinear()
+      .domain(color.domain())
+      .rangeRound([0, cfg.legend.width]);
 
-    label.append('text').attr('y', -cfg$3.legend.titleOffset).attr('font-weight', 'bold').text('Number of pesticides detected above the legal limit'); // TODO: i18n
+    const legend = parent
+      .append('g')
+      //.style('font-size', '0.8rem')
+      //.style('font-family', 'sans-serif')
+      .attr('transform', 'translate(550,50)');
 
-    label.append('text').attr('y', -cfg$3.legend.subtitleOffset).text('(white: no pesticide, purple: ' + maxNumber + ' different pesticides)'); // Scale
+    legend
+      .selectAll('rect')
+      .data(range(0, maxNumber, 1))
+      .enter()
+      .append('rect')
+      .attr('height', cfg.legend.height)
+      .attr('x', el => xx(el))
+      .attr('width', cfg.legend.width / maxNumber)
+      .attr('fill', el => color(el));
 
-    legend.append('g').call(axisBottom(xx).tickSize(cfg$3.legend.tickSize)).select('.domain').remove();
+    const label = legend
+      .append('g')
+      .attr('fill', '#000')
+      .attr('text-anchor', 'start');
+
+    // TODO: i18n
+    label
+      .append('text')
+      .attr('y', -cfg.legend.titleOffset)
+      .attr('font-weight', 'bold')
+      .text('Number of pesticides detected above the legal limit');
+
+    // TODO: i18n
+    label
+      .append('text')
+      .attr('y', -cfg.legend.subtitleOffset)
+      .text(
+        '(white: no pesticide, purple: ' + maxNumber + ' different pesticides)'
+      );
+
+    // Scale
+    legend
+      .append('g')
+      .call(axisBottom(xx).tickSize(cfg.legend.tickSize))
+      .select('.domain')
+      .remove();
   }
+  */
 
+  var messageByCategory = ['Never tested', 'All substances below the legal and European limits', 'Subtance(s) detected above the European limit', 'Subtance(s) detected exactly at the legal limit', 'Subtance(s) detected above the legal limit'];
   var cfg$4 = {
     nx: 200,
     ny: 700
@@ -29197,7 +29264,7 @@
     return annotation().type(d3CalloutElbow).annotations([{
       data: data,
       note: {
-        label: message(data.value),
+        label: messageByCategory[data.value],
         title: data.properties.name + ' (' + data.properties.fuName + ')'
       },
       nx: cfg$4.nx,
@@ -29207,16 +29274,6 @@
       y: data.properties.centroid[1] // eslint-disable-line id-length
 
     }]);
-  }
-
-  function message(value) {
-    if (!Number.isInteger(value)) {
-      return 'Never tested.';
-    } else if (value === 0) {
-      return 'No pesticide found above the legal limit.';
-    }
-
-    return value + ' pesticide(s) found above the legal limit.';
   }
 
   /* Reminder of the data available from the CSV
@@ -29253,8 +29310,8 @@
     // TODO - avoid outliers setting a cap on max Concentration to substance limit
     // or about (2x, 3x)
     var maxConcentration = data.mun.features.reduce(function (acc, ft) {
-      if (value$2(ft, substance.code) && value$2(ft, substance.code) > acc) {
-        acc = value$2(ft, substance.code);
+      if (value$1(ft, substance.code) && value$1(ft, substance.code) > acc) {
+        acc = value$1(ft, substance.code);
       }
 
       return acc;
@@ -29267,8 +29324,8 @@
     }).attr('d', path).style('fill', function (ft) {
       // TODO - We use 1e-10 to encode not-quantized - it's the same visual
       //  encoding as no detection - we should make it better
-      if (value$2(ft, substance.code) && value$2(ft, substance.code) >= 0) {
-        return color(value$2(ft, substance.code));
+      if (value$1(ft, substance.code) && value$1(ft, substance.code) >= 0) {
+        return color(value$1(ft, substance.code));
       }
 
       return null;
@@ -29276,7 +29333,7 @@
       // invoke callbacks
       dispatcher.call(cfg$5.typename.mouseover, null, {
         properties: ft.properties,
-        value: value$2(ft, substance.code)
+        value: value$1(ft, substance.code)
       });
     }).on('mouseout', function (ft, element) {
       // invoke callbacks
@@ -29285,10 +29342,10 @@
       // invoke callbacks
       dispatcher.call(cfg$5.typename.click, null, ft);
     });
-    makeLegend$2(parent, maxConcentration, color, substance.shortName);
+    makeLegend$1(parent, maxConcentration, color, substance.shortName);
   }
 
-  function value$2(ft, code) {
+  function value$1(ft, code) {
     // TODO - suboptimal, it would be simpler (and quicker?) with a lookup table
     if ('tests' in ft.properties) {
       var subst = ft.properties.tests.filter(function (sub) {
@@ -29305,7 +29362,7 @@
     return null;
   }
 
-  function makeLegend$2(parent, maxConcentration, color, name) {
+  function makeLegend$1(parent, maxConcentration, color, name) {
     // TODO: should be a scheme (27 colors), not a continuous scale
     var xx = linear$1().domain(color.domain()).rangeRound([0, cfg$5.legend.width]);
     var legend = parent.append('g') //.style('font-size', '0.8rem')
@@ -29344,7 +29401,7 @@
     return annotation().type(d3CalloutElbow).annotations([{
       data: data,
       note: {
-        label: message$1(data.value, substance),
+        label: message(data.value, substance),
         title: data.properties.name + ' (' + data.properties.fuName + ')'
       },
       nx: cfg$6.nx,
@@ -29358,7 +29415,7 @@
 
   var DETECTED_VALUE$1 = 1e-10;
 
-  function message$1(value, substance) {
+  function message(value, substance) {
     if (value === null) {
       return 'Never tested.';
     } else if (value === 0) {

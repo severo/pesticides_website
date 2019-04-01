@@ -3,6 +3,16 @@ import {deburr} from 'lodash-es';
 import {feature} from 'topojson';
 import {geoPath} from 'd3-geo';
 
+const EUROPEAN_LIMIT = 0.1;
+export const MAP2 = {
+  CATEGORY: {
+    BELOW: 1,
+    EQ_BR: 3,
+    NO_TEST: 0,
+    SUP_BR: 4,
+    SUP_EU: 2,
+  },
+};
 // integrity hash computed with:
 // cat substances.csv | openssl dgst -sha384 -binary | openssl base64 -A
 export const cfg = {
@@ -139,9 +149,20 @@ export function loadData(dispatcher) {
           ft.properties.map1Number = ft.properties.tests.filter(
             sub => sub.max > 0
           ).length;
+          ft.properties.map2Category = ft.properties.tests.reduce(
+            (acc, cur) => {
+              if (cur.map2Category > acc) {
+                acc = cur.map2Category;
+              }
+              return acc;
+            },
+            MAP2.CATEGORY.BELOW
+          );
         } else {
           ft.properties.map1Number = NaN;
+          ft.properties.map2Category = MAP2.CATEGORY.NO_TEST;
         }
+
         //data.brazil.features[0].properties
         // TODO: added for use in the search input. But the search could be
         // improved with Intl.Collator. In case it's improved in search/index.js
@@ -274,7 +295,20 @@ function parseTests(tests, substancesLut) {
       }
       return max;
     }, -Infinity);
+    fTest.map2Category = getMap2Category(fTest.max, fTest.substance);
     acc.push(fTest);
     return acc;
   }, []);
+}
+
+function getMap2Category(max, substance) {
+  if (max > substance.limit) {
+    return MAP2.CATEGORY.SUP_BR;
+  } else if (max === substance.limit) {
+    return MAP2.CATEGORY.EQ_BR;
+  } else if (max > EUROPEAN_LIMIT) {
+    return MAP2.CATEGORY.SUP_EU;
+  }
+  // Handle both no detection, and detected but lower than EU and BR limits
+  return MAP2.CATEGORY.BELOW;
 }

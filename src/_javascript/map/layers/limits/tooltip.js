@@ -1,5 +1,13 @@
 import {annotation, annotationCalloutElbow} from 'd3-svg-annotation';
 
+const messageByCategory = [
+  'Never tested',
+  'All substances below the legal and European limits',
+  'Subtance(s) detected above the European limit',
+  'Subtance(s) detected exactly at the legal limit',
+  'Subtance(s) detected above the legal limit',
+];
+
 const cfg = {
   nx: 200,
   ny: 700,
@@ -25,7 +33,7 @@ function createAnnotation(data) {
       {
         data: data,
         note: {
-          label: message(data.value),
+          label: messageByCategory[data.value],
           title: data.properties.name + ' (' + data.properties.fuName + ')',
         },
         nx: cfg.nx,
@@ -34,13 +42,4 @@ function createAnnotation(data) {
         y: data.properties.centroid[1], // eslint-disable-line id-length
       },
     ]);
-}
-
-function message(value) {
-  if (!Number.isInteger(value)) {
-    return 'Never tested.';
-  } else if (value === 0) {
-    return 'No pesticide found above the legal limit.';
-  }
-  return value + ' pesticide(s) found above the legal limit.';
 }

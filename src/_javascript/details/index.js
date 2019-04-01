@@ -1,4 +1,6 @@
 import {makeTubesCocktail, makeTubesLimits} from './tubes';
+import {MAP2} from '../data';
+import {schemeBlues} from 'd3';
 
 const DETECTED_VALUE = 1e-10;
 
@@ -122,6 +124,13 @@ function makeCocktail(parent, dispatcher, mun, data) {
 }
 
 function makeLimits(parent, dispatcher, mun, data) {
+  const NO_TEST_COLOR = null;
+  const colorPalette = [NO_TEST_COLOR].concat(
+    schemeBlues[Object.keys(MAP2.CATEGORY).length - 1]
+  );
+  // map2Category field should be present in all the municipalities
+  const color = category => colorPalette[category];
+
   parent.html(null);
   makeHeader(parent, mun.properties.name, mun.properties.fuName);
   parent
@@ -131,33 +140,65 @@ function makeLimits(parent, dispatcher, mun, data) {
         (+mun.properties.population).toLocaleString('pt-BR')
     );
 
-  if (!('number' in mun.properties)) {
+  // map2Category should always be present
+  if (mun.properties.map2Category === MAP2.CATEGORY.NO_TEST) {
     parent
       .append('header')
       .html(
-        'No data about agrotoxics above legal limit in ' +
+        '<strong class="is-size-4">' +
+          'No data</strong> about agrotoxics inside drinking water in ' +
           mun.properties.name +
           '.'
       );
-  } else if (mun.properties.number.supBr === 0) {
+  } else if (mun.properties.map2Category === MAP2.CATEGORY.BELOW) {
     parent
       .append('header')
       .html(
-        'No agrotoxics detected above legal limit in ' +
+        '<strong class="is-size-4">' +
+          'No agrotoxics</strong> detected above the legal or European limits in ' +
           mun.properties.name +
           '.'
       );
   } else {
-    parent
-      .append('header')
-      .html(
-        '<strong>' +
-          mun.properties.number.detected +
-          ' agrotoxic(s)</strong> detected above legal limit in drinking water in ' +
-          mun.properties.name +
-          '.'
+    const supBrSubstances = mun.properties.tests.filter(
+      sub => sub.map2Category === MAP2.CATEGORY.SUP_BR
+    );
+    if (supBrSubstances.length > 0) {
+      makeTubesLimits(
+        parent,
+        supBrSubstances,
+        '<strong class="is-size-4">' +
+          supBrSubstances.length +
+          '</strong> agrotoxic(s) detected above the legal limit',
+        color(MAP2.CATEGORY.SUP_BR)
       );
-    makeTubesLimits(parent, mun.properties.name, mun, data);
+    }
+    const eqBrSubstances = mun.properties.tests.filter(
+      sub => sub.map2Category === MAP2.CATEGORY.EQ_BR
+    );
+    if (eqBrSubstances.length > 0) {
+      makeTubesLimits(
+        parent,
+        eqBrSubstances,
+        '<strong class="is-size-4">' +
+          eqBrSubstances.length +
+          '</strong> agrotoxic(s) detected exactly at the legal limit',
+        color(MAP2.CATEGORY.EQ_BR)
+      );
+    }
+    const supEuSubstances = mun.properties.tests.filter(
+      sub => sub.map2Category === MAP2.CATEGORY.SUP_EU
+    );
+    if (supEuSubstances.length > 0) {
+      makeTubesLimits(
+        parent,
+        supEuSubstances,
+        '<strong class="is-size-4">' +
+          supEuSubstances.length +
+          '</strong> agrotoxic(s) detected above the European limit',
+        color(MAP2.CATEGORY.SUP_EU)
+      );
+    }
   }
 }
 

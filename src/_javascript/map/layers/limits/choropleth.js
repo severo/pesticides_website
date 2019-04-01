@@ -1,21 +1,7 @@
-import {axisBottom, interpolateYlOrRd, range, scaleLinear} from 'd3';
+//import {axisBottom, interpolateYlOrRd, range, scaleLinear} from 'd3';
+import {MAP2} from '../../../data';
+import {schemeBlues} from 'd3';
 
-// TODO: add a control to select the parameter?
-/* Reminder of the data available from the CSV
-category: {
-  atrAvgCat: row.atrazine_atrazine_category,
-  atrMaxCat: row.atrazine_category,
-  ibgeBode: row.ibge_code,
-  simAvgCat: row.simazine_atrazina_category,
-  simMaxCat: row.simazine_category,
-},
-number: {
-  detected: +row.detected,
-  eqBr: +row.eq_br,
-  supBr: +row.sup_br,
-  supEu: +row.sup_eu,
-},
-*/
 const cfg = {
   field: 'supBr',
   legend: {
@@ -31,18 +17,14 @@ const cfg = {
     mouseover: 'mun-mouseover',
   },
 };
+const NO_TEST_COLOR = null;
 
 export function createLimitsChoropleth(parent, path, data, dispatcher) {
-  const maxNumberSupBr = data.mun.features.reduce((acc, ft) => {
-    if ('number' in ft.properties && ft.properties.number.supBr > acc) {
-      acc = ft.properties.number.supBr;
-    }
-    return acc;
-  }, 0);
-
-  const color = scaleLinear()
-    .domain([0, maxNumberSupBr])
-    .interpolate(() => interpolateYlOrRd);
+  const colorPalette = [NO_TEST_COLOR].concat(
+    schemeBlues[Object.keys(MAP2.CATEGORY).length - 1]
+  );
+  // map2Category field should be present in all the municipalities
+  const color = ft => colorPalette[ft.properties.map2Category];
 
   parent
     .append('g')
@@ -53,17 +35,12 @@ export function createLimitsChoropleth(parent, path, data, dispatcher) {
     .append('path')
     .attr('id', ft => 'id-' + ft.properties.ibgeCode)
     .attr('d', path)
-    .style('fill', ft => {
-      if (Number.isInteger(value(ft))) {
-        return color(value(ft));
-      }
-      return null;
-    })
+    .style('fill', ft => color(ft))
     .on('mouseover', (ft, element) => {
       // invoke callbacks
       dispatcher.call(cfg.typename.mouseover, null, {
         properties: ft.properties,
-        value: value(ft),
+        value: ft.properties.map2Category,
       });
     })
     .on('mouseout', (ft, element) => {
@@ -74,16 +51,10 @@ export function createLimitsChoropleth(parent, path, data, dispatcher) {
       // invoke callbacks
       dispatcher.call(cfg.typename.click, null, ft);
     });
-  makeLegend(parent, maxNumberSupBr, color);
+  //makeLegend(parent, maxNumberSupBr, color);
 }
 
-function value(ft) {
-  if ('number' in ft.properties) {
-    return ft.properties.number[cfg.field];
-  }
-  return null;
-}
-
+/*
 function makeLegend(parent, maxNumber, color) {
   // TODO: should be a scheme (27 colors), not a continuous scale
   const xx = scaleLinear()
@@ -133,3 +104,4 @@ function makeLegend(parent, maxNumber, color) {
     .select('.domain')
     .remove();
 }
+*/
