@@ -19027,6 +19027,11 @@
 
         if (ft.properties.ibgeCode in tests) {
           ft.properties.tests = parseTests(tests[ft.properties.ibgeCode], substancesRawLut);
+          ft.properties.map1Number = ft.properties.tests.filter(function (sub) {
+            return sub.max > 0;
+          }).length;
+        } else {
+          ft.properties.map1Number = NaN;
         } //data.brazil.features[0].properties
         // TODO: added for use in the search input. But the search could be
         // improved with Intl.Collator. In case it's improved in search/index.js
@@ -19540,26 +19545,29 @@
   function makeCocktail(parent, dispatcher, mun, data) {
     parent.html(null);
     makeHeader(parent, mun.properties.name, mun.properties.fuName);
-    parent.append('p').html('<strong>Population:</strong> ' + (+mun.properties.population).toLocaleString('pt-BR'));
+    parent.append('p').html('<strong>Population:</strong> ' + (+mun.properties.population).toLocaleString('pt-BR')); // map1Number should always be present - NaN if no tests
 
-    if (!('number' in mun.properties)) {
+    if (isNaN(mun.properties.map1Number)) {
       parent.append('header').html('<strong class="is-size-4">' + 'No data</strong> about agrotoxics inside drinking water in ' + mun.properties.name + '.');
-    } else if (mun.properties.number.detected === 0) {
+    } else if (mun.properties.map1Number === 0) {
       parent.append('header').html('<strong class="is-size-4">' + 'No agrotoxics</strong> detected inside drinking water in ' + mun.properties.name + '.');
     } else {
-      parent.append('header').html('<strong class="is-size-4"><span class="is-size-2">' + mun.properties.number.detected + '</span> agrotoxic(s)</strong> detected in drinking water in ' + mun.properties.name + '.');
+      parent.append('header').html('<strong class="is-size-4"><span class="is-size-2">' + mun.properties.map1Number + '</span> agrotoxic(s)</strong> detected in drinking water in ' + mun.properties.name + '.');
       var hhceSubstances = mun.properties.tests.filter(function (sub) {
         return sub.substance.isHhce && sub.max > 0;
       });
 
       if (hhceSubstances.length > 0) {
-        makeTubesCocktail(parent, hhceSubstances, '<strong class="is-size-4">' + hhceSubstances.length + '</strong> out of ' + mun.properties.number.detected + ': associated with chronic dieses such as cancer', 'purple');
+        makeTubesCocktail(parent, hhceSubstances, '<strong class="is-size-4">' + hhceSubstances.length + '</strong> out of ' + mun.properties.map1Number + ': associated with chronic dieses such as cancer', 'purple');
         var otherSubstances = mun.properties.tests.filter(function (sub) {
           return !sub.substance.isHhce && sub.max > 0;
         });
-        makeTubesCocktail(parent, otherSubstances, '<strong class="is-size-4">' + otherSubstances.length + '</strong> out of ' + mun.properties.number.detected + ': other pesticides', 'red');
+
+        if (otherSubstances.length > 0) {
+          makeTubesCocktail(parent, otherSubstances, '<strong class="is-size-4">' + otherSubstances.length + '</strong> out of ' + mun.properties.map1Number + ': other pesticides', 'red');
+        }
       } else {
-        makeTubesCocktail(parent, mun.properties.name, mun.properties.tests, '', 'red');
+        makeTubesCocktail(parent, mun.properties.tests, '', 'red');
       }
     }
   }
@@ -25102,8 +25110,8 @@
   }
 
   function value(ft) {
-    if ('number' in ft.properties) {
-      return ft.properties.number[cfg$1.field];
+    if (!isNaN(ft.properties.map1Number)) {
+      return ft.properties.map1Number;
     }
 
     return null;

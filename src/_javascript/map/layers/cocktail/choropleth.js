@@ -68,8 +68,8 @@ export function createCocktailChoropleth(parent, path, data, dispatcher) {
 }
 
 function value(ft) {
-  if ('number' in ft.properties) {
-    return ft.properties.number[cfg.field];
+  if (!isNaN(ft.properties.map1Number)) {
+    return ft.properties.map1Number;
   }
   return null;
 }

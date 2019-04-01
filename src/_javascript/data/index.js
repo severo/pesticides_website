@@ -136,6 +136,11 @@ export function loadData(dispatcher) {
             tests[ft.properties.ibgeCode],
             substancesRawLut
           );
+          ft.properties.map1Number = ft.properties.tests.filter(
+            sub => sub.max > 0
+          ).length;
+        } else {
+          ft.properties.map1Number = NaN;
         }
         //data.brazil.features[0].properties
         // TODO: added for use in the search input. But the search could be

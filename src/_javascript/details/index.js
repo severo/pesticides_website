@@ -56,7 +56,8 @@ function makeCocktail(parent, dispatcher, mun, data) {
         (+mun.properties.population).toLocaleString('pt-BR')
     );
 
-  if (!('number' in mun.properties)) {
+  // map1Number should always be present - NaN if no tests
+  if (isNaN(mun.properties.map1Number)) {
     parent
       .append('header')
       .html(
@@ -65,7 +66,7 @@ function makeCocktail(parent, dispatcher, mun, data) {
           mun.properties.name +
           '.'
       );
-  } else if (mun.properties.number.detected === 0) {
+  } else if (mun.properties.map1Number === 0) {
     parent
       .append('header')
       .html(
@@ -79,7 +80,7 @@ function makeCocktail(parent, dispatcher, mun, data) {
       .append('header')
       .html(
         '<strong class="is-size-4"><span class="is-size-2">' +
-          mun.properties.number.detected +
+          mun.properties.map1Number +
           '</span> agrotoxic(s)</strong> detected in drinking water in ' +
           mun.properties.name +
           '.'
@@ -95,31 +96,27 @@ function makeCocktail(parent, dispatcher, mun, data) {
         '<strong class="is-size-4">' +
           hhceSubstances.length +
           '</strong> out of ' +
-          mun.properties.number.detected +
+          mun.properties.map1Number +
           ': associated with chronic dieses such as cancer',
         'purple'
       );
       const otherSubstances = mun.properties.tests.filter(
         sub => !sub.substance.isHhce && sub.max > 0
       );
-      makeTubesCocktail(
-        parent,
-        otherSubstances,
-        '<strong class="is-size-4">' +
-          otherSubstances.length +
-          '</strong> out of ' +
-          mun.properties.number.detected +
-          ': other pesticides',
-        'red'
-      );
+      if (otherSubstances.length > 0) {
+        makeTubesCocktail(
+          parent,
+          otherSubstances,
+          '<strong class="is-size-4">' +
+            otherSubstances.length +
+            '</strong> out of ' +
+            mun.properties.map1Number +
+            ': other pesticides',
+          'red'
+        );
+      }
     } else {
-      makeTubesCocktail(
-        parent,
-        mun.properties.name,
-        mun.properties.tests,
-        '',
-        'red'
-      );
+      makeTubesCocktail(parent, mun.properties.tests, '', 'red');
     }
   }
 }
