@@ -19336,7 +19336,9 @@
       return subs.max > 0;
     }).sort(function (subs1, subs2) {
       // alphabetic order to get some coherence and stability between views
-      return subs1.substance.shortName > subs2.substance.shortName;
+      return subs1.substance.shortName.localeCompare(subs2.substance.shortName, 'pt', {
+        sensitivity: 'base'
+      });
     }).map(function (subs) {
       return {
         limit: subs.substance.limit,
@@ -19363,7 +19365,9 @@
       return subs.max > subs.substance.limit;
     }).sort(function (subs1, subs2) {
       // alphabetic order to get some coherence and stability between views
-      return subs1.substance.shortName > subs2.substance.shortName;
+      return subs1.substance.shortName.localeCompare(subs2.substance.shortName, 'pt', {
+        sensitivity: 'base'
+      });
     }).map(function (subs) {
       return {
         limit: subs.substance.limit,

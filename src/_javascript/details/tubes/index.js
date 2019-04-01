@@ -18,7 +18,11 @@ export function makeTubesCocktail(parent, name, mun, data) {
     .filter(subs => subs.max > 0)
     .sort((subs1, subs2) => {
       // alphabetic order to get some coherence and stability between views
-      return subs1.substance.shortName > subs2.substance.shortName;
+      return subs1.substance.shortName.localeCompare(
+        subs2.substance.shortName,
+        'pt',
+        {sensitivity: 'base'}
+      );
     })
     .map(subs => {
       return {
@@ -66,8 +70,13 @@ export function makeTubesLimits(parent, name, mun, data) {
     .filter(subs => subs.max > subs.substance.limit)
     .sort((subs1, subs2) => {
       // alphabetic order to get some coherence and stability between views
-      return subs1.substance.shortName > subs2.substance.shortName;
+      return subs1.substance.shortName.localeCompare(
+        subs2.substance.shortName,
+        'pt',
+        {sensitivity: 'base'}
+      );
     })
+
     .map(subs => {
       return {
         limit: subs.substance.limit,
