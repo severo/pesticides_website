@@ -101,6 +101,7 @@ export function loadData(dispatcher) {
       const substancesRaw = results[SUBST_IDX].map(cur => {
         return {
           code: cur.code,
+          isHhce: cur.hhce === 'true',
           limit: +cur.limit,
           name: cur.name,
           shortName: cur.shortName,

@@ -60,7 +60,8 @@ function makeCocktail(parent, dispatcher, mun, data) {
     parent
       .append('header')
       .html(
-        'No data about agrotoxics inside drinking water in ' +
+        '<strong class="is-size-4">' +
+          'No data</strong> about agrotoxics inside drinking water in ' +
           mun.properties.name +
           '.'
       );
@@ -68,7 +69,8 @@ function makeCocktail(parent, dispatcher, mun, data) {
     parent
       .append('header')
       .html(
-        'No agrotoxics detected inside drinking water in ' +
+        '<strong class="is-size-4">' +
+          'No agrotoxics</strong> detected inside drinking water in ' +
           mun.properties.name +
           '.'
       );
@@ -76,13 +78,49 @@ function makeCocktail(parent, dispatcher, mun, data) {
     parent
       .append('header')
       .html(
-        '<strong>' +
+        '<strong class="is-size-4"><span class="is-size-2">' +
           mun.properties.number.detected +
-          ' agrotoxic(s)</strong> detected in drinking water in ' +
+          '</span> agrotoxic(s)</strong> detected in drinking water in ' +
           mun.properties.name +
           '.'
       );
-    makeTubesCocktail(parent, mun.properties.name, mun, data);
+
+    const hhceSubstances = mun.properties.tests.filter(
+      sub => sub.substance.isHhce && sub.max > 0
+    );
+    if (hhceSubstances.length > 0) {
+      makeTubesCocktail(
+        parent,
+        hhceSubstances,
+        '<strong class="is-size-4">' +
+          hhceSubstances.length +
+          '</strong> out of ' +
+          mun.properties.number.detected +
+          ': associated with chronic dieses such as cancer',
+        'purple'
+      );
+      const otherSubstances = mun.properties.tests.filter(
+        sub => !sub.substance.isHhce && sub.max > 0
+      );
+      makeTubesCocktail(
+        parent,
+        otherSubstances,
+        '<strong class="is-size-4">' +
+          otherSubstances.length +
+          '</strong> out of ' +
+          mun.properties.number.detected +
+          ': other pesticides',
+        'red'
+      );
+    } else {
+      makeTubesCocktail(
+        parent,
+        mun.properties.name,
+        mun.properties.tests,
+        '',
+        'red'
+      );
+    }
   }
 }
 

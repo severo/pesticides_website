@@ -11,8 +11,8 @@ const dim = {
   wi: 36,
 };
 
-export function makeTubesCocktail(parent, name, mun, data) {
-  const substances = mun.properties.tests
+export function makeTubesCocktail(parent, substances, titleHtml, colorName) {
+  const preparedSubstances = substances
     .filter(subs => subs.max > 0)
     .sort((subs1, subs2) => {
       // alphabetic order to get some coherence and stability between views
@@ -45,10 +45,13 @@ export function makeTubesCocktail(parent, name, mun, data) {
     });
 
   const tubes = parent.append('div').classed('tubes', true);
+  if (titleHtml !== '') {
+    tubes.append('header').html(titleHtml);
+  }
 
   const svg = tubes
     .selectAll('abbr')
-    .data(substances)
+    .data(preparedSubstances)
     .enter()
     // TODO: manage a popup for touch / mouseover, instead of this temporal attr
     .append('abbr')
@@ -60,7 +63,7 @@ export function makeTubesCocktail(parent, name, mun, data) {
   /* eslint-disable no-magic-numbers */
 
   drawTube(svg, 300, 1000).attr('transform', 'translate(100, 0)');
-  drawLiquid(svg, 300, 1000).attr('transform', 'translate(100, 0)');
+  drawLiquid(svg, 300, 1000, colorName).attr('transform', 'translate(100, 0)');
   drawText(svg, 300, 1000).attr(
     'transform',
     'scale(6) rotate(-90) translate(-10 16)'
@@ -173,14 +176,19 @@ function drawTube(svg, width, height) {
   /* eslint-enable no-magic-numbers */
 }
 
-function drawLiquid(svg, width, height) {
+function drawLiquid(svg, width, height, colorName) {
   /* eslint-disable no-magic-numbers */
   function getY(ratio, max, margin) {
     // Value must be between 0 and 1
     return max * (1 - ratio) + margin;
   }
-
-  const colors = colorsList.red;
+  function getColors() {
+    if (colorName in colorsList) {
+      return colorsList[colorName];
+    }
+    return colorsList.red;
+  }
+  const colors = getColors();
   const liquid = svg.append('g');
 
   const wid = (1.5 * width) / 10;

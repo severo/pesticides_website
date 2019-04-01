@@ -18998,6 +18998,7 @@
       var substancesRaw = results[SUBST_IDX].map(function (cur) {
         return {
           code: cur.code,
+          isHhce: cur.hhce === 'true',
           limit: +cur.limit,
           name: cur.name,
           shortName: cur.shortName
@@ -19335,8 +19336,8 @@
     vWi: 400,
     wi: 36
   };
-  function makeTubesCocktail(parent, name, mun, data) {
-    var substances = mun.properties.tests.filter(function (subs) {
+  function makeTubesCocktail(parent, substances, titleHtml, colorName) {
+    var preparedSubstances = substances.filter(function (subs) {
       return subs.max > 0;
     }).sort(function (subs1, subs2) {
       // alphabetic order to get some coherence and stability between views
@@ -19359,14 +19360,19 @@
       };
     });
     var tubes = parent.append('div').classed('tubes', true);
-    var svg = tubes.selectAll('abbr').data(substances).enter() // TODO: manage a popup for touch / mouseover, instead of this temporal attr
+
+    if (titleHtml !== '') {
+      tubes.append('header').html(titleHtml);
+    }
+
+    var svg = tubes.selectAll('abbr').data(preparedSubstances).enter() // TODO: manage a popup for touch / mouseover, instead of this temporal attr
     .append('abbr').attr('title', function (subs) {
       return subs.name + ' - ' + subs.valueText;
     }).append('svg').attr('width', dim.wi).attr('height', dim.he).attr('viewBox', '0,0,' + dim.vWi + ',' + dim.vHe + '');
     /* eslint-disable no-magic-numbers */
 
     drawTube(svg, 300, 1000).attr('transform', 'translate(100, 0)');
-    drawLiquid(svg, 300, 1000).attr('transform', 'translate(100, 0)');
+    drawLiquid(svg, 300, 1000, colorName).attr('transform', 'translate(100, 0)');
     drawText(svg, 300, 1000).attr('transform', 'scale(6) rotate(-90) translate(-10 16)');
   }
   function makeTubesLimits(parent, name, mun, data) {
@@ -19433,14 +19439,22 @@
     /* eslint-enable no-magic-numbers */
   }
 
-  function drawLiquid(svg, width, height) {
+  function drawLiquid(svg, width, height, colorName) {
     /* eslint-disable no-magic-numbers */
     function getY(ratio, max, margin) {
       // Value must be between 0 and 1
       return max * (1 - ratio) + margin;
     }
 
-    var colors = colorsList.red;
+    function getColors() {
+      if (colorName in colorsList) {
+        return colorsList[colorName];
+      }
+
+      return colorsList.red;
+    }
+
+    var colors = getColors();
     var liquid = svg.append('g');
     var wid = 1.5 * width / 10;
     var hei = height - 3 * wid;
@@ -19530,12 +19544,24 @@
     parent.append('p').html('<strong>Population:</strong> ' + (+mun.properties.population).toLocaleString('pt-BR'));
 
     if (!('number' in mun.properties)) {
-      parent.append('header').html('No data about agrotoxics inside drinking water in ' + mun.properties.name + '.');
+      parent.append('header').html('<strong class="is-size-4">' + 'No data</strong> about agrotoxics inside drinking water in ' + mun.properties.name + '.');
     } else if (mun.properties.number.detected === 0) {
-      parent.append('header').html('No agrotoxics detected inside drinking water in ' + mun.properties.name + '.');
+      parent.append('header').html('<strong class="is-size-4">' + 'No agrotoxics</strong> detected inside drinking water in ' + mun.properties.name + '.');
     } else {
-      parent.append('header').html('<strong>' + mun.properties.number.detected + ' agrotoxic(s)</strong> detected in drinking water in ' + mun.properties.name + '.');
-      makeTubesCocktail(parent, mun.properties.name, mun, data);
+      parent.append('header').html('<strong class="is-size-4"><span class="is-size-2">' + mun.properties.number.detected + '</span> agrotoxic(s)</strong> detected in drinking water in ' + mun.properties.name + '.');
+      var hhceSubstances = mun.properties.tests.filter(function (sub) {
+        return sub.substance.isHhce && sub.max > 0;
+      });
+
+      if (hhceSubstances.length > 0) {
+        makeTubesCocktail(parent, hhceSubstances, '<strong class="is-size-4">' + hhceSubstances.length + '</strong> out of ' + mun.properties.number.detected + ': associated with chronic dieses such as cancer', 'purple');
+        var otherSubstances = mun.properties.tests.filter(function (sub) {
+          return !sub.substance.isHhce && sub.max > 0;
+        });
+        makeTubesCocktail(parent, otherSubstances, '<strong class="is-size-4">' + otherSubstances.length + '</strong> out of ' + mun.properties.number.detected + ': other pesticides', 'red');
+      } else {
+        makeTubesCocktail(parent, mun.properties.name, mun.properties.tests, '', 'red');
+      }
     }
   }
 
@@ -23725,8 +23751,6 @@
   var saturday = weekday(6);
 
   var sundays = sunday.range;
-  var mondays = monday.range;
-  var thursdays = thursday.range;
 
   var month = newInterval(function(date) {
     date.setDate(1);
@@ -23816,8 +23840,6 @@
   var utcSaturday = utcWeekday(6);
 
   var utcSundays = utcSunday.range;
-  var utcMondays = utcMonday.range;
-  var utcThursdays = utcThursday.range;
 
   var utcMonth = newInterval(function(date) {
     date.setUTCDate(1);
