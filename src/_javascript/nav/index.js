@@ -2,13 +2,12 @@ import {select, selectAll} from 'd3-selection';
 
 export function makeNav(dispatcher, state) {
   // init
+  updateNav(dispatcher, state);
+  select('.navbar-menu #nav-item-cocktail').classed('is-active', true);
+
   select('.navbar-burger').on('click', () => {
     dispatcher.call('burger-show');
   });
-  selectAll('.navbar-menu .navbar-item').on('click', () => {
-    dispatcher.call('burger-hide');
-  });
-  updateNav(dispatcher, state);
 
   dispatcher.on('to-brazil-view.nav', () => {
     updateNav(dispatcher, {data: state.data});
@@ -36,13 +35,23 @@ export function makeNav(dispatcher, state) {
 }
 
 function updateNav(dispatcher, state) {
+  // TODO: we could factorize
   select('.navbar-menu #nav-item-cocktail').on('click', () => {
+    selectAll('.navbar-menu .navbar-item').classed('is-active', false);
+    select('.navbar-menu #nav-item-cocktail').classed('is-active', true);
+    dispatcher.call('burger-hide');
     dispatcher.call('make-app-cocktail', null, state);
   });
   select('.navbar-menu #nav-item-limits').on('click', () => {
+    selectAll('.navbar-menu .navbar-item').classed('is-active', false);
+    select('.navbar-menu #nav-item-limits').classed('is-active', true);
+    dispatcher.call('burger-hide');
     dispatcher.call('make-app-limits', null, state);
   });
   select('.navbar-menu #nav-item-substances').on('click', () => {
+    selectAll('.navbar-menu .navbar-item').classed('is-active', false);
+    select('.navbar-menu #nav-item-substances').classed('is-active', true);
+    dispatcher.call('burger-hide');
     dispatcher.call('make-app-substances', null, state);
   });
 }
