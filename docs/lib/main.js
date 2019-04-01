@@ -19336,7 +19336,6 @@
     wi: 36
   };
   function makeTubesCocktail(parent, name, mun, data) {
-    var DETECTED_VALUE = 1e-10;
     var substances = mun.properties.tests.filter(function (subs) {
       return subs.max > 0;
     }).sort(function (subs1, subs2) {
@@ -19345,12 +19344,18 @@
         sensitivity: 'base'
       });
     }).map(function (subs) {
+      var numTests = subs.tests.length;
+      var numDetections = subs.tests.filter(function (con) {
+        return con > 0;
+      }).length;
+      var TO_PCT = 100;
+      var DIGITS = 0;
+      var ratio = numDetections / numTests;
       return {
-        limit: subs.substance.limit,
         name: subs.substance.name,
         shortName: subs.substance.shortName,
-        value: subs.max,
-        valueText: subs.max === DETECTED_VALUE ? 'detected' : subs.max.toLocaleString('pt-BR') + ' μg/L (legal limit: ' + subs.substance.limit.toLocaleString('pt-BR') + ' μg/L)'
+        value: ratio,
+        valueText: subs.substance.name + ' detected in ' + numDetections + ' of ' + numTests + ' measurements (' + (ratio * TO_PCT).toFixed(DIGITS) + '%)'
       };
     });
     var tubes = parent.append('div').classed('tubes', true);
@@ -19361,7 +19366,7 @@
     /* eslint-disable no-magic-numbers */
 
     drawTube(svg, 300, 1000).attr('transform', 'translate(100, 0)');
-    drawLiquid(svg, 300, 1000, 0.75).attr('transform', 'translate(100, 0)');
+    drawLiquid(svg, 300, 1000).attr('transform', 'translate(100, 0)');
     drawText(svg, 300, 1000).attr('transform', 'scale(6) rotate(-90) translate(-10 16)');
   }
   function makeTubesLimits(parent, name, mun, data) {
@@ -19390,7 +19395,7 @@
     /* eslint-disable no-magic-numbers */
 
     drawTube(svg, 300, 1000).attr('transform', 'translate(100, 0)');
-    drawLiquid(svg, 300, 1000, 0.2).attr('transform', 'translate(100, 0)');
+    drawLiquid(svg, 300, 1000).attr('transform', 'translate(100, 0)');
     drawText(svg, 300, 1000).attr('transform', 'scale(6) rotate(-90) translate(-10 16)');
   }
 
@@ -19428,22 +19433,11 @@
     /* eslint-enable no-magic-numbers */
   }
 
-  function drawLiquid(svg, width, height, limitFactor) {
+  function drawLiquid(svg, width, height) {
     /* eslint-disable no-magic-numbers */
-    function getY(value, limit) {
-      // Hand made limits. We lose the exact proportions, but avoid exagerated
-      // bars
-      var min = 0.1;
-      var max = 0.95;
-      var ratio = limitFactor * value / limit;
-
-      if (ratio > max) {
-        ratio = max;
-      } else if (ratio < min) {
-        ratio = min;
-      }
-
-      return 1 - ratio;
+    function getY(ratio, max, margin) {
+      // Value must be between 0 and 1
+      return max * (1 - ratio) + margin;
     }
 
     var colors = colorsList.red;
@@ -19454,7 +19448,7 @@
     var coll_a = colors[0];
     var coll_b = colors[1];
     liquid.append('path').attr('fill', coll_a).attr('d', function (subs) {
-      var pesY = wid + getY(subs.value, subs.limit) * hei;
+      var pesY = wid + getY(subs.value, hei - wid, wid);
       var dlb = path();
       dlb.moveTo(2 * mid - 2 * wid, pesY);
       dlb.lineTo(2 * mid - 2 * wid, hei + wid);
@@ -19464,7 +19458,7 @@
       return dlb.toString();
     });
     liquid.append('path').attr('fill', coll_b).attr('d', function (subs) {
-      var pesY = wid + getY(subs.value, subs.limit) * hei;
+      var pesY = wid + getY(subs.value, hei - wid, wid);
       var dlb = path();
       dlb.moveTo(2 * wid, pesY);
       dlb.lineTo(2 * wid, hei + wid);

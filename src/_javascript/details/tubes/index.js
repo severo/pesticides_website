@@ -12,8 +12,6 @@ const dim = {
 };
 
 export function makeTubesCocktail(parent, name, mun, data) {
-  const DETECTED_VALUE = 1e-10;
-
   const substances = mun.properties.tests
     .filter(subs => subs.max > 0)
     .sort((subs1, subs2) => {
@@ -25,18 +23,24 @@ export function makeTubesCocktail(parent, name, mun, data) {
       );
     })
     .map(subs => {
+      const numTests = subs.tests.length;
+      const numDetections = subs.tests.filter(con => con > 0).length;
+      const TO_PCT = 100;
+      const DIGITS = 0;
+      const ratio = numDetections / numTests;
       return {
-        limit: subs.substance.limit,
         name: subs.substance.name,
         shortName: subs.substance.shortName,
-        value: subs.max,
+        value: ratio,
         valueText:
-          subs.max === DETECTED_VALUE
-            ? 'detected'
-            : subs.max.toLocaleString('pt-BR') +
-              ' μg/L (legal limit: ' +
-              subs.substance.limit.toLocaleString('pt-BR') +
-              ' μg/L)',
+          subs.substance.name +
+          ' detected in ' +
+          numDetections +
+          ' of ' +
+          numTests +
+          ' measurements (' +
+          (ratio * TO_PCT).toFixed(DIGITS) +
+          '%)',
       };
     });
 
@@ -56,7 +60,7 @@ export function makeTubesCocktail(parent, name, mun, data) {
   /* eslint-disable no-magic-numbers */
 
   drawTube(svg, 300, 1000).attr('transform', 'translate(100, 0)');
-  drawLiquid(svg, 300, 1000, 0.75).attr('transform', 'translate(100, 0)');
+  drawLiquid(svg, 300, 1000).attr('transform', 'translate(100, 0)');
   drawText(svg, 300, 1000).attr(
     'transform',
     'scale(6) rotate(-90) translate(-10 16)'
@@ -109,7 +113,7 @@ export function makeTubesLimits(parent, name, mun, data) {
   /* eslint-disable no-magic-numbers */
 
   drawTube(svg, 300, 1000).attr('transform', 'translate(100, 0)');
-  drawLiquid(svg, 300, 1000, 0.2).attr('transform', 'translate(100, 0)');
+  drawLiquid(svg, 300, 1000).attr('transform', 'translate(100, 0)');
   drawText(svg, 300, 1000).attr(
     'transform',
     'scale(6) rotate(-90) translate(-10 16)'
@@ -169,20 +173,11 @@ function drawTube(svg, width, height) {
   /* eslint-enable no-magic-numbers */
 }
 
-function drawLiquid(svg, width, height, limitFactor) {
+function drawLiquid(svg, width, height) {
   /* eslint-disable no-magic-numbers */
-  function getY(value, limit) {
-    // Hand made limits. We lose the exact proportions, but avoid exagerated
-    // bars
-    const min = 0.1;
-    const max = 0.95;
-    let ratio = (limitFactor * value) / limit;
-    if (ratio > max) {
-      ratio = max;
-    } else if (ratio < min) {
-      ratio = min;
-    }
-    return 1 - ratio;
+  function getY(ratio, max, margin) {
+    // Value must be between 0 and 1
+    return max * (1 - ratio) + margin;
   }
 
   const colors = colorsList.red;
@@ -199,7 +194,7 @@ function drawLiquid(svg, width, height, limitFactor) {
     .append('path')
     .attr('fill', coll_a)
     .attr('d', subs => {
-      const pesY = wid + getY(subs.value, subs.limit) * hei;
+      const pesY = wid + getY(subs.value, hei - wid, wid);
       const dlb = d3Path.path();
       dlb.moveTo(2 * mid - 2 * wid, pesY);
       dlb.lineTo(2 * mid - 2 * wid, hei + wid);
@@ -217,7 +212,7 @@ function drawLiquid(svg, width, height, limitFactor) {
     .append('path')
     .attr('fill', coll_b)
     .attr('d', subs => {
-      const pesY = wid + getY(subs.value, subs.limit) * hei;
+      const pesY = wid + getY(subs.value, hei - wid, wid);
       const dlb = d3Path.path();
       dlb.moveTo(2 * wid, pesY);
       dlb.lineTo(2 * wid, hei + wid);
