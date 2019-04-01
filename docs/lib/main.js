@@ -19525,8 +19525,8 @@
     } else if (mun.properties.number.detected === 0) {
       parent.append('header').html('No agrotoxics detected inside drinking water in ' + mun.properties.name + '.');
     } else {
-      parent.append('header').html('The drinking water in ' + name + ' contains <strong>' + mun.properties.number.detected + ' agrotoxic(s)</strong>.');
-      makeTubesCocktail(parent, name, mun, data);
+      parent.append('header').html('<strong>' + mun.properties.number.detected + ' agrotoxic(s)</strong> detected in drinking water in ' + mun.properties.name + '.');
+      makeTubesCocktail(parent, mun.properties.name, mun, data);
     }
   }
 
@@ -19540,8 +19540,8 @@
     } else if (mun.properties.number.supBr === 0) {
       parent.append('header').html('No agrotoxics detected above legal limit in ' + mun.properties.name + '.');
     } else {
-      parent.append('header').html('<strong>' + mun.properties.number.supBr + ' agrotoxic(s)</strong> detected above legal limit in ' + mun.properties.name + '.');
-      makeTubesLimits(parent, name, mun, data);
+      parent.append('header').html('<strong>' + mun.properties.number.detected + ' agrotoxic(s)</strong> detected above legal limit in drinking water in ' + mun.properties.name + '.');
+      makeTubesLimits(parent, mun.properties.name, mun, data);
     }
   }
 

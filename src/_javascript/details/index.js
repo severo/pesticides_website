@@ -68,13 +68,13 @@ function makeCocktail(parent, dispatcher, mun, data) {
     parent
       .append('header')
       .html(
-        'The drinking water in ' +
-          name +
-          ' contains <strong>' +
+        '<strong>' +
           mun.properties.number.detected +
-          ' agrotoxic(s)</strong>.'
+          ' agrotoxic(s)</strong> detected in drinking water in ' +
+          mun.properties.name +
+          '.'
       );
-    makeTubesCocktail(parent, name, mun, data);
+    makeTubesCocktail(parent, mun.properties.name, mun, data);
   }
 }
 
@@ -109,12 +109,12 @@ function makeLimits(parent, dispatcher, mun, data) {
       .append('header')
       .html(
         '<strong>' +
-          mun.properties.number.supBr +
-          ' agrotoxic(s)</strong> detected above legal limit in ' +
+          mun.properties.number.detected +
+          ' agrotoxic(s)</strong> detected above legal limit in drinking water in ' +
           mun.properties.name +
           '.'
       );
-    makeTubesLimits(parent, name, mun, data);
+    makeTubesLimits(parent, mun.properties.name, mun, data);
   }
 }
 
