@@ -8,7 +8,7 @@ import {geoPath} from 'd3-geo';
 export const cfg = {
   substances: {
     integrityHash:
-      'sha384-x+8+LkBPHNpxP0N0MaCZmnQKUWbjXvnpJ/FHVu7wNBWj8jpcixzDZZXxVAGRXkAg',
+      'sha384-rynsKDDG/zobjB0as7G93mhvMWkQGM9PNn9HJshc5pDZ6d70ZOvFqpInuvKlwoES',
     url:
       'https://raw.githubusercontent.com/severo/data_brazil/master/substances.csv',
   },

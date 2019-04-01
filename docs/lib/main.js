@@ -18911,7 +18911,7 @@
 
   var cfg = {
     substances: {
-      integrityHash: 'sha384-x+8+LkBPHNpxP0N0MaCZmnQKUWbjXvnpJ/FHVu7wNBWj8jpcixzDZZXxVAGRXkAg',
+      integrityHash: 'sha384-rynsKDDG/zobjB0as7G93mhvMWkQGM9PNn9HJshc5pDZ6d70ZOvFqpInuvKlwoES',
       url: 'https://raw.githubusercontent.com/severo/data_brazil/master/substances.csv'
     },
     // Produced by https://framagit.org/severo/sisagua - export_tests_data()
@@ -23725,6 +23725,8 @@
   var saturday = weekday(6);
 
   var sundays = sunday.range;
+  var mondays = monday.range;
+  var thursdays = thursday.range;
 
   var month = newInterval(function(date) {
     date.setDate(1);
@@ -23814,6 +23816,8 @@
   var utcSaturday = utcWeekday(6);
 
   var utcSundays = utcSunday.range;
+  var utcMondays = utcMonday.range;
+  var utcThursdays = utcThursday.range;
 
   var utcMonth = newInterval(function(date) {
     date.setUTCDate(1);
