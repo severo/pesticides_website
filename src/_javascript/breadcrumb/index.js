@@ -1,14 +1,18 @@
-export function makeBreadcrumb(parent, dispatcher, data) {
+export function makeBreadcrumb(parent, dispatcher, state) {
   startLoading(parent);
 
   // Init
-  makeBrazil(parent);
+  if ('mun' in state) {
+    makeMun(parent, dispatcher, state.data, state.mun);
+  } else {
+    makeBrazil(parent);
+  }
 
   dispatcher.on('to-mun-view.breadcrumb', mun => {
-    makeMun(parent, dispatcher, data, mun);
+    makeMun(parent, dispatcher, state.data, mun);
   });
 
-  dispatcher.on('to-brazil-view.breadcrumb', mun => {
+  dispatcher.on('to-brazil-view.breadcrumb', () => {
     makeBrazil(parent);
   });
 

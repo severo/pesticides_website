@@ -2,29 +2,21 @@ import {makeTubesCocktail, makeTubesLimits} from './tubes';
 
 const DETECTED_VALUE = 1e-10;
 
-export function makeDetails(parent, dispatcher, view, data) {
+export function makeDetails(parent, dispatcher, view, state) {
   startLoading(parent);
 
-  makeBrazil(parent, dispatcher, data);
+  if ('mun' in state) {
+    makeMun(parent, dispatcher, view, state.data, state.mun);
+  } else {
+    makeBrazil(parent, dispatcher, state.data);
+  }
 
-  dispatcher.on('to-brazil-view.details', brazilData => {
-    makeBrazil(parent, dispatcher, data);
+  dispatcher.on('to-brazil-view.details', () => {
+    makeBrazil(parent, dispatcher, state.data);
   });
 
   dispatcher.on('to-mun-view.details', mun => {
-    if (view === 'limits') {
-      makeLimits(parent, dispatcher, mun, data);
-    } else if (view === 'substances') {
-      // init
-      const defaultSubstance = data.substancesLut['25'];
-      makeSubstance(parent, dispatcher, mun, data, defaultSubstance);
-
-      dispatcher.on('substance-selected', substance =>
-        makeSubstance(parent, dispatcher, mun, data, substance)
-      );
-    } else {
-      makeCocktail(parent, dispatcher, mun, data);
-    }
+    makeMun(parent, dispatcher, view, state.data, mun);
   });
 
   endLoading(parent);
@@ -36,6 +28,22 @@ function makeBrazil(parent, dispatcher, data) {
   parent
     .append('p')
     .html('[work in progress... show a message - search or click]');
+}
+
+function makeMun(parent, dispatcher, view, data, mun) {
+  if (view === 'limits') {
+    makeLimits(parent, dispatcher, mun, data);
+  } else if (view === 'substances') {
+    // init
+    const defaultSubstance = data.substancesLut['25'];
+    makeSubstance(parent, dispatcher, mun, data, defaultSubstance);
+
+    dispatcher.on('substance-selected', substance =>
+      makeSubstance(parent, dispatcher, mun, data, substance)
+    );
+  } else {
+    makeCocktail(parent, dispatcher, mun, data);
+  }
 }
 
 function makeCocktail(parent, dispatcher, mun, data) {

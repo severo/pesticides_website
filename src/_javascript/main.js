@@ -30,37 +30,38 @@ const dispatcher = dispatch(
 loadData(dispatcher);
 
 // Create the layout
-dispatcher.on('data-loaded', data => {
-  makeNav(dispatcher, data);
-  makeSearch(select('section#search'), dispatcher, data);
-  dispatcher.call('make-app-cocktail', null, data);
+dispatcher.on('data-loaded.main', data => {
+  const state = {data: data};
+  makeNav(dispatcher, state);
+  makeSearch(select('section#search'), dispatcher, state);
+  dispatcher.call('make-app-cocktail', null, state);
 });
 
-dispatcher.on('make-app-cocktail', data => {
+dispatcher.on('make-app-cocktail.main', state => {
   //removeSubstanceSelect(select('#substance-select'));
-  makeBreadcrumb(select('nav#breadcrumb'), dispatcher, data);
-  makeDetails(select('section#details'), dispatcher, 'cocktail', data);
-  makeMap(select('section#map'), dispatcher, 'cocktail', data);
+  makeBreadcrumb(select('nav#breadcrumb'), dispatcher, state);
+  makeDetails(select('section#details'), dispatcher, 'cocktail', state);
+  makeMap(select('section#map'), dispatcher, 'cocktail', state);
 });
 
-dispatcher.on('make-app-limits', data => {
+dispatcher.on('make-app-limits.main', state => {
   //removeSubstanceSelect(select('#substance-select'));
-  makeBreadcrumb(select('nav#breadcrumb'), dispatcher, data);
-  makeDetails(select('section#details'), dispatcher, 'limits', data);
-  makeMap(select('section#map'), dispatcher, 'limits', data);
+  makeBreadcrumb(select('nav#breadcrumb'), dispatcher, state);
+  makeDetails(select('section#details'), dispatcher, 'limits', state);
+  makeMap(select('section#map'), dispatcher, 'limits', state);
 });
 
-dispatcher.on('make-app-substances', data => {
-  makeBreadcrumb(select('nav#breadcrumb'), dispatcher, data);
-  //makeSubstanceSelect(select('#substance-select'), dispatcher, data);
-  makeDetails(select('section#details'), dispatcher, 'substances', data);
-  makeMap(select('section#map'), dispatcher, 'substances', data);
+dispatcher.on('make-app-substances.main', state => {
+  makeBreadcrumb(select('nav#breadcrumb'), dispatcher, state);
+  //makeSubstanceSelect(select('#substance-select'), dispatcher, state);
+  makeDetails(select('section#details'), dispatcher, 'substances', state);
+  makeMap(select('section#map'), dispatcher, 'substances', state);
 });
 
 // Mun / Brazil
-dispatcher.on('mun-click.state search-selected.state', mun => {
+dispatcher.on('mun-click.main search-selected.main', mun => {
   dispatcher.call('to-mun-view', null, mun);
 });
-dispatcher.on('breadcrumb-click-brazil.state', data => {
-  dispatcher.call('to-brazil-view', null, data);
+dispatcher.on('breadcrumb-click-brazil.main', () => {
+  dispatcher.call('to-brazil-view');
 });

@@ -15,7 +15,7 @@ const cfg = {
   },
 };
 
-export function makeMap(parent, dispatcher, view, data) {
+export function makeMap(parent, dispatcher, view, state) {
   startLoading(parent);
 
   // Clean existing contents
@@ -34,6 +34,24 @@ export function makeMap(parent, dispatcher, view, data) {
   // to pass it a projection as an argument
   const path = geoPath();
 
+  if ('mun' in state) {
+    makeMun(svg, path, dispatcher, view, state.data, state.mun);
+  } else {
+    makeBrazil(svg, path, dispatcher, view, state.data);
+  }
+
+  dispatcher.on('to-brazil-view.map', () => {
+    makeBrazil(svg, path, dispatcher, view, state.data);
+  });
+
+  dispatcher.on('to-mun-view.map', mun => {
+    makeMun(svg, path, dispatcher, view, state.data, mun);
+  });
+
+  endLoading(parent);
+}
+
+function makeBrazil(svg, path, dispatcher, view, data) {
   if (view === 'limits') {
     createLimits(svg, path, data, dispatcher);
   } else if (view === 'substances') {
@@ -47,8 +65,12 @@ export function makeMap(parent, dispatcher, view, data) {
   } else {
     createCocktail(svg, path, data, dispatcher);
   }
+}
 
-  endLoading(parent);
+function makeMun(svg, path, dispatcher, view, data, mun) {
+  // TODO: show the selected municipality on the map (extra layer?)
+  // TODO: avoid recreating the map on every click
+  makeBrazil(svg, path, dispatcher, view, data);
 }
 
 function createCocktail(svg, path, data, dispatcher) {

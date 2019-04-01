@@ -19154,14 +19154,19 @@
     }, []);
   }
 
-  function makeBreadcrumb(parent, dispatcher, data) {
+  function makeBreadcrumb(parent, dispatcher, state) {
     startLoading(parent); // Init
 
-    makeBrazil(parent);
+    if ('mun' in state) {
+      makeMun(parent, dispatcher, state.data, state.mun);
+    } else {
+      makeBrazil(parent);
+    }
+
     dispatcher.on('to-mun-view.breadcrumb', function (mun) {
-      makeMun(parent, dispatcher, data, mun);
+      makeMun(parent, dispatcher, state.data, mun);
     });
-    dispatcher.on('to-brazil-view.breadcrumb', function (mun) {
+    dispatcher.on('to-brazil-view.breadcrumb', function () {
       makeBrazil(parent);
     });
     endLoading(parent);
@@ -19486,25 +19491,20 @@
   }
 
   var DETECTED_VALUE = 1e-10;
-  function makeDetails(parent, dispatcher, view, data) {
+  function makeDetails(parent, dispatcher, view, state) {
     startLoading$1(parent);
-    makeBrazil$1(parent, dispatcher, data);
-    dispatcher.on('to-brazil-view.details', function (brazilData) {
-      makeBrazil$1(parent, dispatcher, data);
+
+    if ('mun' in state) {
+      makeMun$1(parent, dispatcher, view, state.data, state.mun);
+    } else {
+      makeBrazil$1(parent, dispatcher, state.data);
+    }
+
+    dispatcher.on('to-brazil-view.details', function () {
+      makeBrazil$1(parent, dispatcher, state.data);
     });
     dispatcher.on('to-mun-view.details', function (mun) {
-      if (view === 'limits') {
-        makeLimits(parent, dispatcher, mun, data);
-      } else if (view === 'substances') {
-        // init
-        var defaultSubstance = data.substancesLut['25'];
-        makeSubstance(parent, dispatcher, mun, data, defaultSubstance);
-        dispatcher.on('substance-selected', function (substance) {
-          return makeSubstance(parent, dispatcher, mun, data, substance);
-        });
-      } else {
-        makeCocktail(parent, dispatcher, mun, data);
-      }
+      makeMun$1(parent, dispatcher, view, state.data, mun);
     });
     endLoading$1(parent);
   }
@@ -19513,6 +19513,21 @@
     parent.html(null);
     makeHeader(parent, 'Brazil');
     parent.append('p').html('[work in progress... show a message - search or click]');
+  }
+
+  function makeMun$1(parent, dispatcher, view, data, mun) {
+    if (view === 'limits') {
+      makeLimits(parent, dispatcher, mun, data);
+    } else if (view === 'substances') {
+      // init
+      var defaultSubstance = data.substancesLut['25'];
+      makeSubstance(parent, dispatcher, mun, data, defaultSubstance);
+      dispatcher.on('substance-selected', function (substance) {
+        return makeSubstance(parent, dispatcher, mun, data, substance);
+      });
+    } else {
+      makeCocktail(parent, dispatcher, mun, data);
+    }
   }
 
   function makeCocktail(parent, dispatcher, mun, data) {
@@ -29334,7 +29349,7 @@
       width: 960
     }
   };
-  function makeMap(parent, dispatcher, view, data) {
+  function makeMap(parent, dispatcher, view, state) {
     startLoading$2(parent); // Clean existing contents
     // TODO: be more clever?
 
@@ -29348,6 +29363,22 @@
 
     var path = geoPath();
 
+    if ('mun' in state) {
+      makeMun$2(svg, path, dispatcher, view, state.data, state.mun);
+    } else {
+      makeBrazil$2(svg, path, dispatcher, view, state.data);
+    }
+
+    dispatcher.on('to-brazil-view.map', function () {
+      makeBrazil$2(svg, path, dispatcher, view, state.data);
+    });
+    dispatcher.on('to-mun-view.map', function (mun) {
+      makeMun$2(svg, path, dispatcher, view, state.data, mun);
+    });
+    endLoading$2(parent);
+  }
+
+  function makeBrazil$2(svg, path, dispatcher, view, data) {
     if (view === 'limits') {
       createLimits(svg, path, data, dispatcher);
     } else if (view === 'substances') {
@@ -29360,8 +29391,12 @@
     } else {
       createCocktail(svg, path, data, dispatcher);
     }
+  }
 
-    endLoading$2(parent);
+  function makeMun$2(svg, path, dispatcher, view, data, mun) {
+    // TODO: show the selected municipality on the map (extra layer?)
+    // TODO: avoid recreating the map on every click
+    makeBrazil$2(svg, path, dispatcher, view, data);
   }
 
   function createCocktail(svg, path, data, dispatcher) {
@@ -29393,7 +29428,7 @@
     element.classed('is-loading', false);
   }
 
-  function makeNav(dispatcher, data) {
+  function makeNav(dispatcher, state) {
     // init
     select('.navbar-burger').on('click', function () {
       dispatcher.call('burger-show');
@@ -29401,22 +29436,25 @@
     selectAll('.navbar-menu .navbar-item').on('click', function () {
       dispatcher.call('burger-hide');
     });
-    select('.navbar-menu #nav-item-cocktail').on('click', function () {
-      dispatcher.call('make-app-cocktail', null, data);
+    updateNav(dispatcher, state);
+    dispatcher.on('to-brazil-view.nav', function () {
+      updateNav(dispatcher, {
+        data: state.data
+      });
     });
-    select('.navbar-menu #nav-item-limits').on('click', function () {
-      dispatcher.call('make-app-limits', null, data);
+    dispatcher.on('to-mun-view.nav', function (mun) {
+      updateNav(dispatcher, {
+        data: state.data,
+        mun: mun
+      });
     });
-    select('.navbar-menu #nav-item-substances').on('click', function () {
-      dispatcher.call('make-app-substances', null, data);
-    });
-    dispatcher.on('burger-show', function () {
+    dispatcher.on('burger-show.nav', function () {
       select('.navbar-burger').classed('is-active', true).on('click', function () {
         dispatcher.call('burger-hide');
       });
       select('.navbar-menu').classed('is-active', true);
     });
-    dispatcher.on('burger-hide', function () {
+    dispatcher.on('burger-hide.nav', function () {
       select('.navbar-burger').classed('is-active', false).on('click', function () {
         dispatcher.call('burger-show');
       });
@@ -29424,8 +29462,20 @@
     });
   }
 
+  function updateNav(dispatcher, state) {
+    select('.navbar-menu #nav-item-cocktail').on('click', function () {
+      dispatcher.call('make-app-cocktail', null, state);
+    });
+    select('.navbar-menu #nav-item-limits').on('click', function () {
+      dispatcher.call('make-app-limits', null, state);
+    });
+    select('.navbar-menu #nav-item-substances').on('click', function () {
+      dispatcher.call('make-app-substances', null, state);
+    });
+  }
+
   var limit = 5;
-  function makeSearch(parent, dispatcher, data) {
+  function makeSearch(parent, dispatcher, state) {
     startLoading$3(parent); // TODO: add unit tests to verify that the cities are ordered as expected for
     // some queries ('sa', 'sao p', etc.)
 
@@ -29458,7 +29508,7 @@
       var logMinPop = Math.log10(minPop);
       var logMaxPop = Math.log10(maxPop);
       var div = popFactor / (logMaxPop - logMinPop);
-      return data.mun.features.map(function (ft) {
+      return state.data.mun.features.map(function (ft) {
         return {
           mun: ft,
           name: ft.properties.deburredName,
@@ -29526,35 +29576,38 @@
 
   loadData(dispatcher); // Create the layout
 
-  dispatcher.on('data-loaded', function (data) {
-    makeNav(dispatcher, data);
-    makeSearch(select('section#search'), dispatcher, data);
-    dispatcher.call('make-app-cocktail', null, data);
+  dispatcher.on('data-loaded.main', function (data) {
+    var state = {
+      data: data
+    };
+    makeNav(dispatcher, state);
+    makeSearch(select('section#search'), dispatcher, state);
+    dispatcher.call('make-app-cocktail', null, state);
   });
-  dispatcher.on('make-app-cocktail', function (data) {
+  dispatcher.on('make-app-cocktail.main', function (state) {
     //removeSubstanceSelect(select('#substance-select'));
-    makeBreadcrumb(select('nav#breadcrumb'), dispatcher, data);
-    makeDetails(select('section#details'), dispatcher, 'cocktail', data);
-    makeMap(select('section#map'), dispatcher, 'cocktail', data);
+    makeBreadcrumb(select('nav#breadcrumb'), dispatcher, state);
+    makeDetails(select('section#details'), dispatcher, 'cocktail', state);
+    makeMap(select('section#map'), dispatcher, 'cocktail', state);
   });
-  dispatcher.on('make-app-limits', function (data) {
+  dispatcher.on('make-app-limits.main', function (state) {
     //removeSubstanceSelect(select('#substance-select'));
-    makeBreadcrumb(select('nav#breadcrumb'), dispatcher, data);
-    makeDetails(select('section#details'), dispatcher, 'limits', data);
-    makeMap(select('section#map'), dispatcher, 'limits', data);
+    makeBreadcrumb(select('nav#breadcrumb'), dispatcher, state);
+    makeDetails(select('section#details'), dispatcher, 'limits', state);
+    makeMap(select('section#map'), dispatcher, 'limits', state);
   });
-  dispatcher.on('make-app-substances', function (data) {
-    makeBreadcrumb(select('nav#breadcrumb'), dispatcher, data); //makeSubstanceSelect(select('#substance-select'), dispatcher, data);
+  dispatcher.on('make-app-substances.main', function (state) {
+    makeBreadcrumb(select('nav#breadcrumb'), dispatcher, state); //makeSubstanceSelect(select('#substance-select'), dispatcher, state);
 
-    makeDetails(select('section#details'), dispatcher, 'substances', data);
-    makeMap(select('section#map'), dispatcher, 'substances', data);
+    makeDetails(select('section#details'), dispatcher, 'substances', state);
+    makeMap(select('section#map'), dispatcher, 'substances', state);
   }); // Mun / Brazil
 
-  dispatcher.on('mun-click.state search-selected.state', function (mun) {
+  dispatcher.on('mun-click.main search-selected.main', function (mun) {
     dispatcher.call('to-mun-view', null, mun);
   });
-  dispatcher.on('breadcrumb-click-brazil.state', function (data) {
-    dispatcher.call('to-brazil-view', null, data);
+  dispatcher.on('breadcrumb-click-brazil.main', function () {
+    dispatcher.call('to-brazil-view');
   });
 
 }());

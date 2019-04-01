@@ -1,8 +1,8 @@
 import {select} from 'd3-selection';
 
-export function makeSubstanceSelect(parent, dispatcher, data) {
-  const substances = Object.keys(data.substancesLut).map(key => {
-    return data.substancesLut[key];
+export function makeSubstanceSelect(parent, dispatcher, state) {
+  const substances = Object.keys(state.data.substancesLut).map(key => {
+    return state.data.substancesLut[key];
   });
 
   parent.html(null);
@@ -36,7 +36,11 @@ export function makeSubstanceSelect(parent, dispatcher, data) {
   select('#substance-select-control').on('change', (aa, bb, cc) => {
     // TODO: launch promises, and cancel any previous running promise
     const value = cc[0].value;
-    dispatcher.call('substance-selected', null, data.substancesLut[value]);
+    dispatcher.call(
+      'substance-selected',
+      null,
+      state.data.substancesLut[value]
+    );
   });
 }
 

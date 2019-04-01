@@ -3,7 +3,7 @@ import {select} from 'd3-selection';
 
 const limit = 5;
 
-export function makeSearch(parent, dispatcher, data) {
+export function makeSearch(parent, dispatcher, state) {
   startLoading(parent);
 
   // TODO: add unit tests to verify that the cities are ordered as expected for
@@ -35,7 +35,7 @@ export function makeSearch(parent, dispatcher, data) {
     const logMinPop = Math.log10(minPop);
     const logMaxPop = Math.log10(maxPop);
     const div = popFactor / (logMaxPop - logMinPop);
-    return data.mun.features.map(ft => {
+    return state.data.mun.features.map(ft => {
       return {
         mun: ft,
         name: ft.properties.deburredName,
