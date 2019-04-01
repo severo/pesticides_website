@@ -29,7 +29,6 @@ export function makeTubesCocktail(parent, substances, titleHtml, colorName) {
       const DIGITS = 0;
       const ratio = numDetections / numTests;
       return {
-        name: subs.substance.name,
         shortName: subs.substance.shortName,
         value: ratio,
         valueText:
@@ -55,7 +54,7 @@ export function makeTubesCocktail(parent, substances, titleHtml, colorName) {
     .enter()
     // TODO: manage a popup for touch / mouseover, instead of this temporal attr
     .append('abbr')
-    .attr('title', subs => subs.name + ' - ' + subs.valueText)
+    .attr('title', subs => subs.valueText)
     .append('svg')
     .attr('width', dim.wi)
     .attr('height', dim.he)

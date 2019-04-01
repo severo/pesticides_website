@@ -19353,7 +19353,6 @@
       var DIGITS = 0;
       var ratio = numDetections / numTests;
       return {
-        name: subs.substance.name,
         shortName: subs.substance.shortName,
         value: ratio,
         valueText: subs.substance.name + ' detected in ' + numDetections + ' of ' + numTests + ' measurements (' + (ratio * TO_PCT).toFixed(DIGITS) + '%)'
@@ -19367,7 +19366,7 @@
 
     var svg = tubes.selectAll('abbr').data(preparedSubstances).enter() // TODO: manage a popup for touch / mouseover, instead of this temporal attr
     .append('abbr').attr('title', function (subs) {
-      return subs.name + ' - ' + subs.valueText;
+      return subs.valueText;
     }).append('svg').attr('width', dim.wi).attr('height', dim.he).attr('viewBox', '0,0,' + dim.vWi + ',' + dim.vHe + '');
     /* eslint-disable no-magic-numbers */
 
