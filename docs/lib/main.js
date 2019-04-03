@@ -19359,27 +19359,13 @@
     }
   };
 
-  var colorsList = {
-    green: ['#007D73', '#006860'],
-    purple: ['#8F0078', '#770064'],
-    red: ['#c63400', '#A92B00']
-  };
   var dim = {
     he: 80,
     vHe: 1000,
     vWi: 400,
     wi: 36
   };
-
-  function getColors(colorName) {
-    if (colorName in colorsList) {
-      return colorsList[colorName];
-    }
-
-    return colorsList.red;
-  }
-
-  function makeTubesCocktail(parent, substances, titleHtml, colorName, tubeClass) {
+  function makeTubesCocktail(parent, substances, titleHtml, tubeClass) {
     var preparedSubstances = substances // useless filter?
     .filter(function (subs) {
       return subs.max > 0;
@@ -19415,10 +19401,10 @@
     /* eslint-disable no-magic-numbers */
 
     drawTube(svg, 300, 1000).attr('transform', 'translate(100, 0)');
-    drawLiquid(svg, 300, 1000, getColors(colorName)).attr('transform', 'translate(100, 0)');
+    drawLiquid(svg, 300, 1000).attr('transform', 'translate(100, 0)');
     drawText(svg, 300, 1000).attr('transform', 'scale(6) rotate(-90) translate(-10 16)');
   }
-  function makeTubesLimits(parent, substances, titleHtml, color, tubeClass) {
+  function makeTubesLimits(parent, substances, titleHtml, tubeClass) {
     var preparedSubstances = substances.sort(function (subs1, subs2) {
       // alphabetic order to get some coherence and stability between views
       return subs1.substance.shortName.localeCompare(subs2.substance.shortName, 'pt', {
@@ -19445,11 +19431,8 @@
     }).append('svg').classed('tube', true).classed(tubeClass, true).attr('width', dim.wi).attr('height', dim.he).attr('viewBox', '0,0,' + dim.vWi + ',' + dim.vHe + '');
     /* eslint-disable no-magic-numbers */
 
-    drawTube(svg, 300, 1000).attr('transform', 'translate(100, 0)'); // TODO: find a way to automatically a pair of colors (color + darkened color)
-    // instead of showing both sides with the same color
-    // maybe "mix-blend-mod: darken", or SASS "darken"
-
-    drawLiquid(svg, 300, 1000, [color, color]).attr('transform', 'translate(100, 0)');
+    drawTube(svg, 300, 1000).attr('transform', 'translate(100, 0)');
+    drawLiquid(svg, 300, 1000).attr('transform', 'translate(100, 0)');
     drawText(svg, 300, 1000).attr('transform', 'scale(6) rotate(-90) translate(-10 16)');
   }
 
@@ -19487,7 +19470,7 @@
     /* eslint-enable no-magic-numbers */
   }
 
-  function drawLiquid(svg, width, height, colors) {
+  function drawLiquid(svg, width, height) {
     /* eslint-disable no-magic-numbers */
     function getY(ratio, max, margin) {
       // Value must be between 0 and 1
@@ -19498,9 +19481,7 @@
     var wid = 1.5 * width / 10;
     var hei = height - 3 * wid;
     var mid = width / 2;
-    var coll_a = colors[0];
-    var coll_b = colors[1];
-    liquid.append('path').classed('right', true).attr('fill', coll_a).attr('d', function (subs) {
+    liquid.append('path').classed('right', true).attr('d', function (subs) {
       var pesY = wid + getY(subs.value, hei - wid, wid);
       var dlb = path();
       dlb.moveTo(2 * mid - 2 * wid, pesY);
@@ -19510,7 +19491,7 @@
       dlb.closePath();
       return dlb.toString();
     });
-    liquid.append('path').classed('left', true).attr('fill', coll_b).attr('d', function (subs) {
+    liquid.append('path').classed('left', true).attr('d', function (subs) {
       var pesY = wid + getY(subs.value, hei - wid, wid);
       var dlb = path();
       dlb.moveTo(2 * wid, pesY);
@@ -19535,6 +19516,176 @@
     });
     return name;
     /* eslint-enable no-magic-numbers */
+  }
+
+  var DETECTED_VALUE = 1e-10;
+  function makeDetails(parent, dispatcher, view, state) {
+    startLoading$1(parent);
+
+    if ('mun' in state) {
+      makeMun$1(parent, dispatcher, view, state.data, state.mun);
+    } else {
+      makeBrazil$1(parent, dispatcher, state.data);
+    }
+
+    dispatcher.on('to-brazil-view.details', function () {
+      makeBrazil$1(parent, dispatcher, state.data);
+    });
+    dispatcher.on('to-mun-view.details', function (mun) {
+      makeMun$1(parent, dispatcher, view, state.data, mun);
+    });
+    endLoading$1(parent);
+  }
+
+  function makeBrazil$1(parent, dispatcher, data) {
+    parent.html(null);
+    makeHeader(parent, 'Brazil');
+    parent.append('p').html('[work in progress... show a message - search or click]');
+  }
+
+  function makeMun$1(parent, dispatcher, view, data, mun) {
+    if (view === 'limits') {
+      makeLimits(parent, dispatcher, mun, data);
+    } else if (view === 'substances') {
+      // init
+      var defaultSubstance = data.substancesLut['25'];
+      makeSubstance(parent, dispatcher, mun, data, defaultSubstance);
+      dispatcher.on('substance-selected', function (substance) {
+        return makeSubstance(parent, dispatcher, mun, data, substance);
+      });
+    } else {
+      makeCocktail(parent, dispatcher, mun, data);
+    }
+  }
+
+  function makeCocktail(parent, dispatcher, mun, data) {
+    parent.html(null);
+    makeHeader(parent, mun.properties.name, mun.properties.fuName);
+    parent.append('p').html('<strong>Population:</strong> ' + (+mun.properties.population).toLocaleString('pt-BR')); // map1Number should always be present - NaN if no tests
+
+    if (isNaN(mun.properties.map1Number)) {
+      parent.append('header').html('<strong class="is-size-4">' + 'No data</strong> about agrotoxics inside drinking water in ' + mun.properties.name + '.');
+    } else if (mun.properties.map1Number === 0) {
+      parent.append('header').html('<strong class="is-size-4">' + 'No agrotoxics</strong> detected inside drinking water in ' + mun.properties.name + '.');
+    } else {
+      parent.append('header').html('<strong class="is-size-4"><span class="is-size-2">' + mun.properties.map1Number + '</span> agrotoxic(s)</strong> detected in drinking water in ' + mun.properties.name + '.');
+      var hhceSubstances = mun.properties.tests.filter(function (sub) {
+        return sub.substance.isHhce && sub.max > 0;
+      });
+
+      if (hhceSubstances.length > 0) {
+        makeTubesCocktail(parent, hhceSubstances, '<strong class="is-size-4">' + hhceSubstances.length + '</strong> out of ' + mun.properties.map1Number + ': associated with chronic dieses such as cancer', 'hhce');
+        var otherSubstances = mun.properties.tests.filter(function (sub) {
+          return !sub.substance.isHhce && sub.max > 0;
+        });
+
+        if (otherSubstances.length > 0) {
+          makeTubesCocktail(parent, otherSubstances, '<strong class="is-size-4">' + otherSubstances.length + '</strong> out of ' + mun.properties.map1Number + ': other pesticides', 'no-hhce');
+        }
+      } else {
+        makeTubesCocktail(parent, mun.properties.tests, '', 'red');
+      }
+    }
+  }
+
+  function makeLimits(parent, dispatcher, mun, data) {
+    parent.html(null);
+    makeHeader(parent, mun.properties.name, mun.properties.fuName);
+    parent.append('p').html('<strong>Population:</strong> ' + (+mun.properties.population).toLocaleString('pt-BR')); // map2Category should always be present
+
+    if (mun.properties.map2Category === MAP2.CATEGORY.NO_TEST) {
+      parent.append('header').html('<strong class="is-size-4">' + 'No data</strong> about agrotoxics inside drinking water in ' + mun.properties.name + '.');
+    } else if (mun.properties.map2Category === MAP2.CATEGORY.BELOW) {
+      parent.append('header').html('<strong class="is-size-4">' + 'No agrotoxics</strong> detected above the legal or European limits in ' + mun.properties.name + '.');
+    } else {
+      var supBrSubstances = mun.properties.tests.filter(function (sub) {
+        return sub.map2Category === MAP2.CATEGORY.SUP_BR;
+      });
+
+      if (supBrSubstances.length > 0) {
+        makeTubesLimits(parent, supBrSubstances, '<strong class="is-size-4">' + supBrSubstances.length + '</strong> agrotoxic(s) detected above the legal limit', 'cat-' + MAP2.CATEGORY.SUP_BR);
+      }
+
+      var eqBrSubstances = mun.properties.tests.filter(function (sub) {
+        return sub.map2Category === MAP2.CATEGORY.EQ_BR;
+      });
+
+      if (eqBrSubstances.length > 0) {
+        makeTubesLimits(parent, eqBrSubstances, '<strong class="is-size-4">' + eqBrSubstances.length + '</strong> agrotoxic(s) detected exactly at the legal limit', 'cat-' + MAP2.CATEGORY.EQ_BR);
+      }
+
+      var supEuSubstances = mun.properties.tests.filter(function (sub) {
+        return sub.map2Category === MAP2.CATEGORY.SUP_EU;
+      });
+
+      if (supEuSubstances.length > 0) {
+        makeTubesLimits(parent, supEuSubstances, '<strong class="is-size-4">' + supEuSubstances.length + '</strong> agrotoxic(s) detected above the European limit', 'cat-' + MAP2.CATEGORY.SUP_EU);
+      }
+    }
+  }
+
+  function makeSubstance(parent, dispatcher, mun, data, substance) {
+    parent.html(null);
+    makeHeader(parent, mun.properties.name, mun.properties.fuName);
+    parent.append('p').html('<strong>Population:</strong> ' + (+mun.properties.population).toLocaleString('pt-BR'));
+
+    if (!('tests' in mun.properties)) {
+      parent.append('header').html(substance.name + ' has never been tested  in ' + mun.properties.name + '.');
+    } else {
+      var subst = mun.properties.tests.filter(function (sub) {
+        return sub.substance.code === substance.code;
+      });
+
+      if (subst.length === 0) {
+        parent.append('header').html(substance.name + ' has never been tested  in ' + mun.properties.name + '.');
+      } else {
+        // eslint-disable-next-line no-inner-declarations
+        var pct = function pct(val) {
+          return (// eslint-disable-next-line no-magic-numbers
+            (Math.floor(10000 * val / tests.length) / 100).toLocaleString('pt-BR') + '%'
+          );
+        };
+
+        var tests = subst[0].tests;
+        parent.append('header').html('<strong>' + tests.length + ' measurement(s)</strong> for ' + substance.name + ' in ' + mun.properties.name + '. The detail is:');
+        var ul = parent.append('ul');
+        var detected = tests.filter(function (test) {
+          return test > 0;
+        }).length;
+        ul.append('li').text(detected + ' detections (' + pct(detected) + ')');
+        var equal = tests.filter(function (test) {
+          return test === substance.limit;
+        }).length;
+        ul.append('li').text(equal + ' measurements exactly equal to the legal limit (' + pct(equal) + ')');
+        var above = tests.filter(function (test) {
+          return test > substance.limit;
+        }).length;
+        ul.append('li').text(above + ' measurements above the legal limit (' + pct(above) + ')');
+
+        if (subst[0].max && subst[0].max > DETECTED_VALUE) {
+          ul.append('li').text('Max detected concentration: ' + subst[0].max.toLocaleString('pt-BR') + ' μg/L');
+        }
+      }
+    }
+  }
+
+  function makeHeader(parent, title, subtitle) {
+    var header = parent.append('header').attr('id', 'idCard');
+    header.append('h2').text(title);
+
+    if (subtitle) {
+      var fu = header.append('h3'); // TODO: add an icon
+
+      fu.append('span').text('📌 ' + subtitle);
+    }
+  }
+
+  function startLoading$1(element) {
+    element.classed('is-loading', true);
+  }
+
+  function endLoading$1(element) {
+    element.classed('is-loading', false);
   }
 
   var slice$1 = Array.prototype.slice;
@@ -24937,183 +25088,6 @@
     lineTo: function(x, y) { this._context.lineTo(y, x); },
     bezierCurveTo: function(x1, y1, x2, y2, x, y) { this._context.bezierCurveTo(y1, x1, y2, x2, y, x); }
   };
-
-  var DETECTED_VALUE = 1e-10;
-  function makeDetails(parent, dispatcher, view, state) {
-    startLoading$1(parent);
-
-    if ('mun' in state) {
-      makeMun$1(parent, dispatcher, view, state.data, state.mun);
-    } else {
-      makeBrazil$1(parent, dispatcher, state.data);
-    }
-
-    dispatcher.on('to-brazil-view.details', function () {
-      makeBrazil$1(parent, dispatcher, state.data);
-    });
-    dispatcher.on('to-mun-view.details', function (mun) {
-      makeMun$1(parent, dispatcher, view, state.data, mun);
-    });
-    endLoading$1(parent);
-  }
-
-  function makeBrazil$1(parent, dispatcher, data) {
-    parent.html(null);
-    makeHeader(parent, 'Brazil');
-    parent.append('p').html('[work in progress... show a message - search or click]');
-  }
-
-  function makeMun$1(parent, dispatcher, view, data, mun) {
-    if (view === 'limits') {
-      makeLimits(parent, dispatcher, mun, data);
-    } else if (view === 'substances') {
-      // init
-      var defaultSubstance = data.substancesLut['25'];
-      makeSubstance(parent, dispatcher, mun, data, defaultSubstance);
-      dispatcher.on('substance-selected', function (substance) {
-        return makeSubstance(parent, dispatcher, mun, data, substance);
-      });
-    } else {
-      makeCocktail(parent, dispatcher, mun, data);
-    }
-  }
-
-  function makeCocktail(parent, dispatcher, mun, data) {
-    parent.html(null);
-    makeHeader(parent, mun.properties.name, mun.properties.fuName);
-    parent.append('p').html('<strong>Population:</strong> ' + (+mun.properties.population).toLocaleString('pt-BR')); // map1Number should always be present - NaN if no tests
-
-    if (isNaN(mun.properties.map1Number)) {
-      parent.append('header').html('<strong class="is-size-4">' + 'No data</strong> about agrotoxics inside drinking water in ' + mun.properties.name + '.');
-    } else if (mun.properties.map1Number === 0) {
-      parent.append('header').html('<strong class="is-size-4">' + 'No agrotoxics</strong> detected inside drinking water in ' + mun.properties.name + '.');
-    } else {
-      parent.append('header').html('<strong class="is-size-4"><span class="is-size-2">' + mun.properties.map1Number + '</span> agrotoxic(s)</strong> detected in drinking water in ' + mun.properties.name + '.');
-      var hhceSubstances = mun.properties.tests.filter(function (sub) {
-        return sub.substance.isHhce && sub.max > 0;
-      });
-
-      if (hhceSubstances.length > 0) {
-        makeTubesCocktail(parent, hhceSubstances, '<strong class="is-size-4">' + hhceSubstances.length + '</strong> out of ' + mun.properties.map1Number + ': associated with chronic dieses such as cancer', 'purple', 'hhce');
-        var otherSubstances = mun.properties.tests.filter(function (sub) {
-          return !sub.substance.isHhce && sub.max > 0;
-        });
-
-        if (otherSubstances.length > 0) {
-          makeTubesCocktail(parent, otherSubstances, '<strong class="is-size-4">' + otherSubstances.length + '</strong> out of ' + mun.properties.map1Number + ': other pesticides', 'red', 'no-hhce');
-        }
-      } else {
-        makeTubesCocktail(parent, mun.properties.tests, '', 'red');
-      }
-    }
-  }
-
-  function makeLimits(parent, dispatcher, mun, data) {
-    var NO_TEST_COLOR = null;
-    var colorPalette = [NO_TEST_COLOR].concat(scheme$l[Object.keys(MAP2.CATEGORY).length - 1]); // map2Category field should be present in all the municipalities
-
-    var color = function color(category) {
-      return colorPalette[category];
-    };
-
-    parent.html(null);
-    makeHeader(parent, mun.properties.name, mun.properties.fuName);
-    parent.append('p').html('<strong>Population:</strong> ' + (+mun.properties.population).toLocaleString('pt-BR')); // map2Category should always be present
-
-    if (mun.properties.map2Category === MAP2.CATEGORY.NO_TEST) {
-      parent.append('header').html('<strong class="is-size-4">' + 'No data</strong> about agrotoxics inside drinking water in ' + mun.properties.name + '.');
-    } else if (mun.properties.map2Category === MAP2.CATEGORY.BELOW) {
-      parent.append('header').html('<strong class="is-size-4">' + 'No agrotoxics</strong> detected above the legal or European limits in ' + mun.properties.name + '.');
-    } else {
-      var supBrSubstances = mun.properties.tests.filter(function (sub) {
-        return sub.map2Category === MAP2.CATEGORY.SUP_BR;
-      });
-
-      if (supBrSubstances.length > 0) {
-        makeTubesLimits(parent, supBrSubstances, '<strong class="is-size-4">' + supBrSubstances.length + '</strong> agrotoxic(s) detected above the legal limit', color(MAP2.CATEGORY.SUP_BR), 'cat-' + MAP2.CATEGORY.SUP_BR);
-      }
-
-      var eqBrSubstances = mun.properties.tests.filter(function (sub) {
-        return sub.map2Category === MAP2.CATEGORY.EQ_BR;
-      });
-
-      if (eqBrSubstances.length > 0) {
-        makeTubesLimits(parent, eqBrSubstances, '<strong class="is-size-4">' + eqBrSubstances.length + '</strong> agrotoxic(s) detected exactly at the legal limit', color(MAP2.CATEGORY.EQ_BR), 'cat-' + MAP2.CATEGORY.EQ_BR);
-      }
-
-      var supEuSubstances = mun.properties.tests.filter(function (sub) {
-        return sub.map2Category === MAP2.CATEGORY.SUP_EU;
-      });
-
-      if (supEuSubstances.length > 0) {
-        makeTubesLimits(parent, supEuSubstances, '<strong class="is-size-4">' + supEuSubstances.length + '</strong> agrotoxic(s) detected above the European limit', color(MAP2.CATEGORY.SUP_EU), 'cat-' + MAP2.CATEGORY.SUP_EU);
-      }
-    }
-  }
-
-  function makeSubstance(parent, dispatcher, mun, data, substance) {
-    parent.html(null);
-    makeHeader(parent, mun.properties.name, mun.properties.fuName);
-    parent.append('p').html('<strong>Population:</strong> ' + (+mun.properties.population).toLocaleString('pt-BR'));
-
-    if (!('tests' in mun.properties)) {
-      parent.append('header').html(substance.name + ' has never been tested  in ' + mun.properties.name + '.');
-    } else {
-      var subst = mun.properties.tests.filter(function (sub) {
-        return sub.substance.code === substance.code;
-      });
-
-      if (subst.length === 0) {
-        parent.append('header').html(substance.name + ' has never been tested  in ' + mun.properties.name + '.');
-      } else {
-        // eslint-disable-next-line no-inner-declarations
-        var pct = function pct(val) {
-          return (// eslint-disable-next-line no-magic-numbers
-            (Math.floor(10000 * val / tests.length) / 100).toLocaleString('pt-BR') + '%'
-          );
-        };
-
-        var tests = subst[0].tests;
-        parent.append('header').html('<strong>' + tests.length + ' measurement(s)</strong> for ' + substance.name + ' in ' + mun.properties.name + '. The detail is:');
-        var ul = parent.append('ul');
-        var detected = tests.filter(function (test) {
-          return test > 0;
-        }).length;
-        ul.append('li').text(detected + ' detections (' + pct(detected) + ')');
-        var equal = tests.filter(function (test) {
-          return test === substance.limit;
-        }).length;
-        ul.append('li').text(equal + ' measurements exactly equal to the legal limit (' + pct(equal) + ')');
-        var above = tests.filter(function (test) {
-          return test > substance.limit;
-        }).length;
-        ul.append('li').text(above + ' measurements above the legal limit (' + pct(above) + ')');
-
-        if (subst[0].max && subst[0].max > DETECTED_VALUE) {
-          ul.append('li').text('Max detected concentration: ' + subst[0].max.toLocaleString('pt-BR') + ' μg/L');
-        }
-      }
-    }
-  }
-
-  function makeHeader(parent, title, subtitle) {
-    var header = parent.append('header').attr('id', 'idCard');
-    header.append('h2').text(title);
-
-    if (subtitle) {
-      var fu = header.append('h3'); // TODO: add an icon
-
-      fu.append('span').text('📌 ' + subtitle);
-    }
-  }
-
-  function startLoading$1(element) {
-    element.classed('is-loading', true);
-  }
-
-  function endLoading$1(element) {
-    element.classed('is-loading', false);
-  }
 
   /* Reminder of the data available from the CSV
   category: {

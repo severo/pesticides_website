@@ -1,29 +1,12 @@
 import * as d3Path from 'd3-path';
-const colorsList = {
-  green: ['#007D73', '#006860'],
-  purple: ['#8F0078', '#770064'],
-  red: ['#c63400', '#A92B00'],
-};
 const dim = {
   he: 80,
   vHe: 1000,
   vWi: 400,
   wi: 36,
 };
-function getColors(colorName) {
-  if (colorName in colorsList) {
-    return colorsList[colorName];
-  }
-  return colorsList.red;
-}
 
-export function makeTubesCocktail(
-  parent,
-  substances,
-  titleHtml,
-  colorName,
-  tubeClass
-) {
+export function makeTubesCocktail(parent, substances, titleHtml, tubeClass) {
   const preparedSubstances = substances
     // useless filter?
     .filter(subs => subs.max > 0)
@@ -77,23 +60,14 @@ export function makeTubesCocktail(
   /* eslint-disable no-magic-numbers */
 
   drawTube(svg, 300, 1000).attr('transform', 'translate(100, 0)');
-  drawLiquid(svg, 300, 1000, getColors(colorName)).attr(
-    'transform',
-    'translate(100, 0)'
-  );
+  drawLiquid(svg, 300, 1000).attr('transform', 'translate(100, 0)');
   drawText(svg, 300, 1000).attr(
     'transform',
     'scale(6) rotate(-90) translate(-10 16)'
   );
 }
 
-export function makeTubesLimits(
-  parent,
-  substances,
-  titleHtml,
-  color,
-  tubeClass
-) {
+export function makeTubesLimits(parent, substances, titleHtml, tubeClass) {
   const preparedSubstances = substances
     .sort((subs1, subs2) => {
       // alphabetic order to get some coherence and stability between views
@@ -134,13 +108,7 @@ export function makeTubesLimits(
   /* eslint-disable no-magic-numbers */
 
   drawTube(svg, 300, 1000).attr('transform', 'translate(100, 0)');
-  // TODO: find a way to automatically a pair of colors (color + darkened color)
-  // instead of showing both sides with the same color
-  // maybe "mix-blend-mod: darken", or SASS "darken"
-  drawLiquid(svg, 300, 1000, [color, color]).attr(
-    'transform',
-    'translate(100, 0)'
-  );
+  drawLiquid(svg, 300, 1000).attr('transform', 'translate(100, 0)');
   drawText(svg, 300, 1000).attr(
     'transform',
     'scale(6) rotate(-90) translate(-10 16)'
@@ -200,7 +168,7 @@ function drawTube(svg, width, height) {
   /* eslint-enable no-magic-numbers */
 }
 
-function drawLiquid(svg, width, height, colors) {
+function drawLiquid(svg, width, height) {
   /* eslint-disable no-magic-numbers */
   function getY(ratio, max, margin) {
     // Value must be between 0 and 1
@@ -212,13 +180,9 @@ function drawLiquid(svg, width, height, colors) {
   const hei = height - 3 * wid;
   const mid = width / 2;
 
-  const coll_a = colors[0];
-  const coll_b = colors[1];
-
   liquid
     .append('path')
     .classed('right', true)
-    .attr('fill', coll_a)
     .attr('d', subs => {
       const pesY = wid + getY(subs.value, hei - wid, wid);
       const dlb = d3Path.path();
@@ -237,7 +201,6 @@ function drawLiquid(svg, width, height, colors) {
   liquid
     .append('path')
     .classed('left', true)
-    .attr('fill', coll_b)
     .attr('d', subs => {
       const pesY = wid + getY(subs.value, hei - wid, wid);
       const dlb = d3Path.path();
