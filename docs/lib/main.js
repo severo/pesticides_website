@@ -29581,7 +29581,7 @@
     });
     select('#search-modal-input').on('keydown', function (aa, bb, cc) {
       // Check for up/down key presses
-      if (event.code === 'ArrowDown') {
+      if (event.code === 'ArrowDown' || event.code === 'NumpadEnter' || event.code === 'Enter') {
         // Avoid scrolling the screen behind the modal
         event.preventDefault();
         var results = selectAll('#search #results li a');
@@ -29590,6 +29590,9 @@
           // Selects the first result in the list
           results.node().focus();
         }
+      } else if (event.code === 'Escape') {
+        emptyResults();
+        hideModal();
       }
     });
     select('#search-modal-input').on('input', function (aa, bb, cc) {

@@ -78,7 +78,11 @@ export function makeSearch(parent, dispatcher, state) {
 
   select('#search-modal-input').on('keydown', (aa, bb, cc) => {
     // Check for up/down key presses
-    if (event.code === 'ArrowDown') {
+    if (
+      event.code === 'ArrowDown' ||
+      event.code === 'NumpadEnter' ||
+      event.code === 'Enter'
+    ) {
       // Avoid scrolling the screen behind the modal
       event.preventDefault();
 
@@ -87,6 +91,9 @@ export function makeSearch(parent, dispatcher, state) {
         // Selects the first result in the list
         results.node().focus();
       }
+    } else if (event.code === 'Escape') {
+      emptyResults();
+      hideModal();
     }
   });
 
