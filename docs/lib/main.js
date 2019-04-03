@@ -29115,7 +29115,7 @@
   }
 
   var cfg$2 = {
-    nx: 200,
+    nx: 220,
     ny: 700
   };
   function createCocktailTooltip(parent, path, dispatcher) {
@@ -29135,7 +29135,8 @@
       data: data,
       note: {
         label: Number.isInteger(data.value) ? data.value + ' pesticide(s) found in the drinking water.' : 'Never tested.',
-        title: data.properties.name + ' (' + data.properties.fuName + ')'
+        title: data.properties.name + ' (' + data.properties.fuName + ')',
+        wrap: cfg$2.nx
       },
       nx: cfg$2.nx,
       ny: cfg$2.ny,
