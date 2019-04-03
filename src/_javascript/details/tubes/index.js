@@ -87,7 +87,13 @@ export function makeTubesCocktail(
   );
 }
 
-export function makeTubesLimits(parent, substances, titleHtml, color) {
+export function makeTubesLimits(
+  parent,
+  substances,
+  titleHtml,
+  color,
+  tubeClass
+) {
   const preparedSubstances = substances
     .sort((subs1, subs2) => {
       // alphabetic order to get some coherence and stability between views
@@ -120,6 +126,8 @@ export function makeTubesLimits(parent, substances, titleHtml, color) {
     .append('abbr')
     .attr('title', subs => subs.valueText)
     .append('svg')
+    .classed('tube', true)
+    .classed(tubeClass, true)
     .attr('width', dim.wi)
     .attr('height', dim.he)
     .attr('viewBox', '0,0,' + dim.vWi + ',' + dim.vHe + '');

@@ -19421,7 +19421,7 @@
     drawLiquid(svg, 300, 1000, getColors(colorName)).attr('transform', 'translate(100, 0)');
     drawText(svg, 300, 1000).attr('transform', 'scale(6) rotate(-90) translate(-10 16)');
   }
-  function makeTubesLimits(parent, substances, titleHtml, color) {
+  function makeTubesLimits(parent, substances, titleHtml, color, tubeClass) {
     var preparedSubstances = substances.sort(function (subs1, subs2) {
       // alphabetic order to get some coherence and stability between views
       return subs1.substance.shortName.localeCompare(subs2.substance.shortName, 'pt', {
@@ -19445,7 +19445,7 @@
     var svg = tubes.selectAll('abbr').data(preparedSubstances).enter() // TODO: manage a popup for touch / mouseover, instead of this temporal attr
     .append('abbr').attr('title', function (subs) {
       return subs.valueText;
-    }).append('svg').attr('width', dim.wi).attr('height', dim.he).attr('viewBox', '0,0,' + dim.vWi + ',' + dim.vHe + '');
+    }).append('svg').classed('tube', true).classed(tubeClass, true).attr('width', dim.wi).attr('height', dim.he).attr('viewBox', '0,0,' + dim.vWi + ',' + dim.vHe + '');
     /* eslint-disable no-magic-numbers */
 
     drawTube(svg, 300, 1000).attr('transform', 'translate(100, 0)'); // TODO: find a way to automatically a pair of colors (color + darkened color)
@@ -25033,7 +25033,7 @@
       });
 
       if (supBrSubstances.length > 0) {
-        makeTubesLimits(parent, supBrSubstances, '<strong class="is-size-4">' + supBrSubstances.length + '</strong> agrotoxic(s) detected above the legal limit', color(MAP2.CATEGORY.SUP_BR));
+        makeTubesLimits(parent, supBrSubstances, '<strong class="is-size-4">' + supBrSubstances.length + '</strong> agrotoxic(s) detected above the legal limit', color(MAP2.CATEGORY.SUP_BR), 'sup-br');
       }
 
       var eqBrSubstances = mun.properties.tests.filter(function (sub) {
@@ -25041,7 +25041,7 @@
       });
 
       if (eqBrSubstances.length > 0) {
-        makeTubesLimits(parent, eqBrSubstances, '<strong class="is-size-4">' + eqBrSubstances.length + '</strong> agrotoxic(s) detected exactly at the legal limit', color(MAP2.CATEGORY.EQ_BR));
+        makeTubesLimits(parent, eqBrSubstances, '<strong class="is-size-4">' + eqBrSubstances.length + '</strong> agrotoxic(s) detected exactly at the legal limit', color(MAP2.CATEGORY.EQ_BR), 'eq-br');
       }
 
       var supEuSubstances = mun.properties.tests.filter(function (sub) {
@@ -25049,7 +25049,7 @@
       });
 
       if (supEuSubstances.length > 0) {
-        makeTubesLimits(parent, supEuSubstances, '<strong class="is-size-4">' + supEuSubstances.length + '</strong> agrotoxic(s) detected above the European limit', color(MAP2.CATEGORY.SUP_EU));
+        makeTubesLimits(parent, supEuSubstances, '<strong class="is-size-4">' + supEuSubstances.length + '</strong> agrotoxic(s) detected above the European limit', color(MAP2.CATEGORY.SUP_EU), 'sup-eu');
       }
     }
   }
