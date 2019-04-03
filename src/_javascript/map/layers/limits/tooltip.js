@@ -2,10 +2,9 @@ import {annotation, annotationCalloutElbow} from 'd3-svg-annotation';
 
 const messageByCategory = [
   'Never tested',
-  'All substances below the legal and European limits',
+  'All substances below the Brazilian and European limits',
   'Subtance(s) detected above the European limit',
-  'Subtance(s) detected exactly at the legal limit',
-  'Subtance(s) detected above the legal limit',
+  'Subtance(s) detected above the Brazilian limit',
 ];
 
 const cfg = {

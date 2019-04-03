@@ -29183,7 +29183,7 @@
     label.append('text').attr('y', -cfg$3.legend.subtitleOffset).attr('font-weight', 'bold').text('in drinking water');
   }
 
-  var messageByCategory = ['Never tested', 'All substances below the legal and European limits', 'Subtance(s) detected above the European limit', 'Subtance(s) detected exactly at the legal limit', 'Subtance(s) detected above the legal limit'];
+  var messageByCategory = ['Never tested', 'All substances below the Brazilian and European limits', 'Subtance(s) detected above the European limit', 'Subtance(s) detected above the Brazilian limit'];
   var cfg$4 = {
     nx: 220,
     ny: 700
