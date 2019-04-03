@@ -9,7 +9,7 @@ const messageByCategory = [
 ];
 
 const cfg = {
-  nx: 200,
+  nx: 220,
   ny: 700,
 };
 
@@ -35,6 +35,7 @@ function createAnnotation(data) {
         note: {
           label: messageByCategory[data.value],
           title: data.properties.name + ' (' + data.properties.fuName + ')',
+          wrap: cfg.nx,
         },
         nx: cfg.nx,
         ny: cfg.ny,

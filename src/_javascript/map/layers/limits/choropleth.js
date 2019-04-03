@@ -1,19 +1,29 @@
 //import {axisBottom, interpolateYlOrRd, range, scaleLinear} from 'd3';
+import {MAP2} from '../../../data';
+import {scaleLinear} from 'd3';
 
 const cfg = {
-  field: 'supBr',
   legend: {
-    height: 10,
+    height: 20,
+    label: {xOffset: 30, yOffset: 15},
     subtitleOffset: 8,
-    tickSize: 15,
     titleOffset: 22,
-    width: 270,
+    width: 20,
   },
   typename: {
     click: 'mun-click',
     mouseout: 'mun-mouseout',
     mouseover: 'mun-mouseover',
   },
+};
+
+const legendKeys = ['SUP_BR', 'SUP_EU', 'BELOW', 'NO_TEST'];
+
+const legendLabels = {
+  BELOW: 'all agrotoxics below limits',
+  NO_TEST: 'no data',
+  SUP_BR: 'at least one above Brazilian limit',
+  SUP_EU: 'at least one above European limit',
 };
 
 export function createLimitsChoropleth(parent, path, data, dispatcher) {
@@ -42,31 +52,39 @@ export function createLimitsChoropleth(parent, path, data, dispatcher) {
       // invoke callbacks
       dispatcher.call(cfg.typename.click, null, ft);
     });
-  //makeLegend(parent, maxNumberSupBr, color);
+  makeLegend(parent);
 }
 
-/*
-function makeLegend(parent, maxNumber, color) {
-  // TODO: should be a scheme (27 colors), not a continuous scale
-  const xx = scaleLinear()
-    .domain(color.domain())
-    .rangeRound([0, cfg.legend.width]);
+function makeLegend(parent) {
+  const yy = scaleLinear()
+    .domain([0, legendKeys.length])
+    .rangeRound([0, cfg.legend.height * legendKeys.length]);
 
   const legend = parent
     .append('g')
+    .classed('legend', true)
     //.style('font-size', '0.8rem')
     //.style('font-family', 'sans-serif')
-    .attr('transform', 'translate(550,50)');
+    .attr('transform', 'translate(550,50) scale(1.3)');
 
   legend
     .selectAll('rect')
-    .data(range(0, maxNumber, 1))
+    .data(legendKeys)
     .enter()
     .append('rect')
+    .attr('class', key => 'cat-' + MAP2.CATEGORY[key])
     .attr('height', cfg.legend.height)
-    .attr('x', el => xx(el))
-    .attr('width', cfg.legend.width / maxNumber)
-    .attr('fill', el => color(el));
+    .attr('y', (key, idx) => yy(idx))
+    .attr('width', cfg.legend.width);
+
+  legend
+    .selectAll('text')
+    .data(legendKeys)
+    .enter()
+    .append('text')
+    .attr('x', cfg.legend.label.xOffset)
+    .attr('y', (key, idx) => yy(idx) + cfg.legend.label.yOffset)
+    .text(key => legendLabels[key]);
 
   const label = legend
     .append('g')
@@ -78,21 +96,10 @@ function makeLegend(parent, maxNumber, color) {
     .append('text')
     .attr('y', -cfg.legend.titleOffset)
     .attr('font-weight', 'bold')
-    .text('Number of pesticides detected above the legal limit');
-
-  // TODO: i18n
+    .text('Pesticides detected above legal limits');
   label
     .append('text')
     .attr('y', -cfg.legend.subtitleOffset)
-    .text(
-      '(white: no pesticide, dark red: ' + maxNumber + ' different pesticides)'
-    );
-
-  // Scale
-  legend
-    .append('g')
-    .call(axisBottom(xx).tickSize(cfg.legend.tickSize))
-    .select('.domain')
-    .remove();
+    .attr('font-weight', 'bold')
+    .text('in drinking water');
 }
-*/

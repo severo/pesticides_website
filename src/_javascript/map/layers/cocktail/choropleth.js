@@ -22,7 +22,8 @@ const cfg = {
     height: 10,
     subtitleOffset: 8,
     tickSize: 15,
-    titleOffset: 22,
+    titleOffsetLine1: 38,
+    titleOffsetLine2: 24,
     width: 10,
   },
   max: 27,
@@ -89,7 +90,7 @@ function makeLegend(parent) {
     .classed('legend', true)
     //.style('font-size', '0.8rem')
     //.style('font-family', 'sans-serif')
-    .attr('transform', 'translate(394,50) scale(1.4)');
+    .attr('transform', 'translate(550,66) scale(1.3)');
 
   legend
     .selectAll('rect')
@@ -109,15 +110,21 @@ function makeLegend(parent) {
   // TODO: i18n
   label
     .append('text')
-    .attr('y', -cfg.legend.titleOffset)
+    .attr('y', -cfg.legend.titleOffsetLine1)
     .attr('font-weight', 'bold')
-    .text('Number of pesticides detected in drinking water');
+    .text('Number of pesticides detected in');
+
+  label
+    .append('text')
+    .attr('y', -cfg.legend.titleOffsetLine2)
+    .attr('font-weight', 'bold')
+    .text('drinking water');
 
   // TODO: i18n
   label
     .append('text')
     .attr('y', -cfg.legend.subtitleOffset)
-    .text('(white: no pesticide, dark green: 27 different pesticides)');
+    .text('(light: none, dark: 27 different pesticides)');
 
   // Scale
   legend
