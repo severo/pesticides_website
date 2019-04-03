@@ -19382,7 +19382,7 @@
     return colorsList.red;
   }
 
-  function makeTubesCocktail(parent, substances, titleHtml, colorName) {
+  function makeTubesCocktail(parent, substances, titleHtml, colorName, tubeClass) {
     var preparedSubstances = substances // useless filter?
     .filter(function (subs) {
       return subs.max > 0;
@@ -19414,7 +19414,7 @@
     var svg = tubes.selectAll('abbr').data(preparedSubstances).enter() // TODO: manage a popup for touch / mouseover, instead of this temporal attr
     .append('abbr').attr('title', function (subs) {
       return subs.valueText;
-    }).append('svg').attr('width', dim.wi).attr('height', dim.he).attr('viewBox', '0,0,' + dim.vWi + ',' + dim.vHe + '');
+    }).append('svg').classed('tube', true).classed(tubeClass, true).attr('width', dim.wi).attr('height', dim.he).attr('viewBox', '0,0,' + dim.vWi + ',' + dim.vHe + '');
     /* eslint-disable no-magic-numbers */
 
     drawTube(svg, 300, 1000).attr('transform', 'translate(100, 0)');
@@ -19497,13 +19497,13 @@
       return max * (1 - ratio) + margin;
     }
 
-    var liquid = svg.append('g');
+    var liquid = svg.append('g').classed('liquid', true);
     var wid = 1.5 * width / 10;
     var hei = height - 3 * wid;
     var mid = width / 2;
     var coll_a = colors[0];
     var coll_b = colors[1];
-    liquid.append('path').attr('fill', coll_a).attr('d', function (subs) {
+    liquid.append('path').classed('right', true).attr('fill', coll_a).attr('d', function (subs) {
       var pesY = wid + getY(subs.value, hei - wid, wid);
       var dlb = path();
       dlb.moveTo(2 * mid - 2 * wid, pesY);
@@ -19513,7 +19513,7 @@
       dlb.closePath();
       return dlb.toString();
     });
-    liquid.append('path').attr('fill', coll_b).attr('d', function (subs) {
+    liquid.append('path').classed('left', true).attr('fill', coll_b).attr('d', function (subs) {
       var pesY = wid + getY(subs.value, hei - wid, wid);
       var dlb = path();
       dlb.moveTo(2 * wid, pesY);
@@ -24997,13 +24997,13 @@
       });
 
       if (hhceSubstances.length > 0) {
-        makeTubesCocktail(parent, hhceSubstances, '<strong class="is-size-4">' + hhceSubstances.length + '</strong> out of ' + mun.properties.map1Number + ': associated with chronic dieses such as cancer', 'purple');
+        makeTubesCocktail(parent, hhceSubstances, '<strong class="is-size-4">' + hhceSubstances.length + '</strong> out of ' + mun.properties.map1Number + ': associated with chronic dieses such as cancer', 'purple', 'hhce');
         var otherSubstances = mun.properties.tests.filter(function (sub) {
           return !sub.substance.isHhce && sub.max > 0;
         });
 
         if (otherSubstances.length > 0) {
-          makeTubesCocktail(parent, otherSubstances, '<strong class="is-size-4">' + otherSubstances.length + '</strong> out of ' + mun.properties.map1Number + ': other pesticides', 'red');
+          makeTubesCocktail(parent, otherSubstances, '<strong class="is-size-4">' + otherSubstances.length + '</strong> out of ' + mun.properties.map1Number + ': other pesticides', 'red', 'no-hhce');
         }
       } else {
         makeTubesCocktail(parent, mun.properties.tests, '', 'red');

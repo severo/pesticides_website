@@ -17,7 +17,13 @@ function getColors(colorName) {
   return colorsList.red;
 }
 
-export function makeTubesCocktail(parent, substances, titleHtml, colorName) {
+export function makeTubesCocktail(
+  parent,
+  substances,
+  titleHtml,
+  colorName,
+  tubeClass
+) {
   const preparedSubstances = substances
     // useless filter?
     .filter(subs => subs.max > 0)
@@ -63,6 +69,8 @@ export function makeTubesCocktail(parent, substances, titleHtml, colorName) {
     .append('abbr')
     .attr('title', subs => subs.valueText)
     .append('svg')
+    .classed('tube', true)
+    .classed(tubeClass, true)
     .attr('width', dim.wi)
     .attr('height', dim.he)
     .attr('viewBox', '0,0,' + dim.vWi + ',' + dim.vHe + '');
@@ -191,8 +199,7 @@ function drawLiquid(svg, width, height, colors) {
     return max * (1 - ratio) + margin;
   }
 
-  const liquid = svg.append('g');
-
+  const liquid = svg.append('g').classed('liquid', true);
   const wid = (1.5 * width) / 10;
   const hei = height - 3 * wid;
   const mid = width / 2;
@@ -202,6 +209,7 @@ function drawLiquid(svg, width, height, colors) {
 
   liquid
     .append('path')
+    .classed('right', true)
     .attr('fill', coll_a)
     .attr('d', subs => {
       const pesY = wid + getY(subs.value, hei - wid, wid);
@@ -220,6 +228,7 @@ function drawLiquid(svg, width, height, colors) {
     });
   liquid
     .append('path')
+    .classed('left', true)
     .attr('fill', coll_b)
     .attr('d', subs => {
       const pesY = wid + getY(subs.value, hei - wid, wid);

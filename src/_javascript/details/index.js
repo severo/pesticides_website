@@ -100,7 +100,8 @@ function makeCocktail(parent, dispatcher, mun, data) {
           '</strong> out of ' +
           mun.properties.map1Number +
           ': associated with chronic dieses such as cancer',
-        'purple'
+        'purple',
+        'hhce'
       );
       const otherSubstances = mun.properties.tests.filter(
         sub => !sub.substance.isHhce && sub.max > 0
@@ -114,7 +115,8 @@ function makeCocktail(parent, dispatcher, mun, data) {
             '</strong> out of ' +
             mun.properties.map1Number +
             ': other pesticides',
-          'red'
+          'red',
+          'no-hhce'
         );
       }
     } else {

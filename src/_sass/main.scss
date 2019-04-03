@@ -28,6 +28,15 @@ $primary-invert: $pink-invert;
 
 @import '../../node_modules/bulma/bulma';
 
+$br_dark_green: #006860;
+$br_dark_purple: #770064;
+$br_dark_red: #a92b00;
+$br_light_green: #007d73;
+$br_light_purple: #8f0078;
+$br_light_red: #c63400;
+$br_darken_amount: 5%;
+$br_green: #00ad70;
+
 #search {
 }
 
@@ -47,8 +56,28 @@ $primary-invert: $pink-invert;
     }
   }
   .tubes {
-    svg {
+    svg.tube {
       margin: 20px;
+      &.hhce {
+        .liquid path {
+          &.left {
+            fill: darken($br_light_green, $br_darken_amount);
+          }
+          &.right {
+            fill: $br_light_green;
+          }
+        }
+      }
+      &.no-hhce {
+        .liquid path {
+          &.left {
+            fill: darken($br_green, $br_darken_amount);
+          }
+          &.right {
+            fill: $br_green;
+          }
+        }
+      }
     }
   }
 }
