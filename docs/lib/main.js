@@ -19606,14 +19606,6 @@
         makeTubesLimits(parent, supBrSubstances, '<strong class="is-size-4">' + supBrSubstances.length + '</strong> agrotoxic(s) detected above the legal limit', 'cat-' + MAP2.CATEGORY.SUP_BR);
       }
 
-      var eqBrSubstances = mun.properties.tests.filter(function (sub) {
-        return sub.map2Category === MAP2.CATEGORY.EQ_BR;
-      });
-
-      if (eqBrSubstances.length > 0) {
-        makeTubesLimits(parent, eqBrSubstances, '<strong class="is-size-4">' + eqBrSubstances.length + '</strong> agrotoxic(s) detected exactly at the legal limit', 'cat-' + MAP2.CATEGORY.EQ_BR);
-      }
-
       var supEuSubstances = mun.properties.tests.filter(function (sub) {
         return sub.map2Category === MAP2.CATEGORY.SUP_EU;
       });
@@ -23795,6 +23787,8 @@
   var saturday = weekday(6);
 
   var sundays = sunday.range;
+  var mondays = monday.range;
+  var thursdays = thursday.range;
 
   var month = newInterval(function(date) {
     date.setDate(1);
@@ -23884,6 +23878,8 @@
   var utcSaturday = utcWeekday(6);
 
   var utcSundays = utcSunday.range;
+  var utcMondays = utcMonday.range;
+  var utcThursdays = utcThursday.range;
 
   var utcMonth = newInterval(function(date) {
     date.setUTCDate(1);

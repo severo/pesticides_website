@@ -165,19 +165,6 @@ function makeLimits(parent, dispatcher, mun, data) {
         'cat-' + MAP2.CATEGORY.SUP_BR
       );
     }
-    const eqBrSubstances = mun.properties.tests.filter(
-      sub => sub.map2Category === MAP2.CATEGORY.EQ_BR
-    );
-    if (eqBrSubstances.length > 0) {
-      makeTubesLimits(
-        parent,
-        eqBrSubstances,
-        '<strong class="is-size-4">' +
-          eqBrSubstances.length +
-          '</strong> agrotoxic(s) detected exactly at the legal limit',
-        'cat-' + MAP2.CATEGORY.EQ_BR
-      );
-    }
     const supEuSubstances = mun.properties.tests.filter(
       sub => sub.map2Category === MAP2.CATEGORY.SUP_EU
     );
