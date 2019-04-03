@@ -25,6 +25,7 @@ function makeBrazil(parent) {
     .append('ul')
     .append('li')
     .classed('is-active', true)
+    .classed('is-hidden', true)
     .append('a')
     .attr('href', '#')
     .attr('aria-current', 'page')

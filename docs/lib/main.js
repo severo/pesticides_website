@@ -19209,7 +19209,7 @@
 
   function makeBrazil(parent) {
     parent.html(null);
-    parent.append('ul').append('li').classed('is-active', true).append('a').attr('href', '#').attr('aria-current', 'page').text('Brazil');
+    parent.append('ul').append('li').classed('is-active', true).classed('is-hidden', true).append('a').attr('href', '#').attr('aria-current', 'page').text('Brazil');
   }
 
   function makeMun(parent, dispatcher, data, mun) {

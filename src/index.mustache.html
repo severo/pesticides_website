@@ -23,20 +23,6 @@
                 {{hero.subtitle}}
               </h2>
             </div>
-            <section id="search">
-              <div class="field">
-                <label class="label">{{search.title}}</label>
-                <div class="control">
-                  <input
-                    id="search-input"
-                    class="input is-medium"
-                    type="search"
-                    placeholder="{{search.placeholder}}"
-                  />
-                </div>
-              </div>
-              <ul id="results"></ul>
-            </section>
           </div>
         </div>
       </div>
@@ -83,17 +69,30 @@
         <div class="field is-horizontal is-hidden" id="substance-select"></div>
         <div class="columns is-desktop">
           <section class="column is-half-desktop ">
+            <section class="is-loading" id="map"></section>
+          </section>
+          <section class="column is-half-desktop">
+            <section id="search">
+              <div class="field">
+                <label class="label">{{search.title}}</label>
+                <div class="control">
+                  <input
+                    id="search-input"
+                    class="input is-medium"
+                    type="search"
+                    placeholder="{{search.placeholder}}"
+                  />
+                </div>
+              </div>
+              <ul id="results"></ul>
+            </section>
             <nav
               id="breadcrumb"
               class="breadcrumb"
               aria-label="breadcrumbs"
             ></nav>
-            <section class="is-loading" id="map"></section>
+            <section class="is-loading content" id="details"></section>
           </section>
-          <section
-            class="column is-half-desktop is-loading content"
-            id="details"
-          ></section>
         </div>
       </div>
     </section>
