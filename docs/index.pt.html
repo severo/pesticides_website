@@ -74,17 +74,38 @@
           <section class="column is-half-desktop">
             <section id="search">
               <div class="field">
-                <label class="label">Check your municipality</label>
+                <label class="label">Find your municipality</label>
                 <div class="control">
                   <input
                     id="search-input"
                     class="input is-medium"
                     type="search"
-                    placeholder="São Paulo [work in progress...]"
+                    placeholder="Which municipality?"
                   />
                 </div>
               </div>
-              <ul id="results"></ul>
+              <div id="search-modal" class="modal">
+                <div class="modal-background"></div>
+                <div class="modal-content has-background-white">
+                  <div class="field">
+                    <label class="label">Find your municipality</label>
+                    <div class="control">
+                      <input
+                        id="search-modal-input"
+                        class="input is-medium"
+                        type="search"
+                        placeholder="Which municipality?"
+                      />
+                    </div>
+                  </div>
+                  <button
+                    class="modal-close is-large"
+                    aria-label="close"
+                  ></button>
+                  <ul id="results"></ul>
+                  <!-- Any other Bulma elements you want -->
+                </div>
+              </div>
             </section>
             <nav
               id="breadcrumb"

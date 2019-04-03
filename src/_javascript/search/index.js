@@ -1,5 +1,5 @@
+import {select, selectAll} from 'd3-selection';
 import {deburr} from 'lodash-es';
-import {select} from 'd3-selection';
 
 const limit = 5;
 
@@ -50,12 +50,48 @@ export function makeSearch(parent, dispatcher, state) {
     scorer: scorer, // any function that takes two values and returns a score, default: ratio
     unsorted: false, // results won't be sorted if true, default: false. If true limit will be ignored.
   };
-
   // TODO: see if we preprocess something
 
-  select('#search-input').on('input', (aa, bb, cc) => {
-    // TODO: launch promises, and cancel any previous running promise
+  select('#search-input').on('focus', (aa, bb, cc) => {
+    // Init: list of results for an empty value
+    dispatcher.call(
+      'search-results-updated',
+      null,
+      // Maybe use Intl.Collator instead
+      // https://github.com/nol13/fuzzball.js#collation-and-unicode-stuff
+      // But I think it will not change anything in the result, and make it
+      // slower
+      fuzz.extract('', choices, options)
+    );
+    showModal();
+  });
 
+  select('#search-modal .modal-background').on('click', (aa, bb, cc) => {
+    hideModal();
+  });
+  select('#search-modal .modal-close').on('click', (aa, bb, cc) => {
+    hideModal();
+  });
+  dispatcher.on('search-selected.search', mun => {
+    hideModal();
+  });
+
+  select('#search-modal-input').on('keydown', (aa, bb, cc) => {
+    // Check for up/down key presses
+    if (event.code === 'ArrowDown') {
+      // Avoid scrolling the screen behind the modal
+      event.preventDefault();
+
+      const results = selectAll('#search #results li a');
+      if (!results.empty()) {
+        // Selects the first result in the list
+        results.node().focus();
+      }
+    }
+  });
+
+  select('#search-modal-input').on('input', (aa, bb, cc) => {
+    // TODO: launch promises, and cancel any previous running promise
     const text = cc[0].value;
     dispatcher.call(
       'search-results-updated',
@@ -72,11 +108,25 @@ export function makeSearch(parent, dispatcher, state) {
     updateResults(fuseResults, dispatcher);
   });
 
-  dispatcher.on('search-selected.search', mun => {
-    parent.select('#search-input').property('value', '');
-  });
-
   endLoading(parent);
+}
+
+function showModal() {
+  select('#search-modal').classed('is-active', true);
+  select('#search-modal-input')
+    .node()
+    .focus();
+}
+
+function hideModal() {
+  select('#search-modal').classed('is-active', false);
+  select('#search-input').property('value', '');
+  cleanModal();
+}
+
+function cleanModal() {
+  select('#search-modal-input').property('value', '');
+  emptyResults();
 }
 
 function emptyResults() {
@@ -84,20 +134,58 @@ function emptyResults() {
 }
 function updateResults(fuseResults, dispatcher) {
   // TODO: style the list, see main search in https://www.tripadvisor.co.uk/
-  select('#search #results')
+  const results = select('#search #results')
     .html('')
     .selectAll('li')
     .data(fuseResults.slice(0, limit))
     .enter()
     .append('li')
     .append('a')
-    .text(res => res[0].mun.properties.name + ' (score: ' + res[1] + ')')
-    .on('click', (res, element) => {
-      // TODO: react to other events? see accessibility
-      // invoke callbacks
+    .attr('tabindex', 0);
+
+  results.text(res => res[0].mun.properties.name);
+  results.append('p').text(res => res[0].mun.properties.fuName);
+
+  results.on('click', (result, idx) => {
+    // TODO: react to other events? see accessibility
+    // invoke callbacks
+    emptyResults();
+    dispatcher.call('search-selected', null, result[0].mun);
+  });
+
+  results.on('keydown', (result, idx, nodes) => {
+    // Check for up/down key presses
+    if (event.code === 'ArrowDown') {
+      // Avoid scrolling the screen behind the modal
+      event.preventDefault();
+
+      // Selects the next result in the list
+      if (idx < nodes.length - 1) {
+        nodes[idx + 1].focus();
+      }
+      // Or do nothing if it's the last item
+    } else if (event.code === 'ArrowUp') {
+      // Avoid scrolling the screen behind the modal
+      event.preventDefault();
+
+      // Selects the previous result in the list
+      if (idx > 0) {
+        nodes[idx - 1].focus();
+      } else {
+        // Or focus the search input if the current item is the first in the
+        // list
+        select('#search-modal-input')
+          .node()
+          .focus();
+      }
+    } else if (event.code === 'NumpadEnter' || event.code === 'Enter') {
       emptyResults();
-      dispatcher.call('search-selected', null, res[0].mun);
-    });
+      dispatcher.call('search-selected', null, result[0].mun);
+    } else if (event.code === 'Escape') {
+      emptyResults();
+      hideModal();
+    }
+  });
 }
 
 function startLoading(element) {

@@ -59,6 +59,31 @@ $map2-cat3: #253494;
 #search {
   margin-top: 0.5em;
   margin-bottom: 2em;
+  .modal-content {
+    padding: 0.5em 1em;
+    border-radius: 5px;
+    .field {
+      margin-bottom: 0;
+    }
+    #results li a {
+      display: block;
+      padding: 1em;
+      font-weight: bold;
+      color: $dark;
+      transition: all 0.2s ease;
+      p {
+        font-size: 0.8rem;
+        font-weight: normal;
+      }
+      &:hover,
+      &:focus {
+        color: $black;
+        background-color: #f2f2f2;
+        padding-left: 1.2em;
+        transition: all 0.2s linear;
+      }
+    }
+  }
 }
 
 #details {

@@ -25236,7 +25236,7 @@
 
   var filterEvents$1 = {};
 
-  var event = null;
+  var event$1 = null;
 
   if (typeof document !== "undefined") {
     var element$2 = document.documentElement;
@@ -25257,12 +25257,12 @@
 
   function contextListener$1(listener, index, group) {
     return function(event1) {
-      var event0 = event; // Events can be reentrant (e.g., focus).
-      event = event1;
+      var event0 = event$1; // Events can be reentrant (e.g., focus).
+      event$1 = event1;
       try {
         listener.call(this, this.__data__, index, group);
       } finally {
-        event = event0;
+        event$1 = event0;
       }
     };
   }
@@ -25332,18 +25332,18 @@
   }
 
   function customEvent(event1, listener, that, args) {
-    var event0 = event;
-    event1.sourceEvent = event;
-    event = event1;
+    var event0 = event$1;
+    event1.sourceEvent = event$1;
+    event$1 = event1;
     try {
       return listener.apply(that, args);
     } finally {
-      event = event0;
+      event$1 = event0;
     }
   }
 
   function sourceEvent() {
-    var current = event, source;
+    var current = event$1, source;
     while (source = current.sourceEvent) current = source;
     return current;
   }
@@ -26159,12 +26159,12 @@
   }
 
   function nopropagation() {
-    event.stopImmediatePropagation();
+    event$1.stopImmediatePropagation();
   }
 
   function noevent() {
-    event.preventDefault();
-    event.stopImmediatePropagation();
+    event$1.preventDefault();
+    event$1.stopImmediatePropagation();
   }
 
   function nodrag(view) {
@@ -26219,7 +26219,7 @@
 
   // Ignore right-click, since that should open the context menu.
   function defaultFilter() {
-    return !event.button;
+    return !event$1.button;
   }
 
   function defaultContainer() {
@@ -26227,7 +26227,7 @@
   }
 
   function defaultSubject(d) {
-    return d == null ? {x: event.x, y: event.y} : d;
+    return d == null ? {x: event$1.x, y: event$1.y} : d;
   }
 
   function drag() {
@@ -26253,8 +26253,8 @@
       if (touchending || !filter.apply(this, arguments)) return;
       var gesture = beforestart("mouse", container.apply(this, arguments), mouse, this, arguments);
       if (!gesture) return;
-      select$1(event.view).on("mousemove.drag", mousemoved, true).on("mouseup.drag", mouseupped, true);
-      nodrag(event.view);
+      select$1(event$1.view).on("mousemove.drag", mousemoved, true).on("mouseup.drag", mouseupped, true);
+      nodrag(event$1.view);
       nopropagation();
       mousemoving = false;
       gesture("start");
@@ -26267,15 +26267,15 @@
     }
 
     function mouseupped() {
-      select$1(event.view).on("mousemove.drag mouseup.drag", null);
-      yesdrag(event.view, mousemoving);
+      select$1(event$1.view).on("mousemove.drag mouseup.drag", null);
+      yesdrag(event$1.view, mousemoving);
       noevent();
       gestures.mouse("end");
     }
 
     function touchstarted() {
       if (!filter.apply(this, arguments)) return;
-      var touches = event.changedTouches,
+      var touches = event$1.changedTouches,
           c = container.apply(this, arguments),
           n = touches.length, i, gesture;
 
@@ -26288,7 +26288,7 @@
     }
 
     function touchmoved() {
-      var touches = event.changedTouches,
+      var touches = event$1.changedTouches,
           n = touches.length, i, gesture;
 
       for (i = 0; i < n; ++i) {
@@ -26300,7 +26300,7 @@
     }
 
     function touchended() {
-      var touches = event.changedTouches,
+      var touches = event$1.changedTouches,
           n = touches.length, i, gesture;
 
       if (touchending) clearTimeout(touchending);
@@ -26318,7 +26318,7 @@
           sublisteners = listeners.copy();
 
       if (!customEvent(new DragEvent(drag, "beforestart", s, id, active, p[0], p[1], 0, 0, sublisteners), function() {
-        if ((event.subject = s = subject.apply(that, args)) == null) return false;
+        if ((event$1.subject = s = subject.apply(that, args)) == null) return false;
         dx = s.x - p[0] || 0;
         dy = s.y - p[1] || 0;
         return true;
@@ -27806,8 +27806,8 @@
       });
 
       var updatePoint = function updatePoint(index) {
-        connectorData.points[index][0] += event.dx;
-        connectorData.points[index][1] += event.dy;
+        connectorData.points[index][0] += event$1.dx;
+        connectorData.points[index][1] += event$1.dy;
         type.redrawConnector();
       };
 
@@ -27926,7 +27926,7 @@
       });
 
       var updateRadius = function updateRadius(attr) {
-        var r = subjectData[attr] + event.dx * Math.sqrt(2);
+        var r = subjectData[attr] + event$1.dx * Math.sqrt(2);
         subjectData[attr] = r;
         type.redrawSubject();
         type.redrawConnector();
@@ -27968,13 +27968,13 @@
 
     if (type.editMode) {
       var updateWidth = function updateWidth() {
-        subjectData.width = event.x;
+        subjectData.width = event$1.x;
         type.redrawSubject();
         type.redrawConnector();
       };
 
       var updateHeight = function updateHeight() {
-        subjectData.height = event.y;
+        subjectData.height = event$1.y;
         type.redrawSubject();
         type.redrawConnector();
       };
@@ -28101,8 +28101,8 @@
 
     if (type.editMode) {
       var dragBadge = function dragBadge() {
-        subjectData.x = event.x < -radius * 2 ? "left" : event.x > radius * 2 ? "right" : undefined;
-        subjectData.y = event.y < -radius * 2 ? "top" : event.y > radius * 2 ? "bottom" : undefined;
+        subjectData.x = event$1.x < -radius * 2 ? "left" : event$1.x > radius * 2 ? "right" : undefined;
+        subjectData.y = event$1.y < -radius * 2 ? "top" : event$1.y > radius * 2 ? "bottom" : undefined;
 
         type.redrawSubject();
       };
@@ -28513,7 +28513,7 @@
     }, {
       key: "dragstarted",
       value: function dragstarted() {
-        event.sourceEvent.stopPropagation();
+        event$1.sourceEvent.stopPropagation();
         this.dispatcher && this.dispatcher.call("dragstart", this.a, this.annotation);
         this.a.classed("dragging", true);
         this.a.selectAll("circle.handle").style("pointer-events", "none");
@@ -28529,16 +28529,16 @@
       key: "dragSubject",
       value: function dragSubject() {
         var position = this.annotation.position;
-        position.x += event.dx;
-        position.y += event.dy;
+        position.x += event$1.dx;
+        position.y += event$1.dy;
         this.annotation.position = position;
       }
     }, {
       key: "dragNote",
       value: function dragNote() {
         var offset = this.annotation.offset;
-        offset.x += event.dx;
-        offset.y += event.dy;
+        offset.x += event$1.dx;
+        offset.y += event$1.dy;
         this.annotation.offset = offset;
       }
     }, {
@@ -29561,7 +29561,38 @@
 
     }; // TODO: see if we preprocess something
 
-    select('#search-input').on('input', function (aa, bb, cc) {
+    select('#search-input').on('focus', function (aa, bb, cc) {
+      // Init: list of results for an empty value
+      dispatcher.call('search-results-updated', null, // Maybe use Intl.Collator instead
+      // https://github.com/nol13/fuzzball.js#collation-and-unicode-stuff
+      // But I think it will not change anything in the result, and make it
+      // slower
+      fuzz.extract('', choices, options));
+      showModal();
+    });
+    select('#search-modal .modal-background').on('click', function (aa, bb, cc) {
+      hideModal();
+    });
+    select('#search-modal .modal-close').on('click', function (aa, bb, cc) {
+      hideModal();
+    });
+    dispatcher.on('search-selected.search', function (mun) {
+      hideModal();
+    });
+    select('#search-modal-input').on('keydown', function (aa, bb, cc) {
+      // Check for up/down key presses
+      if (event.code === 'ArrowDown') {
+        // Avoid scrolling the screen behind the modal
+        event.preventDefault();
+        var results = selectAll('#search #results li a');
+
+        if (!results.empty()) {
+          // Selects the first result in the list
+          results.node().focus();
+        }
+      }
+    });
+    select('#search-modal-input').on('input', function (aa, bb, cc) {
       // TODO: launch promises, and cancel any previous running promise
       var text = cc[0].value;
       dispatcher.call('search-results-updated', null, // Maybe use Intl.Collator instead
@@ -29573,10 +29604,23 @@
     dispatcher.on('search-results-updated.search', function (fuseResults) {
       updateResults(fuseResults, dispatcher);
     });
-    dispatcher.on('search-selected.search', function (mun) {
-      parent.select('#search-input').property('value', '');
-    });
     endLoading$3(parent);
+  }
+
+  function showModal() {
+    select('#search-modal').classed('is-active', true);
+    select('#search-modal-input').node().focus();
+  }
+
+  function hideModal() {
+    select('#search-modal').classed('is-active', false);
+    select('#search-input').property('value', '');
+    cleanModal();
+  }
+
+  function cleanModal() {
+    select('#search-modal-input').property('value', '');
+    emptyResults();
   }
 
   function emptyResults() {
@@ -29585,13 +29629,47 @@
 
   function updateResults(fuseResults, dispatcher) {
     // TODO: style the list, see main search in https://www.tripadvisor.co.uk/
-    select('#search #results').html('').selectAll('li').data(fuseResults.slice(0, limit)).enter().append('li').append('a').text(function (res) {
-      return res[0].mun.properties.name + ' (score: ' + res[1] + ')';
-    }).on('click', function (res, element) {
+    var results = select('#search #results').html('').selectAll('li').data(fuseResults.slice(0, limit)).enter().append('li').append('a').attr('tabindex', 0);
+    results.text(function (res) {
+      return res[0].mun.properties.name;
+    });
+    results.append('p').text(function (res) {
+      return res[0].mun.properties.fuName;
+    });
+    results.on('click', function (result, idx) {
       // TODO: react to other events? see accessibility
       // invoke callbacks
       emptyResults();
-      dispatcher.call('search-selected', null, res[0].mun);
+      dispatcher.call('search-selected', null, result[0].mun);
+    });
+    results.on('keydown', function (result, idx, nodes) {
+      // Check for up/down key presses
+      if (event.code === 'ArrowDown') {
+        // Avoid scrolling the screen behind the modal
+        event.preventDefault(); // Selects the next result in the list
+
+        if (idx < nodes.length - 1) {
+          nodes[idx + 1].focus();
+        } // Or do nothing if it's the last item
+
+      } else if (event.code === 'ArrowUp') {
+        // Avoid scrolling the screen behind the modal
+        event.preventDefault(); // Selects the previous result in the list
+
+        if (idx > 0) {
+          nodes[idx - 1].focus();
+        } else {
+          // Or focus the search input if the current item is the first in the
+          // list
+          select('#search-modal-input').node().focus();
+        }
+      } else if (event.code === 'NumpadEnter' || event.code === 'Enter') {
+        emptyResults();
+        dispatcher.call('search-selected', null, result[0].mun);
+      } else if (event.code === 'Escape') {
+        emptyResults();
+        hideModal();
+      }
     });
   }
 

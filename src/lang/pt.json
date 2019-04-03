@@ -10,8 +10,8 @@
     "substances": "Substances"
   },
   "search": {
-    "placeholder": "São Paulo [work in progress...]",
-    "title": "Check your municipality"
+    "placeholder": "Which municipality?",
+    "title": "Find your municipality"
   },
   "title": "Quem bebe agrotóxicos?"
 }
