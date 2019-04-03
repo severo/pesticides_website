@@ -119,21 +119,10 @@ $map2-cat3: #253494;
     .choropleth {
       path {
         stroke: none;
-        fill-opacity: 0.8;
-        fill: #eee;
         &:hover {
           stroke: #e8336d;
           stroke-width: 1;
           stroke-opacity: 1;
-        }
-        &.cat-1 {
-          fill: $map2-cat1;
-        }
-        &.cat-2 {
-          fill: $map2-cat2;
-        }
-        &.cat-3 {
-          fill: $map2-cat3;
         }
       }
     }
@@ -145,5 +134,26 @@ $map2-cat3: #253494;
     .annotation-note {
       font-size: 1.25rem;
     }
+  }
+}
+
+.cocktail .choropleth path {
+  fill-opacity: 0.8;
+  fill: #eee;
+}
+.limits .choropleth path,
+.limits .legend rect {
+  &.cat-0 {
+    fill-opacity: 0.8;
+    fill: #eee;
+  }
+  &.cat-1 {
+    fill: $map2-cat1;
+  }
+  &.cat-2 {
+    fill: $map2-cat2;
+  }
+  &.cat-3 {
+    fill: $map2-cat3;
   }
 }

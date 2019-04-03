@@ -39,23 +39,29 @@ dispatcher.on('data-loaded.main', data => {
 
 dispatcher.on('make-app-cocktail.main', state => {
   //removeSubstanceSelect(select('#substance-select'));
+  const view = 'cocktail';
+  updateApp(view);
   makeBreadcrumb(select('nav#breadcrumb'), dispatcher, state);
-  makeDetails(select('section#details'), dispatcher, 'cocktail', state);
-  makeMap(select('section#map'), dispatcher, 'cocktail', state);
+  makeDetails(select('section#details'), dispatcher, view, state);
+  makeMap(select('section#map'), dispatcher, view, state);
 });
 
 dispatcher.on('make-app-limits.main', state => {
   //removeSubstanceSelect(select('#substance-select'));
+  const view = 'limits';
+  updateApp(view);
   makeBreadcrumb(select('nav#breadcrumb'), dispatcher, state);
-  makeDetails(select('section#details'), dispatcher, 'limits', state);
-  makeMap(select('section#map'), dispatcher, 'limits', state);
+  makeDetails(select('section#details'), dispatcher, view, state);
+  makeMap(select('section#map'), dispatcher, view, state);
 });
 
 dispatcher.on('make-app-substances.main', state => {
+  const view = 'substances';
+  updateApp(view);
   makeBreadcrumb(select('nav#breadcrumb'), dispatcher, state);
   //makeSubstanceSelect(select('#substance-select'), dispatcher, state);
-  makeDetails(select('section#details'), dispatcher, 'substances', state);
-  makeMap(select('section#map'), dispatcher, 'substances', state);
+  makeDetails(select('section#details'), dispatcher, view, state);
+  makeMap(select('section#map'), dispatcher, view, state);
 });
 
 // Mun / Brazil
@@ -65,3 +71,12 @@ dispatcher.on('mun-click.main search-selected.main', mun => {
 dispatcher.on('breadcrumb-click-brazil.main', () => {
   dispatcher.call('to-brazil-view');
 });
+
+function updateApp(view) {
+  // TODO: don't hardcode
+  select('section#app')
+    .classed('cocktail', false)
+    .classed('limits', false)
+    .classed('substances', false)
+    .classed(view, true);
+}

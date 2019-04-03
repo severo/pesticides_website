@@ -81,11 +81,12 @@ const color = scaleLinear()
 function makeLegend(parent) {
   // TODO: should be a scheme (27 colors), not a continuous scale
   const xx = scaleLinear()
-    .domain(color.domain())
+    .domain([0, cfg.max])
     .rangeRound([0, cfg.legend.width * cfg.max]);
 
   const legend = parent
     .append('g')
+    .classed('legend', true)
     //.style('font-size', '0.8rem')
     //.style('font-family', 'sans-serif')
     .attr('transform', 'translate(394,50) scale(1.4)');

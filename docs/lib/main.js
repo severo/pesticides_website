@@ -25152,8 +25152,8 @@
 
   function makeLegend(parent) {
     // TODO: should be a scheme (27 colors), not a continuous scale
-    var xx = linear$1().domain(color$1.domain()).rangeRound([0, cfg$1.legend.width * cfg$1.max]);
-    var legend = parent.append('g') //.style('font-size', '0.8rem')
+    var xx = linear$1().domain([0, cfg$1.max]).rangeRound([0, cfg$1.legend.width * cfg$1.max]);
+    var legend = parent.append('g').classed('legend', true) //.style('font-size', '0.8rem')
     //.style('font-family', 'sans-serif')
     .attr('transform', 'translate(394,50) scale(1.4)');
     legend.selectAll('rect').data(sequence(0, cfg$1.max, 1)).enter().append('rect').attr('height', cfg$1.legend.height).attr('x', function (el) {
@@ -25165,7 +25165,7 @@
 
     label.append('text').attr('y', -cfg$1.legend.titleOffset).attr('font-weight', 'bold').text('Number of pesticides detected in drinking water'); // TODO: i18n
 
-    label.append('text').attr('y', -cfg$1.legend.subtitleOffset).text('(white: no pesticide, dark red: 27 different pesticides)'); // Scale
+    label.append('text').attr('y', -cfg$1.legend.subtitleOffset).text('(white: no pesticide, dark green: 27 different pesticides)'); // Scale
 
     legend.append('g').call(axisBottom(xx).tickSize(cfg$1.legend.tickSize)).select('.domain').remove();
   }
@@ -29116,13 +29116,11 @@
 
   //import {axisBottom, interpolateYlOrRd, range, scaleLinear} from 'd3';
   var cfg$3 = {
-    field: 'supBr',
     legend: {
-      height: 10,
+      height: 20,
       subtitleOffset: 8,
-      tickSize: 15,
       titleOffset: 22,
-      width: 270
+      width: 20
     },
     typename: {
       click: 'mun-click',
@@ -29130,6 +29128,14 @@
       mouseover: 'mun-mouseover'
     }
   };
+  /*
+  const legendLabels = {
+    BELOW: 'below limits',
+    NO_TEST: 'No data',
+    SUP_BR: 'above Brazilian limit',
+    SUP_EU: 'above European limit',
+  };*/
+
   function createLimitsChoropleth(parent, path, data, dispatcher) {
     parent.append('g').classed('choropleth', true).selectAll('path').data(data.mun.features).enter().append('path').attr('id', function (ft) {
       return 'id-' + ft.properties.ibgeCode;
@@ -29147,59 +29153,26 @@
     }).on('click', function (ft, element) {
       // invoke callbacks
       dispatcher.call(cfg$3.typename.click, null, ft);
-    }); //makeLegend(parent, maxNumberSupBr, color);
+    });
+    makeLegend$1(parent);
   }
-  /*
-  function makeLegend(parent, maxNumber, color) {
-    // TODO: should be a scheme (27 colors), not a continuous scale
-    const xx = scaleLinear()
-      .domain(color.domain())
-      .rangeRound([0, cfg.legend.width]);
 
-    const legend = parent
-      .append('g')
-      //.style('font-size', '0.8rem')
-      //.style('font-family', 'sans-serif')
-      .attr('transform', 'translate(550,50)');
+  function makeLegend$1(parent) {
+    var yy = linear$1().domain([0, MAP2.CATEGORY.length]).rangeRound([0, cfg$3.legend.height * MAP2.CATEGORY.length]);
+    var legend = parent.append('g').classed('legend', true) //.style('font-size', '0.8rem')
+    //.style('font-family', 'sans-serif')
+    .attr('transform', 'translate(394,50) scale(1.4)');
+    legend.selectAll('rect').data(Object.keys(MAP2.CATEGORY)).enter().append('rect').attr('class', function (key) {
+      return 'cat-' + MAP2.CATEGORY[key];
+    }).attr('height', cfg$3.legend.height).attr('y', function (el) {
+      return yy(el);
+    }).attr('width', cfg$3.legend.width);
+    var label = legend.append('g').attr('fill', '#000').attr('text-anchor', 'start'); // TODO: i18n
 
-    legend
-      .selectAll('rect')
-      .data(range(0, maxNumber, 1))
-      .enter()
-      .append('rect')
-      .attr('height', cfg.legend.height)
-      .attr('x', el => xx(el))
-      .attr('width', cfg.legend.width / maxNumber)
-      .attr('fill', el => color(el));
+    label.append('text').attr('y', -cfg$3.legend.titleOffset).attr('font-weight', 'bold').text('Pesticides detected above legal limits'); // TODO: i18n
 
-    const label = legend
-      .append('g')
-      .attr('fill', '#000')
-      .attr('text-anchor', 'start');
-
-    // TODO: i18n
-    label
-      .append('text')
-      .attr('y', -cfg.legend.titleOffset)
-      .attr('font-weight', 'bold')
-      .text('Number of pesticides detected above the legal limit');
-
-    // TODO: i18n
-    label
-      .append('text')
-      .attr('y', -cfg.legend.subtitleOffset)
-      .text(
-        '(white: no pesticide, dark red: ' + maxNumber + ' different pesticides)'
-      );
-
-    // Scale
-    legend
-      .append('g')
-      .call(axisBottom(xx).tickSize(cfg.legend.tickSize))
-      .select('.domain')
-      .remove();
+    label.append('text').attr('y', -cfg$3.legend.subtitleOffset).text('(clear: all below limits, dark: at least one substance above limits)');
   }
-  */
 
   var messageByCategory = ['Never tested', 'All substances below the legal and European limits', 'Subtance(s) detected above the European limit', 'Subtance(s) detected exactly at the legal limit', 'Subtance(s) detected above the legal limit'];
   var cfg$4 = {
@@ -29299,7 +29272,7 @@
       // invoke callbacks
       dispatcher.call(cfg$5.typename.click, null, ft);
     });
-    makeLegend$1(parent, maxConcentration, color, substance.shortName);
+    makeLegend$2(parent, maxConcentration, color, substance.shortName);
   }
 
   function value$1(ft, code) {
@@ -29319,7 +29292,7 @@
     return null;
   }
 
-  function makeLegend$1(parent, maxConcentration, color, name) {
+  function makeLegend$2(parent, maxConcentration, color, name) {
     // TODO: should be a scheme (27 colors), not a continuous scale
     var xx = linear$1().domain(color.domain()).rangeRound([0, cfg$5.legend.width]);
     var legend = parent.append('g') //.style('font-size', '0.8rem')
@@ -29635,21 +29608,27 @@
   });
   dispatcher.on('make-app-cocktail.main', function (state) {
     //removeSubstanceSelect(select('#substance-select'));
+    var view = 'cocktail';
+    updateApp(view);
     makeBreadcrumb(select('nav#breadcrumb'), dispatcher, state);
-    makeDetails(select('section#details'), dispatcher, 'cocktail', state);
-    makeMap(select('section#map'), dispatcher, 'cocktail', state);
+    makeDetails(select('section#details'), dispatcher, view, state);
+    makeMap(select('section#map'), dispatcher, view, state);
   });
   dispatcher.on('make-app-limits.main', function (state) {
     //removeSubstanceSelect(select('#substance-select'));
+    var view = 'limits';
+    updateApp(view);
     makeBreadcrumb(select('nav#breadcrumb'), dispatcher, state);
-    makeDetails(select('section#details'), dispatcher, 'limits', state);
-    makeMap(select('section#map'), dispatcher, 'limits', state);
+    makeDetails(select('section#details'), dispatcher, view, state);
+    makeMap(select('section#map'), dispatcher, view, state);
   });
   dispatcher.on('make-app-substances.main', function (state) {
+    var view = 'substances';
+    updateApp(view);
     makeBreadcrumb(select('nav#breadcrumb'), dispatcher, state); //makeSubstanceSelect(select('#substance-select'), dispatcher, state);
 
-    makeDetails(select('section#details'), dispatcher, 'substances', state);
-    makeMap(select('section#map'), dispatcher, 'substances', state);
+    makeDetails(select('section#details'), dispatcher, view, state);
+    makeMap(select('section#map'), dispatcher, view, state);
   }); // Mun / Brazil
 
   dispatcher.on('mun-click.main search-selected.main', function (mun) {
@@ -29658,5 +29637,10 @@
   dispatcher.on('breadcrumb-click-brazil.main', function () {
     dispatcher.call('to-brazil-view');
   });
+
+  function updateApp(view) {
+    // TODO: don't hardcode
+    select('section#app').classed('cocktail', false).classed('limits', false).classed('substances', false).classed(view, true);
+  }
 
 }());
