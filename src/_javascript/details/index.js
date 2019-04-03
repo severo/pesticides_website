@@ -98,7 +98,7 @@ function makeCocktail(parent, dispatcher, mun, data) {
           hhceSubstances.length +
           '</strong> out of ' +
           mun.properties.map1Number +
-          ': associated with chronic dieses such as cancer',
+          ': associated with <strong>chronic dieses such as cancer</strong>',
         'hhce'
       );
       const otherSubstances = mun.properties.tests.filter(
@@ -147,7 +147,7 @@ function makeLimits(parent, dispatcher, mun, data) {
       .append('header')
       .html(
         '<strong class="is-size-4">' +
-          'No agrotoxics</strong> detected above the legal or European limits in ' +
+          'No agrotoxics</strong> detected above the Brazilian or European limits in ' +
           mun.properties.name +
           '.'
       );
@@ -161,7 +161,7 @@ function makeLimits(parent, dispatcher, mun, data) {
         supBrSubstances,
         '<strong class="is-size-4">' +
           supBrSubstances.length +
-          '</strong> agrotoxic(s) detected above the legal limit',
+          '</strong> agrotoxic(s) detected above the Brazilian limit',
         'cat-' + MAP2.CATEGORY.SUP_BR
       );
     }

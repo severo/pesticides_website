@@ -19574,7 +19574,7 @@
       });
 
       if (hhceSubstances.length > 0) {
-        makeTubesCocktail(parent, hhceSubstances, '<strong class="is-size-4">' + hhceSubstances.length + '</strong> out of ' + mun.properties.map1Number + ': associated with chronic dieses such as cancer', 'hhce');
+        makeTubesCocktail(parent, hhceSubstances, '<strong class="is-size-4">' + hhceSubstances.length + '</strong> out of ' + mun.properties.map1Number + ': associated with <strong>chronic dieses such as cancer</strong>', 'hhce');
         var otherSubstances = mun.properties.tests.filter(function (sub) {
           return !sub.substance.isHhce && sub.max > 0;
         });
@@ -19596,14 +19596,14 @@
     if (mun.properties.map2Category === MAP2.CATEGORY.NO_TEST) {
       parent.append('header').html('<strong class="is-size-4">' + 'No data</strong> about agrotoxics inside drinking water in ' + mun.properties.name + '.');
     } else if (mun.properties.map2Category === MAP2.CATEGORY.BELOW) {
-      parent.append('header').html('<strong class="is-size-4">' + 'No agrotoxics</strong> detected above the legal or European limits in ' + mun.properties.name + '.');
+      parent.append('header').html('<strong class="is-size-4">' + 'No agrotoxics</strong> detected above the Brazilian or European limits in ' + mun.properties.name + '.');
     } else {
       var supBrSubstances = mun.properties.tests.filter(function (sub) {
         return sub.map2Category === MAP2.CATEGORY.SUP_BR;
       });
 
       if (supBrSubstances.length > 0) {
-        makeTubesLimits(parent, supBrSubstances, '<strong class="is-size-4">' + supBrSubstances.length + '</strong> agrotoxic(s) detected above the legal limit', 'cat-' + MAP2.CATEGORY.SUP_BR);
+        makeTubesLimits(parent, supBrSubstances, '<strong class="is-size-4">' + supBrSubstances.length + '</strong> agrotoxic(s) detected above the Brazilian limit', 'cat-' + MAP2.CATEGORY.SUP_BR);
       }
 
       var supEuSubstances = mun.properties.tests.filter(function (sub) {
@@ -23787,8 +23787,6 @@
   var saturday = weekday(6);
 
   var sundays = sunday.range;
-  var mondays = monday.range;
-  var thursdays = thursday.range;
 
   var month = newInterval(function(date) {
     date.setDate(1);
@@ -23878,8 +23876,6 @@
   var utcSaturday = utcWeekday(6);
 
   var utcSundays = utcSunday.range;
-  var utcMondays = utcMonday.range;
-  var utcThursdays = utcThursday.range;
 
   var utcMonth = newInterval(function(date) {
     date.setUTCDate(1);
@@ -24861,7 +24857,7 @@
     "ffffe5f7fcb9d9f0a3addd8e78c67941ab5d238443006837004529"
   ).map(colors);
 
-  ramp(scheme$i);
+  var interpolateYlGn = ramp(scheme$i);
 
   var scheme$j = new Array(3).concat(
     "fff7bcfec44fd95f0e",
@@ -25151,7 +25147,7 @@
   }
 
   var color$1 = linear$1().domain([0, cfg$1.max]).interpolate(function () {
-    return interpolateYlOrRd;
+    return interpolateYlGn;
   });
 
   function makeLegend(parent) {
