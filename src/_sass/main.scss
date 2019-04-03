@@ -78,10 +78,10 @@ $map2-cat3: #253494;
     svg.tube {
       margin: 20px;
       &.hhce {
-        @include tube-colors(#b40f7b);
+        @include tube-colors(#f03b20);
       }
       &.no-hhce {
-        @include tube-colors(#da70ba);
+        @include tube-colors(#feb24c);
       }
       &.cat-1 {
         @include tube-colors($map2-cat1);
