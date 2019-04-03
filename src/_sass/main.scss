@@ -28,14 +28,33 @@ $primary-invert: $pink-invert;
 
 @import '../../node_modules/bulma/bulma';
 
+/* Some colors previously used in tubes
 $br_dark_green: #006860;
 $br_dark_purple: #770064;
 $br_dark_red: #a92b00;
 $br_light_green: #007d73;
 $br_light_purple: #8f0078;
 $br_light_red: #c63400;
-$br_darken_amount: 5%;
-$br_green: #00ad70;
+*/
+/* A purple palette
+$map2-cat1: #da70ba;
+$map2-cat2: #b40f7b;
+$map2-cat3: #400035;
+*/
+
+$map2-cat1: #c7e9b4;
+$map2-cat2: #41b6c4;
+$map2-cat3: #253494;
+
+@mixin tube-colors($base-color) {
+  .right {
+    fill: $base-color;
+  }
+  .left {
+    //fill: $base-color;
+    fill: darken($base-color, 3%);
+  }
+}
 
 #search {
 }
@@ -59,24 +78,19 @@ $br_green: #00ad70;
     svg.tube {
       margin: 20px;
       &.hhce {
-        .liquid path {
-          &.left {
-            fill: darken($br_light_green, $br_darken_amount);
-          }
-          &.right {
-            fill: $br_light_green;
-          }
-        }
+        @include tube-colors(#646363);
       }
       &.no-hhce {
-        .liquid path {
-          &.left {
-            fill: darken($br_green, $br_darken_amount);
-          }
-          &.right {
-            fill: $br_green;
-          }
-        }
+        @include tube-colors(#bebdbd);
+      }
+      &.cat-1 {
+        @include tube-colors($map2-cat1);
+      }
+      &.cat-2 {
+        @include tube-colors($map2-cat2);
+      }
+      &.cat-3 {
+        @include tube-colors($map2-cat3);
       }
     }
   }
@@ -111,6 +125,15 @@ $br_green: #00ad70;
           stroke: #e8336d;
           stroke-width: 1;
           stroke-opacity: 1;
+        }
+        &.cat-1 {
+          fill: $map2-cat1;
+        }
+        &.cat-2 {
+          fill: $map2-cat2;
+        }
+        &.cat-3 {
+          fill: $map2-cat3;
         }
       }
     }

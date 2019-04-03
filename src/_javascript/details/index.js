@@ -173,7 +173,7 @@ function makeLimits(parent, dispatcher, mun, data) {
           supBrSubstances.length +
           '</strong> agrotoxic(s) detected above the legal limit',
         color(MAP2.CATEGORY.SUP_BR),
-        'sup-br'
+        'cat-' + MAP2.CATEGORY.SUP_BR
       );
     }
     const eqBrSubstances = mun.properties.tests.filter(
@@ -187,7 +187,7 @@ function makeLimits(parent, dispatcher, mun, data) {
           eqBrSubstances.length +
           '</strong> agrotoxic(s) detected exactly at the legal limit',
         color(MAP2.CATEGORY.EQ_BR),
-        'eq-br'
+        'cat-' + MAP2.CATEGORY.EQ_BR
       );
     }
     const supEuSubstances = mun.properties.tests.filter(
@@ -201,7 +201,7 @@ function makeLimits(parent, dispatcher, mun, data) {
           supEuSubstances.length +
           '</strong> agrotoxic(s) detected above the European limit',
         color(MAP2.CATEGORY.SUP_EU),
-        'sup-eu'
+        'cat-' + MAP2.CATEGORY.SUP_EU
       );
     }
   }

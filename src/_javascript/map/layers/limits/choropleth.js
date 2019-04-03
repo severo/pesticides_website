@@ -1,6 +1,4 @@
 //import {axisBottom, interpolateYlOrRd, range, scaleLinear} from 'd3';
-import {MAP2} from '../../../data';
-import {schemeBlues} from 'd3';
 
 const cfg = {
   field: 'supBr',
@@ -17,15 +15,8 @@ const cfg = {
     mouseover: 'mun-mouseover',
   },
 };
-const NO_TEST_COLOR = null;
 
 export function createLimitsChoropleth(parent, path, data, dispatcher) {
-  const colorPalette = [NO_TEST_COLOR].concat(
-    schemeBlues[Object.keys(MAP2.CATEGORY).length - 1]
-  );
-  // map2Category field should be present in all the municipalities
-  const color = ft => colorPalette[ft.properties.map2Category];
-
   parent
     .append('g')
     .classed('choropleth', true)
@@ -34,8 +25,8 @@ export function createLimitsChoropleth(parent, path, data, dispatcher) {
     .enter()
     .append('path')
     .attr('id', ft => 'id-' + ft.properties.ibgeCode)
+    .attr('class', ft => 'cat-' + ft.properties.map2Category)
     .attr('d', path)
-    .style('fill', ft => color(ft))
     .on('mouseover', (ft, element) => {
       // invoke callbacks
       dispatcher.call(cfg.typename.mouseover, null, {

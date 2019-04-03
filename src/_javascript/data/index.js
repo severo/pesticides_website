@@ -7,9 +7,8 @@ const EUROPEAN_LIMIT = 0.1;
 export const MAP2 = {
   CATEGORY: {
     BELOW: 1,
-    EQ_BR: 3,
     NO_TEST: 0,
-    SUP_BR: 4,
+    SUP_BR: 3,
     SUP_EU: 2,
   },
 };
@@ -304,8 +303,6 @@ function parseTests(tests, substancesLut) {
 function getMap2Category(max, substance) {
   if (max > substance.limit) {
     return MAP2.CATEGORY.SUP_BR;
-  } else if (max === substance.limit) {
-    return MAP2.CATEGORY.EQ_BR;
   } else if (max > EUROPEAN_LIMIT) {
     return MAP2.CATEGORY.SUP_EU;
   }
