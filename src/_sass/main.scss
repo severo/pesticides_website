@@ -52,7 +52,7 @@ $map2-cat3: #253494;
   }
   .left {
     //fill: $base-color;
-    fill: darken($base-color, 3%);
+    fill: darken($base-color, 4%);
   }
 }
 
@@ -78,10 +78,10 @@ $map2-cat3: #253494;
     svg.tube {
       margin: 20px;
       &.hhce {
-        @include tube-colors(#646363);
+        @include tube-colors(#b40f7b);
       }
       &.no-hhce {
-        @include tube-colors(#bebdbd);
+        @include tube-colors(#da70ba);
       }
       &.cat-1 {
         @include tube-colors($map2-cat1);

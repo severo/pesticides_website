@@ -1,4 +1,4 @@
-import {axisBottom, interpolateYlOrRd, range, scaleLinear} from 'd3';
+import {axisBottom, interpolateYlGn, range, scaleLinear} from 'd3';
 
 // TODO: add a control to select the parameter?
 /* Reminder of the data available from the CSV
@@ -76,7 +76,7 @@ function value(ft) {
 
 const color = scaleLinear()
   .domain([0, cfg.max])
-  .interpolate(() => interpolateYlOrRd);
+  .interpolate(() => interpolateYlGn);
 
 function makeLegend(parent) {
   // TODO: should be a scheme (27 colors), not a continuous scale
