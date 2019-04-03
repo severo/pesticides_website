@@ -25202,7 +25202,7 @@
 
     label.append('text').attr('y', -cfg$1.legend.titleOffset).attr('font-weight', 'bold').text('Number of pesticides detected in drinking water'); // TODO: i18n
 
-    label.append('text').attr('y', -cfg$1.legend.subtitleOffset).text('(white: no pesticide, purple: 27 different pesticides)'); // Scale
+    label.append('text').attr('y', -cfg$1.legend.subtitleOffset).text('(white: no pesticide, dark red: 27 different pesticides)'); // Scale
 
     legend.append('g').call(axisBottom(xx).tickSize(cfg$1.legend.tickSize)).select('.domain').remove();
   }
@@ -29232,7 +29232,7 @@
       .append('text')
       .attr('y', -cfg.legend.subtitleOffset)
       .text(
-        '(white: no pesticide, purple: ' + maxNumber + ' different pesticides)'
+        '(white: no pesticide, dark red: ' + maxNumber + ' different pesticides)'
       );
 
     // Scale

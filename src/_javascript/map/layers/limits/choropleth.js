@@ -94,7 +94,7 @@ function makeLegend(parent, maxNumber, color) {
     .append('text')
     .attr('y', -cfg.legend.subtitleOffset)
     .text(
-      '(white: no pesticide, purple: ' + maxNumber + ' different pesticides)'
+      '(white: no pesticide, dark red: ' + maxNumber + ' different pesticides)'
     );
 
   // Scale

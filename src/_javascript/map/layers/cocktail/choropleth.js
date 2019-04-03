@@ -116,7 +116,7 @@ function makeLegend(parent) {
   label
     .append('text')
     .attr('y', -cfg.legend.subtitleOffset)
-    .text('(white: no pesticide, purple: 27 different pesticides)');
+    .text('(white: no pesticide, dark red: 27 different pesticides)');
 
   // Scale
   legend
