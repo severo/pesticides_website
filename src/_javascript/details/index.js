@@ -117,7 +117,7 @@ function makeCocktail(parent, dispatcher, mun, data) {
         );
       }
     } else {
-      makeTubesCocktail(parent, mun.properties.tests, '', 'red');
+      makeTubesCocktail(parent, mun.properties.tests, '', 'no-hhce');
     }
   }
 }

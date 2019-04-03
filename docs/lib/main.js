@@ -19583,7 +19583,7 @@
           makeTubesCocktail(parent, otherSubstances, '<strong class="is-size-4">' + otherSubstances.length + '</strong> out of ' + mun.properties.map1Number + ': other pesticides', 'no-hhce');
         }
       } else {
-        makeTubesCocktail(parent, mun.properties.tests, '', 'red');
+        makeTubesCocktail(parent, mun.properties.tests, '', 'no-hhce');
       }
     }
   }
