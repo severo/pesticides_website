@@ -25192,7 +25192,7 @@
     var xx = linear$1().domain(color$1.domain()).rangeRound([0, cfg$1.legend.width * cfg$1.max]);
     var legend = parent.append('g') //.style('font-size', '0.8rem')
     //.style('font-family', 'sans-serif')
-    .attr('transform', 'translate(550,50)');
+    .attr('transform', 'translate(394,50) scale(1.4)');
     legend.selectAll('rect').data(sequence(0, cfg$1.max, 1)).enter().append('rect').attr('height', cfg$1.legend.height).attr('x', function (el) {
       return xx(el);
     }).attr('width', cfg$1.legend.width).attr('fill', function (el) {

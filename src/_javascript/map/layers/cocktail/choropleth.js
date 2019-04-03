@@ -88,7 +88,7 @@ function makeLegend(parent) {
     .append('g')
     //.style('font-size', '0.8rem')
     //.style('font-family', 'sans-serif')
-    .attr('transform', 'translate(550,50)');
+    .attr('transform', 'translate(394,50) scale(1.4)');
 
   legend
     .selectAll('rect')
