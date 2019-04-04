@@ -29391,14 +29391,17 @@
       makeMun$2(svg, path, dispatcher, view, state.data, state.mun);
     } else {
       makeBrazil$2(svg, path, dispatcher, view, state.data);
-    }
+    } // TODO: improve the way to update the map on mun selection event
+    // Meanwhile we deactivate it
 
-    dispatcher.on('to-brazil-view.map', function () {
-      makeBrazil$2(svg, path, dispatcher, view, state.data);
+    /*dispatcher.on('to-brazil-view.map', () => {
+      makeBrazil(svg, path, dispatcher, view, state.data);
     });
-    dispatcher.on('to-mun-view.map', function (mun) {
-      makeMun$2(svg, path, dispatcher, view, state.data, mun);
-    });
+     dispatcher.on('to-mun-view.map', mun => {
+      makeMun(svg, path, dispatcher, view, state.data, mun);
+    });*/
+
+
     endLoading$2(parent);
   }
 

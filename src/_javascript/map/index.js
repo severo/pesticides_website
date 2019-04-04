@@ -40,13 +40,15 @@ export function makeMap(parent, dispatcher, view, state) {
     makeBrazil(svg, path, dispatcher, view, state.data);
   }
 
-  dispatcher.on('to-brazil-view.map', () => {
+  // TODO: improve the way to update the map on mun selection event
+  // Meanwhile we deactivate it
+  /*dispatcher.on('to-brazil-view.map', () => {
     makeBrazil(svg, path, dispatcher, view, state.data);
   });
 
   dispatcher.on('to-mun-view.map', mun => {
     makeMun(svg, path, dispatcher, view, state.data, mun);
-  });
+  });*/
 
   endLoading(parent);
 }
