@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="css/main.css" />
   </head>
   <body>
-    <section id="page-title" class="hero is-small is-primary">
+    <section id="page-title" class="hero is-small is-primary cocktail">
       <div class="hero-body">
         <div class="container">
           <div class="columns">
@@ -28,47 +28,27 @@
       </div>
     </section>
 
-    <nav
-      class="navbar is-white container"
-      role="navigation"
-      aria-label="main navigation"
-    >
-      <div class="navbar-brand">
-        <a
-          role="button"
-          class="navbar-burger burger"
-          aria-label="menu"
-          aria-expanded="false"
-          data-target="navbarMaps"
-        >
-          <span aria-hidden="true"></span>
-          <span aria-hidden="true"></span>
-          <span aria-hidden="true"></span>
-        </a>
-      </div>
-
-      <div id="navbarMaps" class="navbar-menu">
-        <div class="navbar-start">
-          <a class="navbar-item" id="nav-item-cocktail">
-            Cocktail
-          </a>
-
-          <a class="navbar-item" id="nav-item-limits">
-            High concentrations
-          </a>
-
-          <!--a class="navbar-item" id="nav-item-substances">
-            Substances
-          </a-->
-        </div>
-      </div>
-    </nav>
-
     <section class="section" id="app">
       <div class="container">
         <div class="field is-horizontal is-hidden" id="substance-select"></div>
         <div class="columns is-desktop">
           <section class="column is-half-desktop ">
+            <nav
+              id="navbarMaps"
+              class="is-white  is-flex-tablet  has-text-centered"
+              role="navigation"
+              aria-label="main navigation"
+            >
+              <a class="navbar-item" id="nav-item-cocktail">
+                Cocktail of agrotoxics
+              </a>
+              <a class="navbar-item" id="nav-item-limits">
+                High concentrations
+              </a>
+              <!--a class="navbar-item" id="nav-item-substances">
+                Substances
+              </a-->
+            </nav>
             <section class="is-loading" id="map"></section>
           </section>
           <section class="column is-half-desktop">

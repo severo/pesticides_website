@@ -29455,10 +29455,7 @@
   function makeNav(dispatcher, state) {
     // init
     updateNav(dispatcher, state);
-    select('.navbar-menu #nav-item-cocktail').classed('is-active', true);
-    select('.navbar-burger').on('click', function () {
-      dispatcher.call('burger-show');
-    });
+    select('#navbarMaps #nav-item-cocktail').classed('is-active', true);
     dispatcher.on('to-brazil-view.nav', function () {
       updateNav(dispatcher, {
         data: state.data
@@ -29470,38 +29467,32 @@
         mun: mun
       });
     });
-    dispatcher.on('burger-show.nav', function () {
-      select('.navbar-burger').classed('is-active', true).on('click', function () {
-        dispatcher.call('burger-hide');
-      });
-      select('.navbar-menu').classed('is-active', true);
-    });
-    dispatcher.on('burger-hide.nav', function () {
-      select('.navbar-burger').classed('is-active', false).on('click', function () {
-        dispatcher.call('burger-show');
-      });
-      select('.navbar-menu').classed('is-active', false);
-    });
   }
 
   function updateNav(dispatcher, state) {
     // TODO: we could factorize
-    select('.navbar-menu #nav-item-cocktail').on('click', function () {
-      selectAll('.navbar-menu .navbar-item').classed('is-active', false);
-      select('.navbar-menu #nav-item-cocktail').classed('is-active', true);
-      dispatcher.call('burger-hide');
+    select('#navbarMaps #nav-item-cocktail').on('click', function () {
+      selectAll('#navbarMaps .navbar-item').classed('is-active', false);
+      select('#navbarMaps #nav-item-cocktail').classed('is-active', true);
+      select('#page-title').classed('cocktail', true);
+      select('#page-title').classed('limits', false);
+      select('#page-title').classed('substances', false);
       dispatcher.call('make-app-cocktail', null, state);
     });
-    select('.navbar-menu #nav-item-limits').on('click', function () {
-      selectAll('.navbar-menu .navbar-item').classed('is-active', false);
-      select('.navbar-menu #nav-item-limits').classed('is-active', true);
-      dispatcher.call('burger-hide');
+    select('#navbarMaps #nav-item-limits').on('click', function () {
+      selectAll('#navbarMaps .navbar-item').classed('is-active', false);
+      select('#navbarMaps #nav-item-limits').classed('is-active', true);
+      select('#page-title').classed('cocktail', false);
+      select('#page-title').classed('limits', true);
+      select('#page-title').classed('substances', false);
       dispatcher.call('make-app-limits', null, state);
     });
-    select('.navbar-menu #nav-item-substances').on('click', function () {
-      selectAll('.navbar-menu .navbar-item').classed('is-active', false);
-      select('.navbar-menu #nav-item-substances').classed('is-active', true);
-      dispatcher.call('burger-hide');
+    select('#navbarMaps #nav-item-substances').on('click', function () {
+      selectAll('#navbarMaps .navbar-item').classed('is-active', false);
+      select('#navbarMaps #nav-item-substances').classed('is-active', true);
+      select('#page-title').classed('cocktail', false);
+      select('#page-title').classed('limits', false);
+      select('#page-title').classed('substances', true);
       dispatcher.call('make-app-substances', null, state);
     });
   }
@@ -29685,7 +29676,7 @@
   }
 
   //import {makeSubstanceSelect, removeSubstanceSelect} from './substance';
-  var dispatcher = dispatch('data-loaded', 'breadcrumb-click-brazil', 'to-brazil-view', 'to-mun-view', 'search-results-updated', 'search-selected', 'make-app-cocktail', 'make-app-limits', 'make-app-substances', 'mun-click', 'mun-mouseover', 'mun-mouseout', 'burger-show', 'burger-hide', 'substance-selected'); // Asynchronous (promise)
+  var dispatcher = dispatch('data-loaded', 'breadcrumb-click-brazil', 'to-brazil-view', 'to-mun-view', 'search-results-updated', 'search-selected', 'make-app-cocktail', 'make-app-limits', 'make-app-substances', 'mun-click', 'mun-mouseover', 'mun-mouseout', 'substance-selected'); // Asynchronous (promise)
 
   loadData(dispatcher); // Create the layout
 

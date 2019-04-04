@@ -3,11 +3,7 @@ import {select, selectAll} from 'd3-selection';
 export function makeNav(dispatcher, state) {
   // init
   updateNav(dispatcher, state);
-  select('.navbar-menu #nav-item-cocktail').classed('is-active', true);
-
-  select('.navbar-burger').on('click', () => {
-    dispatcher.call('burger-show');
-  });
+  select('#navbarMaps #nav-item-cocktail').classed('is-active', true);
 
   dispatcher.on('to-brazil-view.nav', () => {
     updateNav(dispatcher, {data: state.data});
@@ -15,43 +11,32 @@ export function makeNav(dispatcher, state) {
   dispatcher.on('to-mun-view.nav', mun => {
     updateNav(dispatcher, {data: state.data, mun: mun});
   });
-
-  dispatcher.on('burger-show.nav', () => {
-    select('.navbar-burger')
-      .classed('is-active', true)
-      .on('click', () => {
-        dispatcher.call('burger-hide');
-      });
-    select('.navbar-menu').classed('is-active', true);
-  });
-  dispatcher.on('burger-hide.nav', () => {
-    select('.navbar-burger')
-      .classed('is-active', false)
-      .on('click', () => {
-        dispatcher.call('burger-show');
-      });
-    select('.navbar-menu').classed('is-active', false);
-  });
 }
 
 function updateNav(dispatcher, state) {
   // TODO: we could factorize
-  select('.navbar-menu #nav-item-cocktail').on('click', () => {
-    selectAll('.navbar-menu .navbar-item').classed('is-active', false);
-    select('.navbar-menu #nav-item-cocktail').classed('is-active', true);
-    dispatcher.call('burger-hide');
+  select('#navbarMaps #nav-item-cocktail').on('click', () => {
+    selectAll('#navbarMaps .navbar-item').classed('is-active', false);
+    select('#navbarMaps #nav-item-cocktail').classed('is-active', true);
+    select('#page-title').classed('cocktail', true);
+    select('#page-title').classed('limits', false);
+    select('#page-title').classed('substances', false);
     dispatcher.call('make-app-cocktail', null, state);
   });
-  select('.navbar-menu #nav-item-limits').on('click', () => {
-    selectAll('.navbar-menu .navbar-item').classed('is-active', false);
-    select('.navbar-menu #nav-item-limits').classed('is-active', true);
-    dispatcher.call('burger-hide');
+  select('#navbarMaps #nav-item-limits').on('click', () => {
+    selectAll('#navbarMaps .navbar-item').classed('is-active', false);
+    select('#navbarMaps #nav-item-limits').classed('is-active', true);
+    select('#page-title').classed('cocktail', false);
+    select('#page-title').classed('limits', true);
+    select('#page-title').classed('substances', false);
     dispatcher.call('make-app-limits', null, state);
   });
-  select('.navbar-menu #nav-item-substances').on('click', () => {
-    selectAll('.navbar-menu .navbar-item').classed('is-active', false);
-    select('.navbar-menu #nav-item-substances').classed('is-active', true);
-    dispatcher.call('burger-hide');
+  select('#navbarMaps #nav-item-substances').on('click', () => {
+    selectAll('#navbarMaps .navbar-item').classed('is-active', false);
+    select('#navbarMaps #nav-item-substances').classed('is-active', true);
+    select('#page-title').classed('cocktail', false);
+    select('#page-title').classed('limits', false);
+    select('#page-title').classed('substances', true);
     dispatcher.call('make-app-substances', null, state);
   });
 }

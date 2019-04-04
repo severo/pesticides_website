@@ -57,11 +57,36 @@ $map2-cat3: #253494;
 }
 
 #page-title {
-  background-color: #393e41;
+  background-color: #389d55;
+
+  &.cocktail {
+    background-color: #389d55;
+  }
+  &.limits {
+    background-color: $map2-cat3;
+  }
 }
 
-#search {
+#navbarMaps {
   margin-top: 0.5em;
+  margin-bottom: 1em;
+  #nav-item-cocktail:hover,
+  #nav-item-cocktail.is-active {
+    background-color: #389d55;
+    color: $light;
+  }
+  #nav-item-limits:hover,
+  #nav-item-limits.is-active {
+    background-color: $map2-cat3;
+    color: $light;
+  }
+}
+
+#app {
+  padding-top: 0;
+}
+#search {
+  margin-top: 2.5em;
   margin-bottom: 2em;
   .modal-content {
     padding: 0.5em 1em;

@@ -21,8 +21,6 @@ const dispatcher = dispatch(
   'mun-click',
   'mun-mouseover',
   'mun-mouseout',
-  'burger-show',
-  'burger-hide',
   'substance-selected'
 );
 
