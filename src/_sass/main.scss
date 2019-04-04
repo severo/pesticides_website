@@ -89,6 +89,7 @@ $map2-cat3: #253494;
   margin-top: 2.5em;
   margin-bottom: 2em;
   .modal-content {
+    max-height: none;
     padding: 0.5em 1em;
     border-radius: 5px;
     .field {
@@ -112,6 +113,10 @@ $map2-cat3: #253494;
         transition: all 0.2s linear;
       }
     }
+  }
+  .modal-close {
+    top: 3px;
+    background-color: rgba(10, 10, 10, 0.2);
   }
 }
 
