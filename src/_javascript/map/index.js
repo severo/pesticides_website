@@ -1,7 +1,13 @@
-import {createCocktailChoropleth} from './layers/cocktail/choropleth';
+import {
+  createCocktailChoropleth,
+  createCocktailOverlay,
+} from './layers/cocktail/choropleth';
+import {
+  createLimitsChoropleth,
+  createLimitsOverlay,
+} from './layers/limits/choropleth';
 import {createCocktailTooltip} from './layers/cocktail/tooltip';
 import {createFuFrontiers} from './layers/fu';
-import {createLimitsChoropleth} from './layers/limits/choropleth';
 import {createLimitsTooltip} from './layers/limits/tooltip';
 import {createSubstancesChoropleth} from './layers/substances/choropleth';
 import {createSubstancesTooltip} from './layers/substances/tooltip';
@@ -40,17 +46,25 @@ export function makeMap(parent, dispatcher, view, state) {
     makeBrazil(svg, path, dispatcher, view, state.data);
   }
 
-  // TODO: improve the way to update the map on mun selection event
-  // Meanwhile we deactivate it
-  /*dispatcher.on('to-brazil-view.map', () => {
-    makeBrazil(svg, path, dispatcher, view, state.data);
+  dispatcher.on('to-brazil-view.map', () => {
+    updateOverlay(svg, null);
+  });
+  dispatcher.on('to-mun-view.map mun-click.map', mun => {
+    updateOverlay(svg, mun);
   });
 
-  dispatcher.on('to-mun-view.map', mun => {
-    makeMun(svg, path, dispatcher, view, state.data, mun);
-  });*/
-
   endLoading(parent);
+}
+
+function updateOverlay(parent, mun) {
+  // Remove any previous selected mun
+  parent.selectAll('.overlay path').classed('selected', false);
+  // Highlight this new mun
+  if (mun !== null) {
+    parent
+      .select('.overlay path#overlay-id-' + mun.properties.ibgeCode)
+      .classed('selected', true);
+  }
 }
 
 function makeBrazil(svg, path, dispatcher, view, data) {
@@ -73,12 +87,14 @@ function makeMun(svg, path, dispatcher, view, data, mun) {
   // TODO: show the selected municipality on the map (extra layer?)
   // TODO: avoid recreating the map on every click
   makeBrazil(svg, path, dispatcher, view, data);
+  updateOverlay(svg, mun);
 }
 
 function createCocktail(svg, path, data, dispatcher) {
   svg.html(null);
   createCocktailChoropleth(svg, path, data, dispatcher);
   createFuFrontiers(svg, path, data);
+  createCocktailOverlay(svg, path, data, dispatcher);
   createCocktailTooltip(svg, path, dispatcher);
 }
 
@@ -86,6 +102,7 @@ function createLimits(svg, path, data, dispatcher) {
   svg.html(null);
   createLimitsChoropleth(svg, path, data, dispatcher);
   createFuFrontiers(svg, path, data);
+  createLimitsOverlay(svg, path, data, dispatcher);
   createLimitsTooltip(svg, path, dispatcher);
 }
 

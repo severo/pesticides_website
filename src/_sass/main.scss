@@ -180,11 +180,15 @@ $map2-cat3: #253494;
     .choropleth {
       path {
         stroke: none;
-        &:hover {
-          stroke: #e8336d;
-          stroke-width: 1;
-          stroke-opacity: 1;
-        }
+      }
+    }
+    .overlay path {
+      fill: #ffffff01;
+      &:hover,
+      &.selected {
+        stroke: #e8336d;
+        stroke-width: 2;
+        stroke-opacity: 1;
       }
     }
     .fu-frontiers path {

@@ -10,11 +10,6 @@ const cfg = {
     titleOffset: 22,
     width: 20,
   },
-  typename: {
-    click: 'mun-click',
-    mouseout: 'mun-mouseout',
-    mouseover: 'mun-mouseover',
-  },
 };
 
 const legendKeys = ['SUP_BR', 'SUP_EU', 'BELOW', 'NO_TEST'];
@@ -36,23 +31,43 @@ export function createLimitsChoropleth(parent, path, data, dispatcher) {
     .append('path')
     .attr('id', ft => 'id-' + ft.properties.ibgeCode)
     .attr('class', ft => 'cat-' + ft.properties.map2Category)
+    .attr('d', path);
+  makeLegend(parent);
+}
+
+export function createLimitsOverlay(parent, path, data, dispatcher) {
+  parent
+    .append('g')
+    .classed('overlay', true)
+    .selectAll('path')
+    .data(data.mun.features)
+    .enter()
+    .append('path')
+    .attr('id', ft => 'overlay-id-' + ft.properties.ibgeCode)
     .attr('d', path)
     .on('mouseover', (ft, element) => {
       // invoke callbacks
-      dispatcher.call(cfg.typename.mouseover, null, {
+      dispatcher.call('mun-mouseover', null, {
         properties: ft.properties,
         value: ft.properties.map2Category,
       });
     })
     .on('mouseout', (ft, element) => {
       // invoke callbacks
-      dispatcher.call(cfg.typename.mouseout);
+      dispatcher.call('mun-mouseout');
     })
     .on('click', (ft, element) => {
       // invoke callbacks
-      dispatcher.call(cfg.typename.click, null, ft);
+      dispatcher.call('mun-click', null, ft);
     });
-  makeLegend(parent);
+  dispatcher.on('mun-click', ft => {
+    // Remove any previous selected mun
+    parent.selectAll('.overlay path').classed('selected', false);
+    // Highlight this new mun
+    parent
+      .select('.overlay path#overlay-id-' + ft.properties.ibgeCode)
+      .classed('selected', true);
+  });
 }
 
 function makeLegend(parent) {

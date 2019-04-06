@@ -23715,6 +23715,7 @@
       return (end - start) / k;
     });
   };
+  var milliseconds = millisecond.range;
 
   var durationSecond = 1e3;
   var durationMinute = 6e4;
@@ -23731,6 +23732,7 @@
   }, function(date) {
     return date.getUTCSeconds();
   });
+  var seconds = second.range;
 
   var minute = newInterval(function(date) {
     date.setTime(date - date.getMilliseconds() - date.getSeconds() * durationSecond);
@@ -23741,6 +23743,7 @@
   }, function(date) {
     return date.getMinutes();
   });
+  var minutes = minute.range;
 
   var hour = newInterval(function(date) {
     date.setTime(date - date.getMilliseconds() - date.getSeconds() * durationSecond - date.getMinutes() * durationMinute);
@@ -23751,6 +23754,7 @@
   }, function(date) {
     return date.getHours();
   });
+  var hours = hour.range;
 
   var day = newInterval(function(date) {
     date.setHours(0, 0, 0, 0);
@@ -23761,6 +23765,7 @@
   }, function(date) {
     return date.getDate() - 1;
   });
+  var days = day.range;
 
   function weekday(i) {
     return newInterval(function(date) {
@@ -23781,6 +23786,10 @@
   var friday = weekday(5);
   var saturday = weekday(6);
 
+  var sundays = sunday.range;
+  var mondays = monday.range;
+  var thursdays = thursday.range;
+
   var month = newInterval(function(date) {
     date.setDate(1);
     date.setHours(0, 0, 0, 0);
@@ -23791,6 +23800,7 @@
   }, function(date) {
     return date.getMonth();
   });
+  var months = month.range;
 
   var year = newInterval(function(date) {
     date.setMonth(0, 1);
@@ -23813,6 +23823,7 @@
       date.setFullYear(date.getFullYear() + step * k);
     });
   };
+  var years = year.range;
 
   var utcMinute = newInterval(function(date) {
     date.setUTCSeconds(0, 0);
@@ -23823,6 +23834,7 @@
   }, function(date) {
     return date.getUTCMinutes();
   });
+  var utcMinutes = utcMinute.range;
 
   var utcHour = newInterval(function(date) {
     date.setUTCMinutes(0, 0, 0);
@@ -23833,6 +23845,7 @@
   }, function(date) {
     return date.getUTCHours();
   });
+  var utcHours = utcHour.range;
 
   var utcDay = newInterval(function(date) {
     date.setUTCHours(0, 0, 0, 0);
@@ -23843,6 +23856,7 @@
   }, function(date) {
     return date.getUTCDate() - 1;
   });
+  var utcDays = utcDay.range;
 
   function utcWeekday(i) {
     return newInterval(function(date) {
@@ -23863,6 +23877,10 @@
   var utcFriday = utcWeekday(5);
   var utcSaturday = utcWeekday(6);
 
+  var utcSundays = utcSunday.range;
+  var utcMondays = utcMonday.range;
+  var utcThursdays = utcThursday.range;
+
   var utcMonth = newInterval(function(date) {
     date.setUTCDate(1);
     date.setUTCHours(0, 0, 0, 0);
@@ -23873,6 +23891,7 @@
   }, function(date) {
     return date.getUTCMonth();
   });
+  var utcMonths = utcMonth.range;
 
   var utcYear = newInterval(function(date) {
     date.setUTCMonth(0, 1);
@@ -23895,6 +23914,7 @@
       date.setUTCFullYear(date.getUTCFullYear() + step * k);
     });
   };
+  var utcYears = utcYear.range;
 
   function localDate(d) {
     if (0 <= d.y && d.y < 100) {
@@ -25082,7 +25102,6 @@
   */
 
   var cfg$1 = {
-    field: 'detected',
     legend: {
       height: 10,
       subtitleOffset: 8,
@@ -25091,12 +25110,7 @@
       titleOffsetLine2: 24,
       width: 10
     },
-    max: 27,
-    typename: {
-      click: 'mun-click',
-      mouseout: 'mun-mouseout',
-      mouseover: 'mun-mouseover'
-    }
+    max: 27
   };
   function createCocktailChoropleth(parent, path, data, dispatcher) {
     parent.append('g').classed('choropleth', true).selectAll('path').data(data.mun.features).enter().append('path').attr('id', function (ft) {
@@ -25107,20 +25121,25 @@
       }
 
       return null;
-    }).on('mouseover', function (ft, element) {
+    });
+    makeLegend(parent);
+  }
+  function createCocktailOverlay(parent, path, data, dispatcher) {
+    parent.append('g').classed('overlay', true).selectAll('path').data(data.mun.features).enter().append('path').attr('id', function (ft) {
+      return 'overlay-id-' + ft.properties.ibgeCode;
+    }).attr('d', path).on('mouseover', function (ft, element) {
       // invoke callbacks
-      dispatcher.call(cfg$1.typename.mouseover, null, {
+      dispatcher.call('mun-mouseover', null, {
         properties: ft.properties,
         value: value(ft)
       });
     }).on('mouseout', function (ft, element) {
       // invoke callbacks
-      dispatcher.call(cfg$1.typename.mouseout);
+      dispatcher.call('mun-mouseout');
     }).on('click', function (ft, element) {
       // invoke callbacks
-      dispatcher.call(cfg$1.typename.click, null, ft);
+      dispatcher.call('mun-click', null, ft);
     });
-    makeLegend(parent);
   }
 
   function value(ft) {
@@ -25154,6 +25173,79 @@
     label.append('text').attr('y', -cfg$1.legend.subtitleOffset).text('(light: none, dark: 27 different pesticides)'); // Scale
 
     legend.append('g').call(axisBottom(xx).tickSize(cfg$1.legend.tickSize)).select('.domain').remove();
+  }
+
+  //import {axisBottom, interpolateYlOrRd, range, scaleLinear} from 'd3';
+  var cfg$2 = {
+    legend: {
+      height: 20,
+      label: {
+        xOffset: 30,
+        yOffset: 15
+      },
+      subtitleOffset: 8,
+      titleOffset: 22,
+      width: 20
+    }
+  };
+  var legendKeys = ['SUP_BR', 'SUP_EU', 'BELOW', 'NO_TEST'];
+  var legendLabels = {
+    BELOW: 'all agrotoxics below limits',
+    NO_TEST: 'no data',
+    SUP_BR: 'at least one above Brazilian limit',
+    SUP_EU: 'at least one above European limit'
+  };
+  function createLimitsChoropleth(parent, path, data, dispatcher) {
+    parent.append('g').classed('choropleth', true).selectAll('path').data(data.mun.features).enter().append('path').attr('id', function (ft) {
+      return 'id-' + ft.properties.ibgeCode;
+    }).attr('class', function (ft) {
+      return 'cat-' + ft.properties.map2Category;
+    }).attr('d', path);
+    makeLegend$1(parent);
+  }
+  function createLimitsOverlay(parent, path, data, dispatcher) {
+    parent.append('g').classed('overlay', true).selectAll('path').data(data.mun.features).enter().append('path').attr('id', function (ft) {
+      return 'overlay-id-' + ft.properties.ibgeCode;
+    }).attr('d', path).on('mouseover', function (ft, element) {
+      // invoke callbacks
+      dispatcher.call('mun-mouseover', null, {
+        properties: ft.properties,
+        value: ft.properties.map2Category
+      });
+    }).on('mouseout', function (ft, element) {
+      // invoke callbacks
+      dispatcher.call('mun-mouseout');
+    }).on('click', function (ft, element) {
+      // invoke callbacks
+      dispatcher.call('mun-click', null, ft);
+    });
+    dispatcher.on('mun-click', function (ft) {
+      // Remove any previous selected mun
+      parent.selectAll('.overlay path').classed('selected', false); // Highlight this new mun
+
+      parent.select('.overlay path#overlay-id-' + ft.properties.ibgeCode).classed('selected', true);
+    });
+  }
+
+  function makeLegend$1(parent) {
+    var yy = linear$1().domain([0, legendKeys.length]).rangeRound([0, cfg$2.legend.height * legendKeys.length]);
+    var legend = parent.append('g').classed('legend', true) //.style('font-size', '0.8rem')
+    //.style('font-family', 'sans-serif')
+    .attr('transform', 'translate(550,50) scale(1.3)');
+    legend.selectAll('rect').data(legendKeys).enter().append('rect').attr('class', function (key) {
+      return 'cat-' + MAP2.CATEGORY[key];
+    }).attr('height', cfg$2.legend.height).attr('y', function (key, idx) {
+      return yy(idx);
+    }).attr('width', cfg$2.legend.width);
+    legend.selectAll('text').data(legendKeys).enter().append('text').attr('x', cfg$2.legend.label.xOffset).attr('y', function (key, idx) {
+      return yy(idx) + cfg$2.legend.label.yOffset;
+    }).text(function (key) {
+      return legendLabels[key];
+    });
+    var label = legend.append('g').attr('fill', '#000').attr('text-anchor', 'start'); // TODO: i18n
+
+    label.append('text').attr('y', -cfg$2.legend.titleOffset).attr('font-weight', 'bold').text('Pesticides detected above legal limits');
+    label.append('text').attr('y', -cfg$2.legend.subtitleOffset).attr('font-weight', 'bold').text('in drinking water');
   }
 
   var xhtml$1 = "http://www.w3.org/1999/xhtml";
@@ -29063,7 +29155,7 @@
     return annotation;
   }
 
-  var cfg$2 = {
+  var cfg$3 = {
     nx: 220,
     ny: 700
   };
@@ -29085,10 +29177,10 @@
       note: {
         label: Number.isInteger(data.value) ? data.value + ' pesticide(s) found in the drinking water.' : 'Never tested.',
         title: data.properties.name + ' (' + data.properties.fuName + ')',
-        wrap: cfg$2.nx
+        wrap: cfg$3.nx
       },
-      nx: cfg$2.nx,
-      ny: cfg$2.ny,
+      nx: cfg$3.nx,
+      ny: cfg$3.ny,
       x: data.properties.centroid[0],
       // eslint-disable-line id-length
       y: data.properties.centroid[1] // eslint-disable-line id-length
@@ -29098,73 +29190,6 @@
 
   function createFuFrontiers(parent, path, data) {
     return parent.append('g').classed('fu-frontiers', true).selectAll('path').data(data.internalFu.features).enter().append('path').attr('d', path);
-  }
-
-  //import {axisBottom, interpolateYlOrRd, range, scaleLinear} from 'd3';
-  var cfg$3 = {
-    legend: {
-      height: 20,
-      label: {
-        xOffset: 30,
-        yOffset: 15
-      },
-      subtitleOffset: 8,
-      titleOffset: 22,
-      width: 20
-    },
-    typename: {
-      click: 'mun-click',
-      mouseout: 'mun-mouseout',
-      mouseover: 'mun-mouseover'
-    }
-  };
-  var legendKeys = ['SUP_BR', 'SUP_EU', 'BELOW', 'NO_TEST'];
-  var legendLabels = {
-    BELOW: 'all agrotoxics below limits',
-    NO_TEST: 'no data',
-    SUP_BR: 'at least one above Brazilian limit',
-    SUP_EU: 'at least one above European limit'
-  };
-  function createLimitsChoropleth(parent, path, data, dispatcher) {
-    parent.append('g').classed('choropleth', true).selectAll('path').data(data.mun.features).enter().append('path').attr('id', function (ft) {
-      return 'id-' + ft.properties.ibgeCode;
-    }).attr('class', function (ft) {
-      return 'cat-' + ft.properties.map2Category;
-    }).attr('d', path).on('mouseover', function (ft, element) {
-      // invoke callbacks
-      dispatcher.call(cfg$3.typename.mouseover, null, {
-        properties: ft.properties,
-        value: ft.properties.map2Category
-      });
-    }).on('mouseout', function (ft, element) {
-      // invoke callbacks
-      dispatcher.call(cfg$3.typename.mouseout);
-    }).on('click', function (ft, element) {
-      // invoke callbacks
-      dispatcher.call(cfg$3.typename.click, null, ft);
-    });
-    makeLegend$1(parent);
-  }
-
-  function makeLegend$1(parent) {
-    var yy = linear$1().domain([0, legendKeys.length]).rangeRound([0, cfg$3.legend.height * legendKeys.length]);
-    var legend = parent.append('g').classed('legend', true) //.style('font-size', '0.8rem')
-    //.style('font-family', 'sans-serif')
-    .attr('transform', 'translate(550,50) scale(1.3)');
-    legend.selectAll('rect').data(legendKeys).enter().append('rect').attr('class', function (key) {
-      return 'cat-' + MAP2.CATEGORY[key];
-    }).attr('height', cfg$3.legend.height).attr('y', function (key, idx) {
-      return yy(idx);
-    }).attr('width', cfg$3.legend.width);
-    legend.selectAll('text').data(legendKeys).enter().append('text').attr('x', cfg$3.legend.label.xOffset).attr('y', function (key, idx) {
-      return yy(idx) + cfg$3.legend.label.yOffset;
-    }).text(function (key) {
-      return legendLabels[key];
-    });
-    var label = legend.append('g').attr('fill', '#000').attr('text-anchor', 'start'); // TODO: i18n
-
-    label.append('text').attr('y', -cfg$3.legend.titleOffset).attr('font-weight', 'bold').text('Pesticides detected above legal limits');
-    label.append('text').attr('y', -cfg$3.legend.subtitleOffset).attr('font-weight', 'bold').text('in drinking water');
   }
 
   var messageByCategory = ['Never tested', 'All substances below the Brazilian and European limits', 'Subtance(s) detected above the European limit', 'Subtance(s) detected above the Brazilian limit'];
@@ -29375,18 +29400,24 @@
       makeMun$2(svg, path, dispatcher, view, state.data, state.mun);
     } else {
       makeBrazil$2(svg, path, dispatcher, view, state.data);
-    } // TODO: improve the way to update the map on mun selection event
-    // Meanwhile we deactivate it
+    }
 
-    /*dispatcher.on('to-brazil-view.map', () => {
-      makeBrazil(svg, path, dispatcher, view, state.data);
+    dispatcher.on('to-brazil-view.map', function () {
+      updateOverlay(svg, null);
     });
-     dispatcher.on('to-mun-view.map', mun => {
-      makeMun(svg, path, dispatcher, view, state.data, mun);
-    });*/
-
-
+    dispatcher.on('to-mun-view.map mun-click.map', function (mun) {
+      updateOverlay(svg, mun);
+    });
     endLoading$2(parent);
+  }
+
+  function updateOverlay(parent, mun) {
+    // Remove any previous selected mun
+    parent.selectAll('.overlay path').classed('selected', false); // Highlight this new mun
+
+    if (mun !== null) {
+      parent.select('.overlay path#overlay-id-' + mun.properties.ibgeCode).classed('selected', true);
+    }
   }
 
   function makeBrazil$2(svg, path, dispatcher, view, data) {
@@ -29408,12 +29439,14 @@
     // TODO: show the selected municipality on the map (extra layer?)
     // TODO: avoid recreating the map on every click
     makeBrazil$2(svg, path, dispatcher, view, data);
+    updateOverlay(svg, mun);
   }
 
   function createCocktail(svg, path, data, dispatcher) {
     svg.html(null);
     createCocktailChoropleth(svg, path, data, dispatcher);
     createFuFrontiers(svg, path, data);
+    createCocktailOverlay(svg, path, data, dispatcher);
     createCocktailTooltip(svg, path, dispatcher);
   }
 
@@ -29421,6 +29454,7 @@
     svg.html(null);
     createLimitsChoropleth(svg, path, data, dispatcher);
     createFuFrontiers(svg, path, data);
+    createLimitsOverlay(svg, path, data, dispatcher);
     createLimitsTooltip(svg, path, dispatcher);
   }
 

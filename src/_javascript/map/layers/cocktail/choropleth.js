@@ -17,7 +17,6 @@ number: {
 },
 */
 const cfg = {
-  field: 'detected',
   legend: {
     height: 10,
     subtitleOffset: 8,
@@ -27,11 +26,6 @@ const cfg = {
     width: 10,
   },
   max: 27,
-  typename: {
-    click: 'mun-click',
-    mouseout: 'mun-mouseout',
-    mouseover: 'mun-mouseover',
-  },
 };
 
 export function createCocktailChoropleth(parent, path, data, dispatcher) {
@@ -49,23 +43,35 @@ export function createCocktailChoropleth(parent, path, data, dispatcher) {
         return color(value(ft));
       }
       return null;
-    })
+    });
+  makeLegend(parent);
+}
+
+export function createCocktailOverlay(parent, path, data, dispatcher) {
+  parent
+    .append('g')
+    .classed('overlay', true)
+    .selectAll('path')
+    .data(data.mun.features)
+    .enter()
+    .append('path')
+    .attr('id', ft => 'overlay-id-' + ft.properties.ibgeCode)
+    .attr('d', path)
     .on('mouseover', (ft, element) => {
       // invoke callbacks
-      dispatcher.call(cfg.typename.mouseover, null, {
+      dispatcher.call('mun-mouseover', null, {
         properties: ft.properties,
         value: value(ft),
       });
     })
     .on('mouseout', (ft, element) => {
       // invoke callbacks
-      dispatcher.call(cfg.typename.mouseout);
+      dispatcher.call('mun-mouseout');
     })
     .on('click', (ft, element) => {
       // invoke callbacks
-      dispatcher.call(cfg.typename.click, null, ft);
+      dispatcher.call('mun-click', null, ft);
     });
-  makeLegend(parent);
 }
 
 function value(ft) {
