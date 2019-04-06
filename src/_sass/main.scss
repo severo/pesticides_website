@@ -184,7 +184,11 @@ $map2-cat3: #253494;
     }
     .overlay path {
       fill: #ffffff01;
-      &:hover,
+      &:hover {
+        stroke: #e8336d;
+        stroke-width: 2;
+        stroke-opacity: 0.25;
+      }
       &.selected {
         stroke: #e8336d;
         stroke-width: 2;
