@@ -1,5 +1,5 @@
-//import {makeSubstanceSelect, removeSubstanceSelect} from './substance';
 import {dispatch} from 'd3-dispatch';
+//import {makeSubstanceSelect, removeSubstanceSelect} from './substance';
 import {loadData} from './data';
 import {makeBreadcrumb} from './breadcrumb';
 import {makeDetails} from './details';
@@ -32,6 +32,8 @@ dispatcher.on('data-loaded.main', data => {
   const state = {data: data};
   makeNav(dispatcher, state);
   makeSearch(select('section#search'), dispatcher, state);
+  makeMap(select('section#map'), dispatcher, data);
+
   dispatcher.call('make-app-cocktail', null, state);
 });
 
@@ -41,7 +43,6 @@ dispatcher.on('make-app-cocktail.main', state => {
   updateApp(view);
   makeBreadcrumb(select('nav#breadcrumb'), dispatcher, state);
   makeDetails(select('section#details'), dispatcher, view, state);
-  makeMap(select('section#map'), dispatcher, view, state);
 });
 
 dispatcher.on('make-app-limits.main', state => {
@@ -50,10 +51,9 @@ dispatcher.on('make-app-limits.main', state => {
   updateApp(view);
   makeBreadcrumb(select('nav#breadcrumb'), dispatcher, state);
   makeDetails(select('section#details'), dispatcher, view, state);
-  makeMap(select('section#map'), dispatcher, view, state);
 });
 
-dispatcher.on('make-app-substances.main', state => {
+/*dispatcher.on('make-app-substances.main', state => {
   const view = 'substances';
   updateApp(view);
   makeBreadcrumb(select('nav#breadcrumb'), dispatcher, state);
@@ -61,6 +61,7 @@ dispatcher.on('make-app-substances.main', state => {
   makeDetails(select('section#details'), dispatcher, view, state);
   makeMap(select('section#map'), dispatcher, view, state);
 });
+*/
 
 // Mun / Brazil
 dispatcher.on('mun-click.main search-selected.main', mun => {

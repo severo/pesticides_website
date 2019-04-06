@@ -18472,20 +18472,6 @@
   var ascendingBisect = bisector(ascending);
   var bisectRight = ascendingBisect.right;
 
-  function sequence(start, stop, step) {
-    start = +start, stop = +stop, step = (n = arguments.length) < 2 ? (stop = start, start = 0, 1) : n < 3 ? 1 : +step;
-
-    var i = -1,
-        n = Math.max(0, Math.ceil((stop - start) / step)) | 0,
-        range = new Array(n);
-
-    while (++i < n) {
-      range[i] = start + i * step;
-    }
-
-    return range;
-  }
-
   var e10 = Math.sqrt(50),
       e5 = Math.sqrt(10),
       e2 = Math.sqrt(2);
@@ -19678,172 +19664,6 @@
 
   function endLoading$1(element) {
     element.classed('is-loading', false);
-  }
-
-  var slice$1 = Array.prototype.slice;
-
-  function identity$3(x) {
-    return x;
-  }
-
-  var top = 1,
-      right = 2,
-      bottom = 3,
-      left = 4,
-      epsilon$1 = 1e-6;
-
-  function translateX(x) {
-    return "translate(" + (x + 0.5) + ",0)";
-  }
-
-  function translateY(y) {
-    return "translate(0," + (y + 0.5) + ")";
-  }
-
-  function number$1(scale) {
-    return function(d) {
-      return +scale(d);
-    };
-  }
-
-  function center(scale) {
-    var offset = Math.max(0, scale.bandwidth() - 1) / 2; // Adjust for 0.5px offset.
-    if (scale.round()) offset = Math.round(offset);
-    return function(d) {
-      return +scale(d) + offset;
-    };
-  }
-
-  function entering() {
-    return !this.__axis;
-  }
-
-  function axis(orient, scale) {
-    var tickArguments = [],
-        tickValues = null,
-        tickFormat = null,
-        tickSizeInner = 6,
-        tickSizeOuter = 6,
-        tickPadding = 3,
-        k = orient === top || orient === left ? -1 : 1,
-        x = orient === left || orient === right ? "x" : "y",
-        transform = orient === top || orient === bottom ? translateX : translateY;
-
-    function axis(context) {
-      var values = tickValues == null ? (scale.ticks ? scale.ticks.apply(scale, tickArguments) : scale.domain()) : tickValues,
-          format = tickFormat == null ? (scale.tickFormat ? scale.tickFormat.apply(scale, tickArguments) : identity$3) : tickFormat,
-          spacing = Math.max(tickSizeInner, 0) + tickPadding,
-          range = scale.range(),
-          range0 = +range[0] + 0.5,
-          range1 = +range[range.length - 1] + 0.5,
-          position = (scale.bandwidth ? center : number$1)(scale.copy()),
-          selection = context.selection ? context.selection() : context,
-          path = selection.selectAll(".domain").data([null]),
-          tick = selection.selectAll(".tick").data(values, scale).order(),
-          tickExit = tick.exit(),
-          tickEnter = tick.enter().append("g").attr("class", "tick"),
-          line = tick.select("line"),
-          text = tick.select("text");
-
-      path = path.merge(path.enter().insert("path", ".tick")
-          .attr("class", "domain")
-          .attr("stroke", "currentColor"));
-
-      tick = tick.merge(tickEnter);
-
-      line = line.merge(tickEnter.append("line")
-          .attr("stroke", "currentColor")
-          .attr(x + "2", k * tickSizeInner));
-
-      text = text.merge(tickEnter.append("text")
-          .attr("fill", "currentColor")
-          .attr(x, k * spacing)
-          .attr("dy", orient === top ? "0em" : orient === bottom ? "0.71em" : "0.32em"));
-
-      if (context !== selection) {
-        path = path.transition(context);
-        tick = tick.transition(context);
-        line = line.transition(context);
-        text = text.transition(context);
-
-        tickExit = tickExit.transition(context)
-            .attr("opacity", epsilon$1)
-            .attr("transform", function(d) { return isFinite(d = position(d)) ? transform(d) : this.getAttribute("transform"); });
-
-        tickEnter
-            .attr("opacity", epsilon$1)
-            .attr("transform", function(d) { var p = this.parentNode.__axis; return transform(p && isFinite(p = p(d)) ? p : position(d)); });
-      }
-
-      tickExit.remove();
-
-      path
-          .attr("d", orient === left || orient == right
-              ? (tickSizeOuter ? "M" + k * tickSizeOuter + "," + range0 + "H0.5V" + range1 + "H" + k * tickSizeOuter : "M0.5," + range0 + "V" + range1)
-              : (tickSizeOuter ? "M" + range0 + "," + k * tickSizeOuter + "V0.5H" + range1 + "V" + k * tickSizeOuter : "M" + range0 + ",0.5H" + range1));
-
-      tick
-          .attr("opacity", 1)
-          .attr("transform", function(d) { return transform(position(d)); });
-
-      line
-          .attr(x + "2", k * tickSizeInner);
-
-      text
-          .attr(x, k * spacing)
-          .text(format);
-
-      selection.filter(entering)
-          .attr("fill", "none")
-          .attr("font-size", 10)
-          .attr("font-family", "sans-serif")
-          .attr("text-anchor", orient === right ? "start" : orient === left ? "end" : "middle");
-
-      selection
-          .each(function() { this.__axis = position; });
-    }
-
-    axis.scale = function(_) {
-      return arguments.length ? (scale = _, axis) : scale;
-    };
-
-    axis.ticks = function() {
-      return tickArguments = slice$1.call(arguments), axis;
-    };
-
-    axis.tickArguments = function(_) {
-      return arguments.length ? (tickArguments = _ == null ? [] : slice$1.call(_), axis) : tickArguments.slice();
-    };
-
-    axis.tickValues = function(_) {
-      return arguments.length ? (tickValues = _ == null ? null : slice$1.call(_), axis) : tickValues && tickValues.slice();
-    };
-
-    axis.tickFormat = function(_) {
-      return arguments.length ? (tickFormat = _, axis) : tickFormat;
-    };
-
-    axis.tickSize = function(_) {
-      return arguments.length ? (tickSizeInner = tickSizeOuter = +_, axis) : tickSizeInner;
-    };
-
-    axis.tickSizeInner = function(_) {
-      return arguments.length ? (tickSizeInner = +_, axis) : tickSizeInner;
-    };
-
-    axis.tickSizeOuter = function(_) {
-      return arguments.length ? (tickSizeOuter = +_, axis) : tickSizeOuter;
-    };
-
-    axis.tickPadding = function(_) {
-      return arguments.length ? (tickPadding = +_, axis) : tickPadding;
-    };
-
-    return axis;
-  }
-
-  function axisBottom(scale) {
-    return axis(bottom, scale);
   }
 
   var xhtml = "http://www.w3.org/1999/xhtml";
@@ -21468,7 +21288,7 @@
 
   var degrees = 180 / Math.PI;
 
-  var identity$4 = {
+  var identity$3 = {
     translateX: 0,
     translateY: 0,
     rotate: 0,
@@ -21499,7 +21319,7 @@
       svgNode;
 
   function parseCss(value) {
-    if (value === "none") return identity$4;
+    if (value === "none") return identity$3;
     if (!cssNode) cssNode = document.createElement("DIV"), cssRoot = document.documentElement, cssView = document.defaultView;
     cssNode.style.transform = value;
     value = cssView.getComputedStyle(cssRoot.appendChild(cssNode), null).getPropertyValue("transform");
@@ -21509,10 +21329,10 @@
   }
 
   function parseSvg(value) {
-    if (value == null) return identity$4;
+    if (value == null) return identity$3;
     if (!svgNode) svgNode = document.createElementNS("http://www.w3.org/2000/svg", "g");
     svgNode.setAttribute("transform", value);
-    if (!(value = svgNode.transform.baseVal.consolidate())) return identity$4;
+    if (!(value = svgNode.transform.baseVal.consolidate())) return identity$3;
     value = value.matrix;
     return decompose(value.a, value.b, value.c, value.d, value.e, value.f);
   }
@@ -23216,17 +23036,17 @@
     "x": function(x) { return Math.round(x).toString(16); }
   };
 
-  function identity$5(x) {
+  function identity$4(x) {
     return x;
   }
 
   var prefixes = ["y","z","a","f","p","n","µ","m","","k","M","G","T","P","E","Z","Y"];
 
   function formatLocale(locale) {
-    var group = locale.grouping && locale.thousands ? formatGroup(locale.grouping, locale.thousands) : identity$5,
+    var group = locale.grouping && locale.thousands ? formatGroup(locale.grouping, locale.thousands) : identity$4,
         currency = locale.currency,
         decimal = locale.decimal,
-        numerals = locale.numerals ? formatNumerals(locale.numerals) : identity$5,
+        numerals = locale.numerals ? formatNumerals(locale.numerals) : identity$4,
         percent = locale.percent || "%";
 
     function newFormat(specifier) {
@@ -23399,7 +23219,7 @@
   var array$2 = Array.prototype;
 
   var map$2 = array$2.map;
-  var slice$2 = array$2.slice;
+  var slice$1 = array$2.slice;
 
   function constant$3(x) {
     return function() {
@@ -23407,13 +23227,13 @@
     };
   }
 
-  function number$2(x) {
+  function number$1(x) {
     return +x;
   }
 
   var unit = [0, 1];
 
-  function identity$6(x) {
+  function identity$5(x) {
     return x;
   }
 
@@ -23477,7 +23297,7 @@
         transform,
         untransform,
         unknown,
-        clamp = identity$6,
+        clamp = identity$5,
         piecewise,
         output,
         input;
@@ -23497,19 +23317,19 @@
     };
 
     scale.domain = function(_) {
-      return arguments.length ? (domain = map$2.call(_, number$2), clamp === identity$6 || (clamp = clamper(domain)), rescale()) : domain.slice();
+      return arguments.length ? (domain = map$2.call(_, number$1), clamp === identity$5 || (clamp = clamper(domain)), rescale()) : domain.slice();
     };
 
     scale.range = function(_) {
-      return arguments.length ? (range = slice$2.call(_), rescale()) : range.slice();
+      return arguments.length ? (range = slice$1.call(_), rescale()) : range.slice();
     };
 
     scale.rangeRound = function(_) {
-      return range = slice$2.call(_), interpolate = interpolateRound, rescale();
+      return range = slice$1.call(_), interpolate = interpolateRound, rescale();
     };
 
     scale.clamp = function(_) {
-      return arguments.length ? (clamp = _ ? clamper(domain) : identity$6, scale) : clamp !== identity$6;
+      return arguments.length ? (clamp = _ ? clamper(domain) : identity$5, scale) : clamp !== identity$5;
     };
 
     scale.interpolate = function(_) {
@@ -23614,7 +23434,7 @@
   }
 
   function linear$1() {
-    var scale = continuous(identity$6, identity$6);
+    var scale = continuous(identity$5, identity$5);
 
     scale.copy = function() {
       return copy(scale, linear$1());
@@ -23787,8 +23607,6 @@
   var saturday = weekday(6);
 
   var sundays = sunday.range;
-  var mondays = monday.range;
-  var thursdays = thursday.range;
 
   var month = newInterval(function(date) {
     date.setDate(1);
@@ -23878,8 +23696,6 @@
   var utcSaturday = utcWeekday(6);
 
   var utcSundays = utcSunday.range;
-  var utcMondays = utcMonday.range;
-  var utcThursdays = utcThursday.range;
 
   var utcMonth = newInterval(function(date) {
     date.setUTCDate(1);
@@ -24885,7 +24701,7 @@
     "ffffccffeda0fed976feb24cfd8d3cfc4e2ae31a1cbd0026800026"
   ).map(colors);
 
-  var interpolateYlOrRd = ramp(scheme$k);
+  ramp(scheme$k);
 
   var scheme$l = new Array(3).concat(
     "deebf79ecae13182bd",
@@ -25085,133 +24901,62 @@
     bezierCurveTo: function(x1, y1, x2, y2, x, y) { this._context.bezierCurveTo(y1, x1, y2, x2, y, x); }
   };
 
-  /* Reminder of the data available from the CSV
-  category: {
-    atrAvgCat: row.atrazine_atrazine_category,
-    atrMaxCat: row.atrazine_category,
-    ibgeBode: row.ibge_code,
-    simAvgCat: row.simazine_atrazina_category,
-    simMaxCat: row.simazine_category,
-  },
-  number: {
-    detected: +row.detected,
-    eqBr: +row.eq_br,
-    supBr: +row.sup_br,
-    supEu: +row.sup_eu,
-  },
-  */
-
   var cfg$1 = {
-    legend: {
-      height: 10,
-      subtitleOffset: 8,
-      tickSize: 15,
-      titleOffsetLine1: 38,
-      titleOffsetLine2: 24,
-      width: 10
-    },
+    defaultFill: '#eee',
     max: 27
   };
-  function createCocktailChoropleth(parent, path, data, dispatcher) {
+  function createChoropleth(parent, path, data) {
     parent.append('g').classed('choropleth', true).selectAll('path').data(data.mun.features).enter().append('path').attr('id', function (ft) {
       return 'id-' + ft.properties.ibgeCode;
-    }).attr('d', path).style('fill', function (ft) {
-      if (Number.isInteger(value(ft))) {
-        return color$1(value(ft));
+    }).attr('d', path).attr('fill', function (ft) {
+      // For map 1 - cocktail
+      if (!isNaN(ft.properties.map1Number)) {
+        return cocktailColor(ft.properties.map1Number);
       }
 
-      return null;
-    });
-    makeLegend(parent);
-  }
-  function createCocktailOverlay(parent, path, data, dispatcher) {
-    parent.append('g').classed('overlay', true).selectAll('path').data(data.mun.features).enter().append('path').attr('id', function (ft) {
-      return 'overlay-id-' + ft.properties.ibgeCode;
-    }).attr('d', path).on('mouseover', function (ft, element) {
-      // invoke callbacks
-      dispatcher.call('mun-mouseover', null, {
-        properties: ft.properties,
-        value: value(ft)
-      });
-    }).on('mouseout', function (ft, element) {
-      // invoke callbacks
-      dispatcher.call('mun-mouseout');
-    }).on('click', function (ft, element) {
-      // invoke callbacks
-      dispatcher.call('mun-click', null, ft);
+      return cfg$1.defaultFill;
+    }).attr('class', function (ft) {
+      // for map 2 - limits
+      return 'cat-' + ft.properties.map2Category;
     });
   }
-
-  function value(ft) {
-    if (!isNaN(ft.properties.map1Number)) {
-      return ft.properties.map1Number;
-    }
-
-    return null;
-  }
-
-  var color$1 = linear$1().domain([0, cfg$1.max]).interpolate(function () {
+  var cocktailColor = linear$1().domain([0, cfg$1.max]).interpolate(function () {
     return interpolateYlGn;
   });
 
-  function makeLegend(parent) {
-    // TODO: should be a scheme (27 colors), not a continuous scale
-    var xx = linear$1().domain([0, cfg$1.max]).rangeRound([0, cfg$1.legend.width * cfg$1.max]);
-    var legend = parent.append('g').classed('legend', true) //.style('font-size', '0.8rem')
-    //.style('font-family', 'sans-serif')
-    .attr('transform', 'translate(550,66) scale(1.3)');
-    legend.selectAll('rect').data(sequence(0, cfg$1.max, 1)).enter().append('rect').attr('height', cfg$1.legend.height).attr('x', function (el) {
-      return xx(el);
-    }).attr('width', cfg$1.legend.width).attr('fill', function (el) {
-      return color$1(el);
-    });
-    var label = legend.append('g').attr('fill', '#000').attr('text-anchor', 'start'); // TODO: i18n
-
-    label.append('text').attr('y', -cfg$1.legend.titleOffsetLine1).attr('font-weight', 'bold').text('Number of pesticides detected in');
-    label.append('text').attr('y', -cfg$1.legend.titleOffsetLine2).attr('font-weight', 'bold').text('drinking water'); // TODO: i18n
-
-    label.append('text').attr('y', -cfg$1.legend.subtitleOffset).text('(light: none, dark: 27 different pesticides)'); // Scale
-
-    legend.append('g').call(axisBottom(xx).tickSize(cfg$1.legend.tickSize)).select('.domain').remove();
+  function createFuFrontiers(parent, path, data) {
+    return parent.append('g').classed('fu-frontiers', true).selectAll('path').data(data.internalFu.features).enter().append('path').attr('d', path);
   }
 
-  //import {axisBottom, interpolateYlOrRd, range, scaleLinear} from 'd3';
-  var cfg$2 = {
-    legend: {
-      height: 20,
-      label: {
-        xOffset: 30,
-        yOffset: 15
-      },
-      subtitleOffset: 8,
-      titleOffset: 22,
-      width: 20
+  function createOverlay(parent, path, dispatcher, data) {
+    function rememberSelectedMun(selectedMun) {
+      parent.selectAll('.overlay path').classed('selected', function (mun) {
+        return mun.properties.ibgeCode === selectedMun.properties.ibgeCode;
+      }); // NO FUNCTIONA !!!
     }
-  };
-  var legendKeys = ['SUP_BR', 'SUP_EU', 'BELOW', 'NO_TEST'];
-  var legendLabels = {
-    BELOW: 'all agrotoxics below limits',
-    NO_TEST: 'no data',
-    SUP_BR: 'at least one above Brazilian limit',
-    SUP_EU: 'at least one above European limit'
-  };
-  function createLimitsChoropleth(parent, path, data, dispatcher) {
-    parent.append('g').classed('choropleth', true).selectAll('path').data(data.mun.features).enter().append('path').attr('id', function (ft) {
-      return 'id-' + ft.properties.ibgeCode;
-    }).attr('class', function (ft) {
-      return 'cat-' + ft.properties.map2Category;
-    }).attr('d', path);
-    makeLegend$1(parent);
-  }
-  function createLimitsOverlay(parent, path, data, dispatcher) {
-    parent.append('g').classed('overlay', true).selectAll('path').data(data.mun.features).enter().append('path').attr('id', function (ft) {
+
+    function forgetSelectedMun() {
+      parent.selectAll('.overlay path').classed('selected', false);
+    }
+
+    dispatcher.on('to-brazil-view.overlay', forgetSelectedMun);
+    dispatcher.on('to-mun-view.overlay mun-click.overlay', rememberSelectedMun);
+
+    function updateView(state) {
+      // Select the municipality, if needed
+      if ('mun' in state) {
+        rememberSelectedMun(state.mun);
+      } else {
+        forgetSelectedMun();
+      }
+    }
+
+    parent.append('g').classed('overlay', true).selectAll('path').data(data.mun.features).enter().append('path') // id is currently useless
+    .attr('id', function (ft) {
       return 'overlay-id-' + ft.properties.ibgeCode;
     }).attr('d', path).on('mouseover', function (ft, element) {
       // invoke callbacks
-      dispatcher.call('mun-mouseover', null, {
-        properties: ft.properties,
-        value: ft.properties.map2Category
-      });
+      dispatcher.call('mun-mouseover', null, ft);
     }).on('mouseout', function (ft, element) {
       // invoke callbacks
       dispatcher.call('mun-mouseout');
@@ -25219,33 +24964,7 @@
       // invoke callbacks
       dispatcher.call('mun-click', null, ft);
     });
-    dispatcher.on('mun-click', function (ft) {
-      // Remove any previous selected mun
-      parent.selectAll('.overlay path').classed('selected', false); // Highlight this new mun
-
-      parent.select('.overlay path#overlay-id-' + ft.properties.ibgeCode).classed('selected', true);
-    });
-  }
-
-  function makeLegend$1(parent) {
-    var yy = linear$1().domain([0, legendKeys.length]).rangeRound([0, cfg$2.legend.height * legendKeys.length]);
-    var legend = parent.append('g').classed('legend', true) //.style('font-size', '0.8rem')
-    //.style('font-family', 'sans-serif')
-    .attr('transform', 'translate(550,50) scale(1.3)');
-    legend.selectAll('rect').data(legendKeys).enter().append('rect').attr('class', function (key) {
-      return 'cat-' + MAP2.CATEGORY[key];
-    }).attr('height', cfg$2.legend.height).attr('y', function (key, idx) {
-      return yy(idx);
-    }).attr('width', cfg$2.legend.width);
-    legend.selectAll('text').data(legendKeys).enter().append('text').attr('x', cfg$2.legend.label.xOffset).attr('y', function (key, idx) {
-      return yy(idx) + cfg$2.legend.label.yOffset;
-    }).text(function (key) {
-      return legendLabels[key];
-    });
-    var label = legend.append('g').attr('fill', '#000').attr('text-anchor', 'start'); // TODO: i18n
-
-    label.append('text').attr('y', -cfg$2.legend.titleOffset).attr('font-weight', 'bold').text('Pesticides detected above legal limits');
-    label.append('text').attr('y', -cfg$2.legend.subtitleOffset).attr('font-weight', 'bold').text('in drinking water');
+    dispatcher.on('make-app-cocktail.tooltip make-app-limits.tooltip', updateView);
   }
 
   var xhtml$1 = "http://www.w3.org/1999/xhtml";
@@ -26437,7 +26156,7 @@
     };
   }
 
-  var epsilon$2 = 1e-12;
+  var epsilon$1 = 1e-12;
   var pi$6 = Math.PI;
   var halfPi = pi$6 / 2;
   var tau$3 = 2 * pi$6;
@@ -26542,13 +26261,13 @@
       if (r1 < r0) r = r1, r1 = r0, r0 = r;
 
       // Is it a point?
-      if (!(r1 > epsilon$2)) context.moveTo(0, 0);
+      if (!(r1 > epsilon$1)) context.moveTo(0, 0);
 
       // Or is it a circle or annulus?
-      else if (da > tau$3 - epsilon$2) {
+      else if (da > tau$3 - epsilon$1) {
         context.moveTo(r1 * Math.cos(a0), r1 * Math.sin(a0));
         context.arc(0, 0, r1, a0, a1, !cw);
-        if (r0 > epsilon$2) {
+        if (r0 > epsilon$1) {
           context.moveTo(r0 * Math.cos(a1), r0 * Math.sin(a1));
           context.arc(0, 0, r0, a1, a0, cw);
         }
@@ -26563,7 +26282,7 @@
             da0 = da,
             da1 = da,
             ap = padAngle.apply(this, arguments) / 2,
-            rp = (ap > epsilon$2) && (padRadius ? +padRadius.apply(this, arguments) : Math.sqrt(r0 * r0 + r1 * r1)),
+            rp = (ap > epsilon$1) && (padRadius ? +padRadius.apply(this, arguments) : Math.sqrt(r0 * r0 + r1 * r1)),
             rc = Math.min(Math.abs(r1 - r0) / 2, +cornerRadius.apply(this, arguments)),
             rc0 = rc,
             rc1 = rc,
@@ -26571,12 +26290,12 @@
             t1;
 
         // Apply padding? Note that since r1 ≥ r0, da1 ≥ da0.
-        if (rp > epsilon$2) {
+        if (rp > epsilon$1) {
           var p0 = asin(rp / r0 * Math.sin(ap)),
               p1 = asin(rp / r1 * Math.sin(ap));
-          if ((da0 -= p0 * 2) > epsilon$2) p0 *= (cw ? 1 : -1), a00 += p0, a10 -= p0;
+          if ((da0 -= p0 * 2) > epsilon$1) p0 *= (cw ? 1 : -1), a00 += p0, a10 -= p0;
           else da0 = 0, a00 = a10 = (a0 + a1) / 2;
-          if ((da1 -= p1 * 2) > epsilon$2) p1 *= (cw ? 1 : -1), a01 += p1, a11 -= p1;
+          if ((da1 -= p1 * 2) > epsilon$1) p1 *= (cw ? 1 : -1), a01 += p1, a11 -= p1;
           else da1 = 0, a01 = a11 = (a0 + a1) / 2;
         }
 
@@ -26586,7 +26305,7 @@
             y10 = r0 * Math.sin(a10);
 
         // Apply rounded corners?
-        if (rc > epsilon$2) {
+        if (rc > epsilon$1) {
           var x11 = r1 * Math.cos(a11),
               y11 = r1 * Math.sin(a11),
               x00 = r0 * Math.cos(a00),
@@ -26594,7 +26313,7 @@
 
           // Restrict the corner radius according to the sector angle.
           if (da < pi$6) {
-            var oc = da0 > epsilon$2 ? intersect(x01, y01, x00, y00, x11, y11, x10, y10) : [x10, y10],
+            var oc = da0 > epsilon$1 ? intersect(x01, y01, x00, y00, x11, y11, x10, y10) : [x10, y10],
                 ax = x01 - oc[0],
                 ay = y01 - oc[1],
                 bx = x11 - oc[0],
@@ -26607,10 +26326,10 @@
         }
 
         // Is the sector collapsed to a line?
-        if (!(da1 > epsilon$2)) context.moveTo(x01, y01);
+        if (!(da1 > epsilon$1)) context.moveTo(x01, y01);
 
         // Does the sector’s outer ring have rounded corners?
-        else if (rc1 > epsilon$2) {
+        else if (rc1 > epsilon$1) {
           t0 = cornerTangents(x00, y00, x01, y01, r1, rc1, cw);
           t1 = cornerTangents(x11, y11, x10, y10, r1, rc1, cw);
 
@@ -26632,10 +26351,10 @@
 
         // Is there no inner ring, and it’s a circular sector?
         // Or perhaps it’s an annular sector collapsed due to padding?
-        if (!(r0 > epsilon$2) || !(da0 > epsilon$2)) context.lineTo(x10, y10);
+        if (!(r0 > epsilon$1) || !(da0 > epsilon$1)) context.lineTo(x10, y10);
 
         // Does the sector’s inner ring (or point) have rounded corners?
-        else if (rc0 > epsilon$2) {
+        else if (rc0 > epsilon$1) {
           t0 = cornerTangents(x10, y10, x11, y11, r0, -rc0, cw);
           t1 = cornerTangents(x01, y01, x00, y00, r0, -rc0, cw);
 
@@ -26848,14 +26567,14 @@
         x2 = that._x2,
         y2 = that._y2;
 
-    if (that._l01_a > epsilon$2) {
+    if (that._l01_a > epsilon$1) {
       var a = 2 * that._l01_2a + 3 * that._l01_a * that._l12_a + that._l12_2a,
           n = 3 * that._l01_a * (that._l01_a + that._l12_a);
       x1 = (x1 * a - that._x0 * that._l12_2a + that._x2 * that._l01_2a) / n;
       y1 = (y1 * a - that._y0 * that._l12_2a + that._y2 * that._l01_2a) / n;
     }
 
-    if (that._l23_a > epsilon$2) {
+    if (that._l23_a > epsilon$1) {
       var b = 2 * that._l23_2a + 3 * that._l23_a * that._l12_a + that._l12_2a,
           m = 3 * that._l23_a * (that._l23_a + that._l12_a);
       x2 = (x2 * b + that._x1 * that._l23_2a - x * that._l12_2a) / m;
@@ -29155,239 +28874,102 @@
     return annotation;
   }
 
+  var cfg$2 = {
+    nx: 220,
+    ny: 700
+  };
+  var map2LabelByCategory = ['Never tested', 'All substances below the Brazilian and European limits', 'Subtance(s) detected above the European limit', 'Subtance(s) detected above the Brazilian limit'];
+
+  function cocktailLabel(mun) {
+    return Number.isInteger(mun.properties.map1Number) ? mun.properties.map1Number + ' pesticide(s) found in the drinking water.' : 'Never tested.';
+  }
+
+  function limitsLabel(mun) {
+    return map2LabelByCategory[mun.properties.map2Category];
+  }
+
+  function createTooltip(parent, dispatcher) {
+    // create a container for tooltips
+    var tooltip = parent.append('g').classed('tooltip', true);
+
+    function updateView(label, state) {
+      function rememberSelectedMun(selectedMun) {
+        dispatcher.on('mun-mouseout.tooltip', function () {
+          return showTooltip(tooltip, label, selectedMun);
+        });
+      }
+
+      function forgetSelectedMun() {
+        dispatcher.on('mun-mouseout.tooltip', function () {
+          return clearTooltip(tooltip);
+        });
+      }
+
+      if ('mun' in state) {
+        rememberSelectedMun(state.mun);
+      } else {
+        forgetSelectedMun();
+      }
+
+      dispatcher.on('mun-mouseover.tooltip', function (mun) {
+        return showTooltip(tooltip, label, mun);
+      });
+      dispatcher.on('to-brazil-view.tooltip ', function () {
+        forgetSelectedMun();
+        clearTooltip(tooltip);
+      });
+      dispatcher.on('to-mun-view.tooltip mun-click.tooltip', function (selectedMun) {
+        rememberSelectedMun(selectedMun);
+        showTooltip(tooltip, label, selectedMun);
+      });
+    }
+
+    dispatcher.on('make-app-cocktail.tooltip', function (state) {
+      updateView(cocktailLabel, state);
+    });
+    dispatcher.on('make-app-limits.tooltip', function (state) {
+      updateView(limitsLabel, state);
+    });
+  }
+
+  function clearTooltip(tooltip) {
+    tooltip.html('');
+  }
+
+  function showTooltip(tooltip, label, mun) {
+    tooltip.call(createAnnotation(label, mun));
+  } // this function will call d3.annotation when a tooltip has to be drawn
+
+
+  function createAnnotation(label, mun) {
+    return annotation().type(d3CalloutElbow).annotations([{
+      data: mun,
+      note: {
+        label: label(mun),
+        title: mun.properties.name + ' (' + mun.properties.fuName + ')',
+        wrap: cfg$2.nx
+      },
+      nx: cfg$2.nx,
+      ny: cfg$2.ny,
+      x: mun.properties.centroid[0],
+      // eslint-disable-line id-length
+      y: mun.properties.centroid[1] // eslint-disable-line id-length
+
+    }]);
+  }
+
   var cfg$3 = {
-    nx: 220,
-    ny: 700
-  };
-  function createCocktailTooltip(parent, path, dispatcher) {
-    // create a container for tooltips
-    var tooltip = parent.append('g').classed('tooltip', true);
-    dispatcher.on('mun-mouseover.tooltip', function (data) {
-      // TODO: factorize code - we copy/paste quickly for short term demo
-      tooltip.call(createAnnotation(data));
-    });
-    dispatcher.on('mun-mouseout.tooltip', function (data) {
-      tooltip.html('');
-    });
-  } // this function will call d3.annotation when a tooltip has to be drawn
-
-  function createAnnotation(data) {
-    return annotation().type(d3CalloutElbow).annotations([{
-      data: data,
-      note: {
-        label: Number.isInteger(data.value) ? data.value + ' pesticide(s) found in the drinking water.' : 'Never tested.',
-        title: data.properties.name + ' (' + data.properties.fuName + ')',
-        wrap: cfg$3.nx
-      },
-      nx: cfg$3.nx,
-      ny: cfg$3.ny,
-      x: data.properties.centroid[0],
-      // eslint-disable-line id-length
-      y: data.properties.centroid[1] // eslint-disable-line id-length
-
-    }]);
-  }
-
-  function createFuFrontiers(parent, path, data) {
-    return parent.append('g').classed('fu-frontiers', true).selectAll('path').data(data.internalFu.features).enter().append('path').attr('d', path);
-  }
-
-  var messageByCategory = ['Never tested', 'All substances below the Brazilian and European limits', 'Subtance(s) detected above the European limit', 'Subtance(s) detected above the Brazilian limit'];
-  var cfg$4 = {
-    nx: 220,
-    ny: 700
-  };
-  function createLimitsTooltip(parent, path, dispatcher) {
-    // create a container for tooltips
-    var tooltip = parent.append('g').classed('tooltip', true);
-    dispatcher.on('mun-mouseover.tooltip', function (data) {
-      tooltip.call(createAnnotation$1(data));
-    });
-    dispatcher.on('mun-mouseout.tooltip', function (data) {
-      tooltip.html('');
-    });
-  } // this function will call d3.annotation when a tooltip has to be drawn
-
-  function createAnnotation$1(data) {
-    return annotation().type(d3CalloutElbow).annotations([{
-      data: data,
-      note: {
-        label: messageByCategory[data.value],
-        title: data.properties.name + ' (' + data.properties.fuName + ')',
-        wrap: cfg$4.nx
-      },
-      nx: cfg$4.nx,
-      ny: cfg$4.ny,
-      x: data.properties.centroid[0],
-      // eslint-disable-line id-length
-      y: data.properties.centroid[1] // eslint-disable-line id-length
-
-    }]);
-  }
-
-  /* Reminder of the data available from the CSV
-  category: {
-    atrAvgCat: row.atrazine_atrazine_category,
-    atrMaxCat: row.atrazine_category,
-    ibgeBode: row.ibge_code,
-    simAvgCat: row.simazine_atrazina_category,
-    simMaxCat: row.simazine_category,
-  },
-  number: {
-    detected: +row.detected,
-    eqBr: +row.eq_br,
-    supBr: +row.sup_br,
-    supEu: +row.sup_eu,
-  },
-  */
-
-  var cfg$5 = {
-    legend: {
-      height: 10,
-      subtitleOffset: 8,
-      tickSize: 15,
-      titleOffset: 22,
-      width: 270
-    },
-    typename: {
-      click: 'mun-click',
-      mouseout: 'mun-mouseout',
-      mouseover: 'mun-mouseover'
-    }
-  };
-  function createSubstancesChoropleth(parent, path, data, dispatcher, substance) {
-    // TODO - avoid outliers setting a cap on max Concentration to substance limit
-    // or about (2x, 3x)
-    var maxConcentration = data.mun.features.reduce(function (acc, ft) {
-      if (value$1(ft, substance.code) && value$1(ft, substance.code) > acc) {
-        acc = value$1(ft, substance.code);
-      }
-
-      return acc;
-    }, 0);
-    var color = linear$1().domain([0, maxConcentration]).interpolate(function () {
-      return interpolateYlOrRd;
-    });
-    parent.append('g').classed('choropleth', true).selectAll('path').data(data.mun.features).enter().append('path').attr('id', function (ft) {
-      return 'id-' + ft.properties.ibgeCode;
-    }).attr('d', path).style('fill', function (ft) {
-      // TODO - We use 1e-10 to encode not-quantized - it's the same visual
-      //  encoding as no detection - we should make it better
-      if (value$1(ft, substance.code) && value$1(ft, substance.code) >= 0) {
-        return color(value$1(ft, substance.code));
-      }
-
-      return null;
-    }).on('mouseover', function (ft, element) {
-      // invoke callbacks
-      dispatcher.call(cfg$5.typename.mouseover, null, {
-        properties: ft.properties,
-        value: value$1(ft, substance.code)
-      });
-    }).on('mouseout', function (ft, element) {
-      // invoke callbacks
-      dispatcher.call(cfg$5.typename.mouseout);
-    }).on('click', function (ft, element) {
-      // invoke callbacks
-      dispatcher.call(cfg$5.typename.click, null, ft);
-    });
-    makeLegend$2(parent, maxConcentration, color, substance.shortName);
-  }
-
-  function value$1(ft, code) {
-    // TODO - suboptimal, it would be simpler (and quicker?) with a lookup table
-    if ('tests' in ft.properties) {
-      var subst = ft.properties.tests.filter(function (sub) {
-        return sub.substance.code === code;
-      });
-
-      if (subst.length === 1) {
-        return subst[0].max;
-      }
-
-      return null;
-    }
-
-    return null;
-  }
-
-  function makeLegend$2(parent, maxConcentration, color, name) {
-    // TODO: should be a scheme (27 colors), not a continuous scale
-    var xx = linear$1().domain(color.domain()).rangeRound([0, cfg$5.legend.width]);
-    var legend = parent.append('g') //.style('font-size', '0.8rem')
-    //.style('font-family', 'sans-serif')
-    .attr('transform', 'translate(550,50)');
-    legend.selectAll('rect').data(sequence(0, maxConcentration, 1)).enter().append('rect').attr('height', cfg$5.legend.height).attr('x', function (el) {
-      return xx(el);
-    }).attr('width', cfg$5.legend.width / maxConcentration).attr('fill', function (el) {
-      return color(el);
-    });
-    var label = legend.append('g').attr('fill', '#000').attr('text-anchor', 'start'); // TODO: i18n
-
-    label.append('text').attr('y', -cfg$5.legend.titleOffset).attr('font-weight', 'bold').text('Max detected concentration of ' + name); // TODO: i18n
-
-    label.append('text').attr('y', -cfg$5.legend.subtitleOffset).text('(white: no detection, purple: ' + maxConcentration.toLocaleString('pt-BR') + ' μg/L)'); // Scale
-
-    legend.append('g').call(axisBottom(xx).tickSize(cfg$5.legend.tickSize)).select('.domain').remove();
-  }
-
-  var cfg$6 = {
-    nx: 200,
-    ny: 700
-  };
-  function createSubstancesTooltip(parent, path, dispatcher, substance) {
-    // create a container for tooltips
-    var tooltip = parent.append('g').classed('tooltip', true);
-    dispatcher.on('mun-mouseover.tooltip', function (data) {
-      tooltip.call(createAnnotation$2(data, substance));
-    });
-    dispatcher.on('mun-mouseout.tooltip', function (data) {
-      tooltip.html('');
-    });
-  } // this function will call d3.annotation when a tooltip has to be drawn
-
-  function createAnnotation$2(data, substance) {
-    return annotation().type(d3CalloutElbow).annotations([{
-      data: data,
-      note: {
-        label: message(data.value, substance),
-        title: data.properties.name + ' (' + data.properties.fuName + ')'
-      },
-      nx: cfg$6.nx,
-      ny: cfg$6.ny,
-      x: data.properties.centroid[0],
-      // eslint-disable-line id-length
-      y: data.properties.centroid[1] // eslint-disable-line id-length
-
-    }]);
-  }
-
-  var DETECTED_VALUE$1 = 1e-10;
-
-  function message(value, substance) {
-    if (value === null) {
-      return 'Never tested.';
-    } else if (value === 0) {
-      return 'Never detected.';
-    } else if (value === DETECTED_VALUE$1) {
-      return 'Detected, but not quantized.';
-    }
-
-    return 'Max concentration: ' + value.toLocaleString('pt-BR') + ' μg/L';
-  }
-
-  var cfg$7 = {
     viewport: {
       height: 960,
       width: 960
     }
   };
-  function makeMap(parent, dispatcher, view, state) {
+  function makeMap(parent, dispatcher, data) {
     startLoading$2(parent); // Clean existing contents
     // TODO: be more clever?
 
     parent.html(null);
-    var svg = parent.append('svg').attr('viewBox', '0,0,' + cfg$7.viewport.width + ',' + cfg$7.viewport.height); // Path is a function that transforms a geometry (a point, a line, a
+    var svg = parent.append('svg').attr('viewBox', '0,0,' + cfg$3.viewport.width + ',' + cfg$3.viewport.height); // Path is a function that transforms a geometry (a point, a line, a
     // polygon) into a SVG path (also allows to generate canvas paths, for
     // example)
     // Note that it takes geographic coordinates as an input, not planar ones
@@ -29395,75 +28977,21 @@
     // to pass it a projection as an argument
 
     var path = geoPath();
-
-    if ('mun' in state) {
-      makeMun$2(svg, path, dispatcher, view, state.data, state.mun);
-    } else {
-      makeBrazil$2(svg, path, dispatcher, view, state.data);
-    }
-
-    dispatcher.on('to-brazil-view.map', function () {
-      updateOverlay(svg, null);
-    });
-    dispatcher.on('to-mun-view.map mun-click.map', function (mun) {
-      updateOverlay(svg, mun);
-    });
+    createChoropleth(svg, path, data);
+    createFuFrontiers(svg, path, data);
+    createOverlay(svg, path, dispatcher, data);
+    createTooltip(svg, dispatcher);
     endLoading$2(parent);
   }
-
-  function updateOverlay(parent, mun) {
-    // Remove any previous selected mun
-    parent.selectAll('.overlay path').classed('selected', false); // Highlight this new mun
-
-    if (mun !== null) {
-      parent.select('.overlay path#overlay-id-' + mun.properties.ibgeCode).classed('selected', true);
-    }
-  }
-
-  function makeBrazil$2(svg, path, dispatcher, view, data) {
-    if (view === 'limits') {
-      createLimits(svg, path, data, dispatcher);
-    } else if (view === 'substances') {
-      // init
-      var defaultSubstance = data.substancesLut['25'];
-      createSubstances(svg, path, data, dispatcher, defaultSubstance);
-      dispatcher.on('substance-selected', function (substance) {
-        return createSubstances(svg, path, data, dispatcher, substance);
-      });
-    } else {
-      createCocktail(svg, path, data, dispatcher);
-    }
-  }
-
-  function makeMun$2(svg, path, dispatcher, view, data, mun) {
-    // TODO: show the selected municipality on the map (extra layer?)
-    // TODO: avoid recreating the map on every click
-    makeBrazil$2(svg, path, dispatcher, view, data);
-    updateOverlay(svg, mun);
-  }
-
-  function createCocktail(svg, path, data, dispatcher) {
-    svg.html(null);
-    createCocktailChoropleth(svg, path, data, dispatcher);
-    createFuFrontiers(svg, path, data);
-    createCocktailOverlay(svg, path, data, dispatcher);
-    createCocktailTooltip(svg, path, dispatcher);
-  }
-
-  function createLimits(svg, path, data, dispatcher) {
-    svg.html(null);
-    createLimitsChoropleth(svg, path, data, dispatcher);
-    createFuFrontiers(svg, path, data);
-    createLimitsOverlay(svg, path, data, dispatcher);
-    createLimitsTooltip(svg, path, dispatcher);
-  }
-
+  /*
   function createSubstances(svg, path, data, dispatcher, substance) {
+    //const defaultSubstance = data.substancesLut['25'];
     svg.html(null);
     createSubstancesChoropleth(svg, path, data, dispatcher, substance);
     createFuFrontiers(svg, path, data);
-    createSubstancesTooltip(svg, path, dispatcher, substance);
+    createSubstancesTooltip(svg, path, dispatcher, substance, mun);
   }
+  */
 
   function startLoading$2(element) {
     element.classed('is-loading', true);
@@ -29696,7 +29224,6 @@
     element.classed('is-loading', false);
   }
 
-  //import {makeSubstanceSelect, removeSubstanceSelect} from './substance';
   var dispatcher = dispatch('data-loaded', 'breadcrumb-click-brazil', 'to-brazil-view', 'to-mun-view', 'search-results-updated', 'search-selected', 'make-app-cocktail', 'make-app-limits', 'make-app-substances', 'mun-click', 'mun-mouseover', 'mun-mouseout', 'substance-selected'); // Asynchronous (promise)
 
   loadData(dispatcher); // Create the layout
@@ -29707,6 +29234,7 @@
     };
     makeNav(dispatcher, state);
     makeSearch(select('section#search'), dispatcher, state);
+    makeMap(select('section#map'), dispatcher, data);
     dispatcher.call('make-app-cocktail', null, state);
   });
   dispatcher.on('make-app-cocktail.main', function (state) {
@@ -29715,7 +29243,6 @@
     updateApp(view);
     makeBreadcrumb(select('nav#breadcrumb'), dispatcher, state);
     makeDetails(select('section#details'), dispatcher, view, state);
-    makeMap(select('section#map'), dispatcher, view, state);
   });
   dispatcher.on('make-app-limits.main', function (state) {
     //removeSubstanceSelect(select('#substance-select'));
@@ -29723,16 +29250,17 @@
     updateApp(view);
     makeBreadcrumb(select('nav#breadcrumb'), dispatcher, state);
     makeDetails(select('section#details'), dispatcher, view, state);
-    makeMap(select('section#map'), dispatcher, view, state);
   });
-  dispatcher.on('make-app-substances.main', function (state) {
-    var view = 'substances';
+  /*dispatcher.on('make-app-substances.main', state => {
+    const view = 'substances';
     updateApp(view);
-    makeBreadcrumb(select('nav#breadcrumb'), dispatcher, state); //makeSubstanceSelect(select('#substance-select'), dispatcher, state);
-
+    makeBreadcrumb(select('nav#breadcrumb'), dispatcher, state);
+    //makeSubstanceSelect(select('#substance-select'), dispatcher, state);
     makeDetails(select('section#details'), dispatcher, view, state);
     makeMap(select('section#map'), dispatcher, view, state);
-  }); // Mun / Brazil
+  });
+  */
+  // Mun / Brazil
 
   dispatcher.on('mun-click.main search-selected.main', function (mun) {
     dispatcher.call('to-mun-view', null, mun);

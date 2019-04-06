@@ -1,16 +1,9 @@
-import {
-  createCocktailChoropleth,
-  createCocktailOverlay,
-} from './layers/cocktail/choropleth';
-import {
-  createLimitsChoropleth,
-  createLimitsOverlay,
-} from './layers/limits/choropleth';
-import {createCocktailTooltip} from './layers/cocktail/tooltip';
+import {createChoropleth} from './layers/choropleth';
 import {createFuFrontiers} from './layers/fu';
-import {createLimitsTooltip} from './layers/limits/tooltip';
-import {createSubstancesChoropleth} from './layers/substances/choropleth';
-import {createSubstancesTooltip} from './layers/substances/tooltip';
+import {createOverlay} from './layers/overlay';
+//import {createSubstancesChoropleth} from './layers/substances/choropleth';
+//import {createSubstancesTooltip} from './layers/substances/tooltip';
+import {createTooltip} from './layers/tooltip';
 import {geoPath} from 'd3-geo';
 
 // The data is already projected, it's expressed in px, between 0 and 960px
@@ -21,7 +14,7 @@ const cfg = {
   },
 };
 
-export function makeMap(parent, dispatcher, view, state) {
+export function makeMap(parent, dispatcher, data) {
   startLoading(parent);
 
   // Clean existing contents
@@ -40,78 +33,23 @@ export function makeMap(parent, dispatcher, view, state) {
   // to pass it a projection as an argument
   const path = geoPath();
 
-  if ('mun' in state) {
-    makeMun(svg, path, dispatcher, view, state.data, state.mun);
-  } else {
-    makeBrazil(svg, path, dispatcher, view, state.data);
-  }
-
-  dispatcher.on('to-brazil-view.map', () => {
-    updateOverlay(svg, null);
-  });
-  dispatcher.on('to-mun-view.map mun-click.map', mun => {
-    updateOverlay(svg, mun);
-  });
+  createChoropleth(svg, path, data);
+  createFuFrontiers(svg, path, data);
+  createOverlay(svg, path, dispatcher, data);
+  createTooltip(svg, dispatcher);
 
   endLoading(parent);
 }
 
-function updateOverlay(parent, mun) {
-  // Remove any previous selected mun
-  parent.selectAll('.overlay path').classed('selected', false);
-  // Highlight this new mun
-  if (mun !== null) {
-    parent
-      .select('.overlay path#overlay-id-' + mun.properties.ibgeCode)
-      .classed('selected', true);
-  }
-}
-
-function makeBrazil(svg, path, dispatcher, view, data) {
-  if (view === 'limits') {
-    createLimits(svg, path, data, dispatcher);
-  } else if (view === 'substances') {
-    // init
-    const defaultSubstance = data.substancesLut['25'];
-    createSubstances(svg, path, data, dispatcher, defaultSubstance);
-
-    dispatcher.on('substance-selected', substance =>
-      createSubstances(svg, path, data, dispatcher, substance)
-    );
-  } else {
-    createCocktail(svg, path, data, dispatcher);
-  }
-}
-
-function makeMun(svg, path, dispatcher, view, data, mun) {
-  // TODO: show the selected municipality on the map (extra layer?)
-  // TODO: avoid recreating the map on every click
-  makeBrazil(svg, path, dispatcher, view, data);
-  updateOverlay(svg, mun);
-}
-
-function createCocktail(svg, path, data, dispatcher) {
-  svg.html(null);
-  createCocktailChoropleth(svg, path, data, dispatcher);
-  createFuFrontiers(svg, path, data);
-  createCocktailOverlay(svg, path, data, dispatcher);
-  createCocktailTooltip(svg, path, dispatcher);
-}
-
-function createLimits(svg, path, data, dispatcher) {
-  svg.html(null);
-  createLimitsChoropleth(svg, path, data, dispatcher);
-  createFuFrontiers(svg, path, data);
-  createLimitsOverlay(svg, path, data, dispatcher);
-  createLimitsTooltip(svg, path, dispatcher);
-}
-
+/*
 function createSubstances(svg, path, data, dispatcher, substance) {
+  //const defaultSubstance = data.substancesLut['25'];
   svg.html(null);
   createSubstancesChoropleth(svg, path, data, dispatcher, substance);
   createFuFrontiers(svg, path, data);
-  createSubstancesTooltip(svg, path, dispatcher, substance);
+  createSubstancesTooltip(svg, path, dispatcher, substance, mun);
 }
+*/
 
 function startLoading(element) {
   element.classed('is-loading', true);
