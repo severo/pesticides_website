@@ -227,3 +227,16 @@ $map2-cat3: #253494;
     fill: $map2-cat3;
   }
 }
+
+nav#footer-lang {
+  margin-bottom: 1em;
+  ul,
+  li {
+    display: inline-block;
+  }
+  li + li:before {
+    content: ' · ';
+    padding: 0;
+    position: relative;
+  }
+}

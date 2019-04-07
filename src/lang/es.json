@@ -31,6 +31,12 @@
     "population": "Población:"
   },
   "footer": {
+    "lang": {
+      "title": "Cambiar el idioma a",
+      "pt": "Português",
+      "en": "English",
+      "es": "Español"
+    },
     "code": "Código disponible en",
     "license": "Licencia del código fuente"
   },
