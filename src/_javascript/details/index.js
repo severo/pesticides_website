@@ -3,58 +3,70 @@ import {MAP2} from '../data';
 
 //const DETECTED_VALUE = 1e-10;
 
-export function makeDetails(parent, dispatcher, view, state) {
+export function makeDetails(parent, dispatcher, view, initState) {
   startLoading(parent);
 
-  if ('mun' in state) {
-    makeMun(parent, dispatcher, view, state.data, state.mun);
+  if ('mun' in initState) {
+    makeMun(parent, dispatcher, view, initState);
   } else {
-    makeBrazil(parent, dispatcher, state.data);
+    makeBrazil(parent, dispatcher, view, initState);
   }
 
   dispatcher.on('to-brazil-view.details', () => {
-    makeBrazil(parent, dispatcher, state.data);
+    makeBrazil(parent, dispatcher, {data: initState.data});
   });
 
   dispatcher.on('to-mun-view.details', mun => {
-    makeMun(parent, dispatcher, view, state.data, mun);
+    makeMun(parent, dispatcher, view, {data: initState.data, mun: mun});
   });
 
   endLoading(parent);
 }
 
-function makeBrazil(parent, dispatcher, data) {
-  parent.html(null);
-  makeHeader(parent, '{{details.brazil.title}}');
-  parent.append('p').html('{{details.brazil.content}}');
+function makeBrazil(parent, dispatcher, view, state) {
+  const main = parent.select('#details-main');
+  main.html(null);
+  makeHeader(main, '{{details.brazil.title}}');
+  main.append('p').html('{{details.brazil.content}}');
+
+  if (view === 'limits') {
+    makeLimitsToOtherViews(parent, dispatcher, state);
+  } else {
+    makeCocktailToOtherViews(parent, dispatcher, state);
+  }
 }
 
-function makeMun(parent, dispatcher, view, data, mun) {
+function makeMun(parent, dispatcher, view, state) {
+  const main = parent.select('#details-main');
+
+  main.html(null);
+  makeHeader(main, state.mun.properties.name, state.mun.properties.fuName);
+  main
+    .append('p')
+    .html(
+      '<strong>{{details.population}}</strong> ' +
+        (+state.mun.properties.population).toLocaleString('{{locale}}')
+    );
+
   if (view === 'limits') {
-    makeLimits(parent, dispatcher, mun, data);
-  } else if (view === 'substances') {
+    makeLimits(main, dispatcher, state.mun, state.data);
+    makeLimitsToOtherViews(parent, dispatcher, state);
+
+    /*} else if (view === 'substances') {
     // init
     const defaultSubstance = data.substancesLut['25'];
-    makeSubstance(parent, dispatcher, mun, data, defaultSubstance);
+    makeSubstance(main, dispatcher, mun, data, defaultSubstance);
 
     dispatcher.on('substance-selected', substance =>
-      makeSubstance(parent, dispatcher, mun, data, substance)
-    );
+      makeSubstance(main, dispatcher, mun, data, substance)
+    );*/
   } else {
-    makeCocktail(parent, dispatcher, mun, data);
+    makeCocktail(main, dispatcher, state.mun, state.data);
+    makeCocktailToOtherViews(parent, dispatcher, state);
   }
 }
 
 function makeCocktail(parent, dispatcher, mun, data) {
-  parent.html(null);
-  makeHeader(parent, mun.properties.name, mun.properties.fuName);
-  parent
-    .append('p')
-    .html(
-      '<strong>{{details.population}}</strong> ' +
-        (+mun.properties.population).toLocaleString('{{locale}}')
-    );
-
   // map1Number should always be present - NaN if no tests
   if (isNaN(mun.properties.map1Number)) {
     parent
@@ -122,15 +134,6 @@ function makeCocktail(parent, dispatcher, mun, data) {
 }
 
 function makeLimits(parent, dispatcher, mun, data) {
-  parent.html(null);
-  makeHeader(parent, mun.properties.name, mun.properties.fuName);
-  parent
-    .append('p')
-    .html(
-      '<strong>{{details.population}}</strong> ' +
-        (+mun.properties.population).toLocaleString('{{locale}}')
-    );
-
   // map2Category should always be present
   if (mun.properties.map2Category === MAP2.CATEGORY.NO_TEST) {
     parent
@@ -269,6 +272,36 @@ function makeHeader(parent, title, subtitle) {
     // TODO: add an icon
     fu.append('span').text('📌 ' + subtitle);
   }
+}
+
+function makeCocktailToOtherViews(parent, dispatcher, state) {
+  const par = parent
+    .select('#details-footer #to-other-views')
+    .html(null)
+    .append('p');
+  par.append('span').text('{{details.cocktail.footer.tolimits1}} ');
+  par
+    .append('a')
+    .attr('href', '#')
+    .text('{{details.cocktail.footer.tolimits2}}')
+    .on('click', () => {
+      dispatcher.call('make-app-limits', null, state);
+    });
+}
+
+function makeLimitsToOtherViews(parent, dispatcher, state) {
+  const par = parent
+    .select('#details-footer #to-other-views')
+    .html(null)
+    .append('p');
+  par.append('span').text('{{details.limits.footer.tococktail1}} ');
+  par
+    .append('a')
+    .attr('href', '#')
+    .text('{{details.limits.footer.tococktail2}}')
+    .on('click', () => {
+      dispatcher.call('make-app-cocktail', null, state);
+    });
 }
 
 function startLoading(element) {

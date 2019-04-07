@@ -19514,50 +19514,66 @@
     /* eslint-enable no-magic-numbers */
   }
 
-  function makeDetails(parent, dispatcher, view, state) {
+  function makeDetails(parent, dispatcher, view, initState) {
     startLoading$1(parent);
 
-    if ('mun' in state) {
-      makeMun$1(parent, dispatcher, view, state.data, state.mun);
+    if ('mun' in initState) {
+      makeMun$1(parent, dispatcher, view, initState);
     } else {
-      makeBrazil$1(parent, dispatcher, state.data);
+      makeBrazil$1(parent, dispatcher, view, initState);
     }
 
     dispatcher.on('to-brazil-view.details', function () {
-      makeBrazil$1(parent, dispatcher, state.data);
+      makeBrazil$1(parent, dispatcher, {
+        data: initState.data
+      });
     });
     dispatcher.on('to-mun-view.details', function (mun) {
-      makeMun$1(parent, dispatcher, view, state.data, mun);
+      makeMun$1(parent, dispatcher, view, {
+        data: initState.data,
+        mun: mun
+      });
     });
     endLoading$1(parent);
   }
 
-  function makeBrazil$1(parent, dispatcher, data) {
-    parent.html(null);
-    makeHeader(parent, 'Brazil');
-    parent.append('p').html('[work in progress... show a message - search or click]');
+  function makeBrazil$1(parent, dispatcher, view, state) {
+    var main = parent.select('#details-main');
+    main.html(null);
+    makeHeader(main, 'Brazil');
+    main.append('p').html('[work in progress... show a message - search or click]');
+
+    if (view === 'limits') {
+      makeLimitsToOtherViews(parent, dispatcher, state);
+    } else {
+      makeCocktailToOtherViews(parent, dispatcher, state);
+    }
   }
 
-  function makeMun$1(parent, dispatcher, view, data, mun) {
+  function makeMun$1(parent, dispatcher, view, state) {
+    var main = parent.select('#details-main');
+    main.html(null);
+    makeHeader(main, state.mun.properties.name, state.mun.properties.fuName);
+    main.append('p').html('<strong>Population:</strong> ' + (+state.mun.properties.population).toLocaleString('en-US'));
+
     if (view === 'limits') {
-      makeLimits(parent, dispatcher, mun, data);
-    } else if (view === 'substances') {
+      makeLimits(main, dispatcher, state.mun, state.data);
+      makeLimitsToOtherViews(parent, dispatcher, state);
+      /*} else if (view === 'substances') {
       // init
-      var defaultSubstance = data.substancesLut['25'];
-      makeSubstance(parent, dispatcher, mun, data, defaultSubstance);
-      dispatcher.on('substance-selected', function (substance) {
-        return makeSubstance(parent, dispatcher, mun, data, substance);
-      });
+      const defaultSubstance = data.substancesLut['25'];
+      makeSubstance(main, dispatcher, mun, data, defaultSubstance);
+       dispatcher.on('substance-selected', substance =>
+        makeSubstance(main, dispatcher, mun, data, substance)
+      );*/
     } else {
-      makeCocktail(parent, dispatcher, mun, data);
+      makeCocktail(main, dispatcher, state.mun, state.data);
+      makeCocktailToOtherViews(parent, dispatcher, state);
     }
   }
 
   function makeCocktail(parent, dispatcher, mun, data) {
-    parent.html(null);
-    makeHeader(parent, mun.properties.name, mun.properties.fuName);
-    parent.append('p').html('<strong>Population:</strong> ' + (+mun.properties.population).toLocaleString('en-US')); // map1Number should always be present - NaN if no tests
-
+    // map1Number should always be present - NaN if no tests
     if (isNaN(mun.properties.map1Number)) {
       parent.append('header').html('<strong class="is-size-4">No data</strong>' + ' about agrotoxics inside drinking water in ' + mun.properties.name + '.');
     } else if (mun.properties.map1Number === 0) {
@@ -19584,10 +19600,7 @@
   }
 
   function makeLimits(parent, dispatcher, mun, data) {
-    parent.html(null);
-    makeHeader(parent, mun.properties.name, mun.properties.fuName);
-    parent.append('p').html('<strong>Population:</strong> ' + (+mun.properties.population).toLocaleString('en-US')); // map2Category should always be present
-
+    // map2Category should always be present
     if (mun.properties.map2Category === MAP2.CATEGORY.NO_TEST) {
       parent.append('header').html('<strong class="is-size-4">' + 'No data</strong> about agrotoxics inside drinking water in ' + mun.properties.name + '.');
     } else if (mun.properties.map2Category === MAP2.CATEGORY.BELOW) {
@@ -19700,6 +19713,22 @@
 
       fu.append('span').text('📌 ' + subtitle);
     }
+  }
+
+  function makeCocktailToOtherViews(parent, dispatcher, state) {
+    var par = parent.select('#details-footer #to-other-views').html(null).append('p');
+    par.append('span').text('Discover how many substances have been ');
+    par.append('a').attr('href', '#').text('detected above the legal limits').on('click', function () {
+      dispatcher.call('make-app-limits', null, state);
+    });
+  }
+
+  function makeLimitsToOtherViews(parent, dispatcher, state) {
+    var par = parent.select('#details-footer #to-other-views').html(null).append('p');
+    par.append('span').text('Discover how many substances have been ');
+    par.append('a').attr('href', '#').text('detected in drinking water').on('click', function () {
+      dispatcher.call('make-app-cocktail', null, state);
+    });
   }
 
   function startLoading$1(element) {
@@ -29045,47 +29074,51 @@
     element.classed('is-loading', false);
   }
 
-  function makeNav(dispatcher, state) {
+  function makeNav(dispatcher, initState) {
     // init
-    updateNav(dispatcher, state);
-    select('#navbarMaps #nav-item-cocktail').classed('is-active', true);
+    updateNav(dispatcher, initState);
     dispatcher.on('to-brazil-view.nav', function () {
       updateNav(dispatcher, {
-        data: state.data
+        data: initState.data
       });
     });
     dispatcher.on('to-mun-view.nav', function (mun) {
       updateNav(dispatcher, {
-        data: state.data,
+        data: initState.data,
         mun: mun
       });
     });
-  }
-
-  function updateNav(dispatcher, state) {
-    // TODO: we could factorize
-    select('#navbarMaps #nav-item-cocktail').on('click', function () {
+    dispatcher.on('make-app-cocktail.nav', function () {
       selectAll('#navbarMaps .navbar-item').classed('is-active', false);
       select('#navbarMaps #nav-item-cocktail').classed('is-active', true);
       select('#page-title').classed('cocktail', true);
       select('#page-title').classed('limits', false);
       select('#page-title').classed('substances', false);
-      dispatcher.call('make-app-cocktail', null, state);
     });
-    select('#navbarMaps #nav-item-limits').on('click', function () {
+    dispatcher.on('make-app-limits.nav', function () {
       selectAll('#navbarMaps .navbar-item').classed('is-active', false);
       select('#navbarMaps #nav-item-limits').classed('is-active', true);
       select('#page-title').classed('cocktail', false);
       select('#page-title').classed('limits', true);
       select('#page-title').classed('substances', false);
-      dispatcher.call('make-app-limits', null, state);
     });
-    select('#navbarMaps #nav-item-substances').on('click', function () {
+    dispatcher.on('make-app-substances.nav', function () {
       selectAll('#navbarMaps .navbar-item').classed('is-active', false);
       select('#navbarMaps #nav-item-substances').classed('is-active', true);
       select('#page-title').classed('cocktail', false);
       select('#page-title').classed('limits', false);
       select('#page-title').classed('substances', true);
+    });
+  }
+
+  function updateNav(dispatcher, state) {
+    select('#navbarMaps #nav-item-cocktail').on('click', function () {
+      dispatcher.call('make-app-cocktail', null, state);
+    });
+    select('#navbarMaps #nav-item-limits').on('click', function () {
+      dispatcher.call('make-app-limits', null, state);
+    });
+    select('#navbarMaps #nav-item-substances').on('click', function () {
       dispatcher.call('make-app-substances', null, state);
     });
   }

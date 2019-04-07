@@ -119,44 +119,44 @@ $map2-cat3: #253494;
     background-color: rgba(10, 10, 10, 0.2);
   }
 }
-
 #details {
-  min-height: 150px;
-  header#idCard {
-    h2,
-    h3 {
-      text-align: center;
-      text-transform: uppercase;
+  #details-main {
+    min-height: 150px;
+    header#idCard {
+      h2,
+      h3 {
+        text-align: center;
+        text-transform: uppercase;
+      }
+      h3 {
+        color: $grey-dark;
+        font-size: 1em;
+        font-weight: normal;
+        margin-top: 0;
+      }
     }
-    h3 {
-      color: $grey-dark;
-      font-size: 1em;
-      font-weight: normal;
-      margin-top: 0;
-    }
-  }
-  .tubes {
-    svg.tube {
-      margin: 20px;
-      &.hhce {
-        @include tube-colors(#f03b20);
-      }
-      &.no-hhce {
-        @include tube-colors(#feb24c);
-      }
-      &.cat-1 {
-        @include tube-colors($map2-cat1);
-      }
-      &.cat-2 {
-        @include tube-colors($map2-cat2);
-      }
-      &.cat-3 {
-        @include tube-colors($map2-cat3);
+    .tubes {
+      svg.tube {
+        margin: 20px;
+        &.hhce {
+          @include tube-colors(#f03b20);
+        }
+        &.no-hhce {
+          @include tube-colors(#feb24c);
+        }
+        &.cat-1 {
+          @include tube-colors($map2-cat1);
+        }
+        &.cat-2 {
+          @include tube-colors($map2-cat2);
+        }
+        &.cat-3 {
+          @include tube-colors($map2-cat3);
+        }
       }
     }
   }
 }
-
 // See https://github.com/jgthms/bulma/issues/847#issuecomment-314110630
 .is-loading {
   position: relative;

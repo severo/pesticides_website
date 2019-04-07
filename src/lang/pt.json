@@ -18,7 +18,11 @@
       "hhce2": "asociado(s) con",
       "hhce3": "enfermedades crónicas como el cáncer",
       "nohhce1": "de",
-      "nohhce2": "otro(s) pesticida(s)"
+      "nohhce2": "otro(s) pesticida(s)",
+      "footer": {
+        "tolimits1": "Descubra cuántas sustancias fueron",
+        "tolimits2": "detectadas por encima de los límites legales"
+      }
     },
     "limits": {
       "nodata1": "Sin datos",
@@ -26,7 +30,11 @@
       "nodetection1": "Ningún pesticida",
       "nodetection2": "detectado por encima de los límites brasilero o europeo en",
       "detectionsbr": "pesticida(s) detectado(s) por encima del límite brasilero",
-      "detectionseu": "pesticida(s) detectado(s) por encima del límite europeo"
+      "detectionseu": "pesticida(s) detectado(s) por encima del límite europeo",
+      "footer": {
+        "tococktail1": "Descubra cuántas sustancias fueron",
+        "tococktail2": "detectadas en el agua potable"
+      }
     },
     "population": "Población:"
   },

@@ -18,7 +18,11 @@
       "hhce2": "associated with",
       "hhce3": "chronic dieses such as cancer",
       "nohhce1": "out of",
-      "nohhce2": "other pesticides"
+      "nohhce2": "other pesticides",
+      "footer": {
+        "tolimits1": "Discover how many substances have been",
+        "tolimits2": "detected above the legal limits"
+      }
     },
     "limits": {
       "nodata1": "No data",
@@ -26,7 +30,11 @@
       "nodetection1": "No agrotoxics",
       "nodetection2": "detected above the Brazilian or European limits in",
       "detectionsbr": "agrotoxic(s) detected above the Brazilian limit",
-      "detectionseu": "agrotoxic(s) detected above the European limit"
+      "detectionseu": "agrotoxic(s) detected above the European limit",
+      "footer": {
+        "tococktail1": "Discover how many substances have been",
+        "tococktail2": "detected in drinking water"
+      }
     },
     "population": "Population:"
   },
