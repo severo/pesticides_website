@@ -6,15 +6,15 @@ const cfg = {
 };
 
 const map2LabelByCategory = [
-  'Never tested',
-  'All substances below the Brazilian and European limits',
-  'Subtance(s) detected above the European limit',
-  'Subtance(s) detected above the Brazilian limit',
+  '{{map.tooltip.limits.nevertested}}',
+  '{{map.tooltip.limits.below}}',
+  '{{map.tooltip.limits.aboveeu}}',
+  '{{map.tooltip.limits.abovebr}}',
 ];
 function cocktailLabel(mun) {
   return Number.isInteger(mun.properties.map1Number)
-    ? mun.properties.map1Number + ' pesticide(s) found in the drinking water.'
-    : 'Never tested.';
+    ? mun.properties.map1Number + ' {{map.tooltip.cocktail.found}}.'
+    : '{{map.tooltip.cocktail.nevertested}}.';
 }
 function limitsLabel(mun) {
   return map2LabelByCategory[mun.properties.map2Category];

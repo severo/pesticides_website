@@ -166,11 +166,11 @@ scripts. Note that they modify the files, and must be launched manually:
 ### JavaScript
 
 - Bundle the ECMAScript modules (ESM) in only one file:
-  [`docs/lib/main.js`](./docs/lib/main.js). Note that it also calls Babel to add
+  `docs/lib/main.mustache.js`. Note that it also calls Babel to add
   retrocompatibility for old browsers
 
   ```bash
-  npm run build:js
+  npm run build:js:rollup
   ```
 
   The [`.babelrc`](./src/.babelrc) configuration file for
@@ -180,6 +180,45 @@ scripts. Note that they modify the files, and must be launched manually:
   The [Rollup](https://rollupjs.org) configuration file (for bundling ES
   modules, and calling Babel) is [`rollup.config.js`](./rollup.config.js).
 
+- Replace [mustache](https://mustache.github.io/) placeholders in
+  `docs/lib/main.mustache.js` with the corresponding strings from English
+  [`src/lang/en.json`](./src/lang/en.json) i18n JSON file, and place the
+  generated `main.en.js` file in [`src/lib/`](./src/lib):
+
+  ```bash
+  npm run build:js:mustache:en
+  ```
+
+- Replace [mustache](https://mustache.github.io/) placeholders in
+  `docs/lib/main.mustache.js` with the corresponding strings from Portuguese
+  [`src/lang/pt.json`](./src/lang/pt.json) i18n JSON file, and place the
+  generated `main.pt.js` file in [`src/lib/`](./src/lib):
+
+  ```bash
+  npm run build:js:mustache:pt
+  ```
+
+- Replace [mustache](https://mustache.github.io/) placeholders in
+  `docs/lib/main.mustache.js` with the corresponding strings from Spanish
+  [`src/lang/es.json`](./src/lang/es.json) i18n JSON file, and place the
+  generated `main.es.js` file in [`src/lib/`](./src/lib):
+
+  ```bash
+  npm run build:js:mustache:es
+  ```
+
+- Generate the files for all the languages
+
+  ```bash
+  npm run build:js:mustache
+  ```
+
+- Do both in one call (first Rollup, then Mustache):
+
+  ```bash
+  npm run build:js
+  ```
+
 ### HTML
 
 - Replace [mustache](https://mustache.github.io/) placeholders in
@@ -188,7 +227,7 @@ scripts. Note that they modify the files, and must be launched manually:
   and place the generated `index.html` file in [`src/`](./src):
 
   ```bash
-  npm run build:mustache:en
+  npm run build:html:mustache:en
   ```
 
 - Replace [mustache](https://mustache.github.io/) placeholders in
@@ -198,13 +237,29 @@ scripts. Note that they modify the files, and must be launched manually:
   [`src/`](./src):
 
   ```bash
-  npm run build:mustache:pt
+  npm run build:html:mustache:pt
+  ```
+
+- Replace [mustache](https://mustache.github.io/) placeholders in
+  [`src/index.mustache.html`](./src/index.mustache.html) with the corresponding
+  strings from Spanish [`src/lang/es.json`](./src/lang/es.json) i18n JSON file,
+  and place the generated `index.es.html` file (note the `.es` part) in
+  [`src/`](./src):
+
+  ```bash
+  npm run build:html:mustache:es
   ```
 
 - Generate the files for all the languages
 
   ```bash
-  npm run build:mustache
+  npm run build:html:mustache
+  ```
+
+  or
+
+  ```bash
+  npm run build:html
   ```
 
 ## Deployment
@@ -238,7 +293,7 @@ npm run build-and-watch
 
 More in details:
 
-- watch, without bulding the project before:
+- watch, without building the project before:
 
   ```bash
   npm run watch
@@ -256,10 +311,16 @@ More in details:
   npm run watch:css
   ```
 
-- watch for changes in mustache templates files and rebuild on change:
+- watch for changes in HTML files and rebuild on change:
 
   ```bash
-  npm run watch:mustache
+  npm run watch:html
+  ```
+
+- watch for changes in i18n strings files and rebuild on change:
+
+  ```bash
+  npm run watch:lang
   ```
 
 ### Serve

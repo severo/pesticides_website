@@ -10,7 +10,7 @@ export default {
     warn(warning);
   },
   output: {
-    file: 'docs/lib/main.js',
+    file: 'docs/lib/main.mustache.js',
     format: 'iife',
     name: 'pesticides_website',
   },

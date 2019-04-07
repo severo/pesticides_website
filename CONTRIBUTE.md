@@ -54,7 +54,7 @@ The repository is composed of three main parts:
   generally `dist/` or `build/` are used, but using `docs/` allows to
   automatically deploy the website on GitHub Pages without any hassle.
 
-  This directory is completely created at build time, and is versionned to make
+  This directory is completely created at build time, and is versioned to make
   it easier to deploy on GitHub Pages. It should never be modified by hand.
 
 - files at the root of the repository: doc files, npm dependencies,

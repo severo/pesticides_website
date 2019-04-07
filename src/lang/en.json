@@ -1,9 +1,59 @@
 {
+  "breadcrumb": {
+    "brazil": "Brazil"
+  },
+  "details": {
+    "brazil": {
+      "content": "[work in progress... show a message - search or click]",
+      "title": "Brazil"
+    },
+    "cocktail": {
+      "nodata1": "No data",
+      "nodata2": "about agrotoxics inside drinking water in",
+      "nodetection1": "No agrotoxics",
+      "nodetection2": "detected inside drinking water in",
+      "detections1": "agrotoxic(s)",
+      "detections2": "detected in drinking water in",
+      "hhce1": "out of",
+      "hhce2": "associated with",
+      "hhce3": "chronic dieses such as cancer",
+      "nohhce1": "out of",
+      "nohhce2": "other pesticides"
+    },
+    "limits": {
+      "nodata1": "No data",
+      "nodata2": "about agrotoxics inside drinking water in",
+      "nodetection1": "No agrotoxics",
+      "nodetection2": "detected above the Brazilian or European limits in",
+      "detectionsbr": "agrotoxic(s) detected above the Brazilian limit",
+      "detectionseu": "agrotoxic(s) detected above the European limit"
+    },
+    "population": "Population:"
+  },
+  "footer": {
+    "code": "Code available on",
+    "license": "Source code licensed"
+  },
   "hero": {
     "subtitle": "Pesticides in drinking water in Brazil",
     "title": "Who drinks agrotoxics?"
   },
   "lang": "en",
+  "locale": "en-US",
+  "map": {
+    "tooltip": {
+      "cocktail": {
+        "nevertested": "Never tested",
+        "found": "pesticide(s) found in the drinking water"
+      },
+      "limits": {
+        "nevertested": "Never tested",
+        "below": "All substances below the Brazilian and European limits",
+        "aboveeu": "Subtance(s) detected above the European limit",
+        "abovebr": "Subtance(s) detected above the Brazilian limit"
+      }
+    }
+  },
   "nav": {
     "cocktail": "Cocktail of agrotoxics",
     "concentrations": "High concentrations",

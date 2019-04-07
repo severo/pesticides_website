@@ -36,10 +36,10 @@
   },
   "hero": {
     "subtitle": "Pesticidas en el agua potable de Brasil",
-    "title": "Quem bebe agrotóxicos?"
+    "title": "¿Quién bebe pesticidas?"
   },
-  "lang": "pt",
-  "locale": "pt-BR",
+  "lang": "es",
+  "locale": "es-BO",
   "map": {
     "tooltip": {
       "cocktail": {
@@ -63,5 +63,5 @@
     "placeholder": "¿Qué municipio?",
     "title": "Encuentre su municipio"
   },
-  "title": "Quem bebe agrotóxicos?"
+  "title": "¿Quién bebe pesticidas?"
 }

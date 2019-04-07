@@ -29,7 +29,7 @@ function makeBrazil(parent) {
     .append('a')
     .attr('href', '#')
     .attr('aria-current', 'page')
-    .text('Brazil');
+    .text('{{breadcrumb.brazil}}');
 }
 
 function makeMun(parent, dispatcher, data, mun) {
@@ -38,7 +38,7 @@ function makeMun(parent, dispatcher, data, mun) {
   ul.append('li')
     .append('a')
     .attr('href', '#')
-    .text('Brazil')
+    .text('{{breadcrumb.brazil}}')
     .on('click', (ft, element) => {
       // invoke callbacks
       dispatcher.call('breadcrumb-click-brazil', null, data);

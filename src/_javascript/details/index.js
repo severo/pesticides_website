@@ -1,7 +1,7 @@
 import {makeTubesCocktail, makeTubesLimits} from './tubes';
 import {MAP2} from '../data';
 
-const DETECTED_VALUE = 1e-10;
+//const DETECTED_VALUE = 1e-10;
 
 export function makeDetails(parent, dispatcher, view, state) {
   startLoading(parent);
@@ -25,10 +25,8 @@ export function makeDetails(parent, dispatcher, view, state) {
 
 function makeBrazil(parent, dispatcher, data) {
   parent.html(null);
-  makeHeader(parent, 'Brazil');
-  parent
-    .append('p')
-    .html('[work in progress... show a message - search or click]');
+  makeHeader(parent, '{{details.brazil.title}}');
+  parent.append('p').html('{{details.brazil.content}}');
 }
 
 function makeMun(parent, dispatcher, view, data, mun) {
@@ -53,8 +51,8 @@ function makeCocktail(parent, dispatcher, mun, data) {
   parent
     .append('p')
     .html(
-      '<strong>Population:</strong> ' +
-        (+mun.properties.population).toLocaleString('pt-BR')
+      '<strong>{{details.population}}</strong> ' +
+        (+mun.properties.population).toLocaleString('{{locale}}')
     );
 
   // map1Number should always be present - NaN if no tests
@@ -62,8 +60,8 @@ function makeCocktail(parent, dispatcher, mun, data) {
     parent
       .append('header')
       .html(
-        '<strong class="is-size-4">' +
-          'No data</strong> about agrotoxics inside drinking water in ' +
+        '<strong class="is-size-4">{{details.cocktail.nodata1}}</strong>' +
+          ' {{details.cocktail.nodata2}} ' +
           mun.properties.name +
           '.'
       );
@@ -71,8 +69,8 @@ function makeCocktail(parent, dispatcher, mun, data) {
     parent
       .append('header')
       .html(
-        '<strong class="is-size-4">' +
-          'No agrotoxics</strong> detected inside drinking water in ' +
+        '<strong class="is-size-4">{{details.cocktail.nodetection1}}</strong>' +
+          ' {{details.cocktail.nodetection2}} ' +
           mun.properties.name +
           '.'
       );
@@ -82,7 +80,8 @@ function makeCocktail(parent, dispatcher, mun, data) {
       .html(
         '<strong class="is-size-4"><span class="is-size-2">' +
           mun.properties.map1Number +
-          '</span> agrotoxic(s)</strong> detected in drinking water in ' +
+          '</span> {{details.cocktail.detections1}}</strong>' +
+          ' {{details.cocktail.detections2}} ' +
           mun.properties.name +
           '.'
       );
@@ -96,9 +95,9 @@ function makeCocktail(parent, dispatcher, mun, data) {
         hhceSubstances,
         '<strong class="is-size-4">' +
           hhceSubstances.length +
-          '</strong> out of ' +
+          '</strong> {{details.cocktail.hhce1}} ' +
           mun.properties.map1Number +
-          ': associated with <strong>chronic dieses such as cancer</strong>',
+          ': {{details.cocktail.hhce2}} <strong>{{details.cocktail.hhce3}}</strong>',
         'hhce'
       );
       const otherSubstances = mun.properties.tests.filter(
@@ -110,9 +109,9 @@ function makeCocktail(parent, dispatcher, mun, data) {
           otherSubstances,
           '<strong class="is-size-4">' +
             otherSubstances.length +
-            '</strong> out of ' +
+            '</strong> {{details.cocktail.nohhce1}} ' +
             mun.properties.map1Number +
-            ': other pesticides',
+            ': {{details.cocktail.nohhce2}}',
           'no-hhce'
         );
       }
@@ -128,8 +127,8 @@ function makeLimits(parent, dispatcher, mun, data) {
   parent
     .append('p')
     .html(
-      '<strong>Population:</strong> ' +
-        (+mun.properties.population).toLocaleString('pt-BR')
+      '<strong>{{details.population}}</strong> ' +
+        (+mun.properties.population).toLocaleString('{{locale}}')
     );
 
   // map2Category should always be present
@@ -138,7 +137,7 @@ function makeLimits(parent, dispatcher, mun, data) {
       .append('header')
       .html(
         '<strong class="is-size-4">' +
-          'No data</strong> about agrotoxics inside drinking water in ' +
+          '{{details.limits.nodata1}}</strong> {{details.limits.nodata2}} ' +
           mun.properties.name +
           '.'
       );
@@ -147,7 +146,7 @@ function makeLimits(parent, dispatcher, mun, data) {
       .append('header')
       .html(
         '<strong class="is-size-4">' +
-          'No agrotoxics</strong> detected above the Brazilian or European limits in ' +
+          '{{details.limits.nodetection1}}</strong> {{details.limits.nodetection2}} ' +
           mun.properties.name +
           '.'
       );
@@ -161,7 +160,7 @@ function makeLimits(parent, dispatcher, mun, data) {
         supBrSubstances,
         '<strong class="is-size-4">' +
           supBrSubstances.length +
-          '</strong> agrotoxic(s) detected above the Brazilian limit',
+          '</strong> {{details.limits.detectionsbr}}',
         'cat-' + MAP2.CATEGORY.SUP_BR
       );
     }
@@ -174,21 +173,21 @@ function makeLimits(parent, dispatcher, mun, data) {
         supEuSubstances,
         '<strong class="is-size-4">' +
           supEuSubstances.length +
-          '</strong> agrotoxic(s) detected above the European limit',
+          '</strong> {{details.limits.detectionseu}}',
         'cat-' + MAP2.CATEGORY.SUP_EU
       );
     }
   }
 }
 
-function makeSubstance(parent, dispatcher, mun, data, substance) {
+/*function makeSubstance(parent, dispatcher, mun, data, substance) {
   parent.html(null);
   makeHeader(parent, mun.properties.name, mun.properties.fuName);
   parent
     .append('p')
     .html(
-      '<strong>Population:</strong> ' +
-        (+mun.properties.population).toLocaleString('pt-BR')
+      '<strong>{{details.population}}</strong> ' +
+        (+mun.properties.population).toLocaleString('{{locale}}')
     );
 
   if (!('tests' in mun.properties)) {
@@ -232,7 +231,7 @@ function makeSubstance(parent, dispatcher, mun, data, substance) {
         return (
           // eslint-disable-next-line no-magic-numbers
           (Math.floor((10000 * val) / tests.length) / 100).toLocaleString(
-            'pt-BR'
+            '{{locale}}'
           ) + '%'
         );
       }
@@ -252,14 +251,14 @@ function makeSubstance(parent, dispatcher, mun, data, substance) {
       if (subst[0].max && subst[0].max > DETECTED_VALUE) {
         ul.append('li').text(
           'Max detected concentration: ' +
-            subst[0].max.toLocaleString('pt-BR') +
+            subst[0].max.toLocaleString('{{locale}}') +
             ' μg/L'
         );
       }
     }
   }
 }
-
+*/
 function makeHeader(parent, title, subtitle) {
   const header = parent.append('header').attr('id', 'idCard');
 

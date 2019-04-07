@@ -14,20 +14,20 @@ export function makeTubesCocktail(parent, substances, titleHtml, tubeClass) {
       // alphabetic order to get some coherence and stability between views
       return subs1.substance.shortName.localeCompare(
         subs2.substance.shortName,
-        'pt',
+        '{{locale}}',
         {sensitivity: 'base'}
       );
     })
     .map(subs => {
       const numTests = subs.tests.length;
       const numDetections = subs.tests.filter(con => con > 0).length;
-      const TO_PCT = 100;
-      const DIGITS = 0;
+      /*const TO_PCT = 100;
+      const DIGITS = 0;*/
       const ratio = numDetections / numTests;
       return {
         shortName: subs.substance.shortName,
         value: ratio,
-        valueText:
+        /*valueText:
           subs.substance.name +
           ' detected in ' +
           numDetections +
@@ -35,7 +35,7 @@ export function makeTubesCocktail(parent, substances, titleHtml, tubeClass) {
           numTests +
           ' measurements (' +
           (ratio * TO_PCT).toFixed(DIGITS) +
-          '%)',
+          '%)',*/
       };
     });
 
@@ -45,12 +45,12 @@ export function makeTubesCocktail(parent, substances, titleHtml, tubeClass) {
   }
 
   const svg = tubes
-    .selectAll('abbr')
+    .selectAll('svg')
     .data(preparedSubstances)
     .enter()
     // TODO: manage a popup for touch / mouseover, instead of this temporal attr
-    .append('abbr')
-    .attr('title', subs => subs.valueText)
+    //.append('abbr')
+    //.attr('title', subs => subs.valueText)
     .append('svg')
     .classed('tube', true)
     .classed(tubeClass, true)
@@ -73,7 +73,7 @@ export function makeTubesLimits(parent, substances, titleHtml, tubeClass) {
       // alphabetic order to get some coherence and stability between views
       return subs1.substance.shortName.localeCompare(
         subs2.substance.shortName,
-        'pt',
+        '{{locale}}',
         {sensitivity: 'base'}
       );
     })
@@ -83,7 +83,7 @@ export function makeTubesLimits(parent, substances, titleHtml, tubeClass) {
       return {
         shortName: subs.substance.shortName,
         value: ratio,
-        valueText: subs.substance.name,
+        //valueText: subs.substance.name,
       };
     });
 
@@ -93,12 +93,12 @@ export function makeTubesLimits(parent, substances, titleHtml, tubeClass) {
   }
 
   const svg = tubes
-    .selectAll('abbr')
+    .selectAll('svg')
     .data(preparedSubstances)
     .enter()
     // TODO: manage a popup for touch / mouseover, instead of this temporal attr
-    .append('abbr')
-    .attr('title', subs => subs.valueText)
+    //.append('abbr')
+    //.attr('title', subs => subs.valueText)
     .append('svg')
     .classed('tube', true)
     .classed(tubeClass, true)
