@@ -41,12 +41,17 @@ $map2-cat1: #da70ba;
 $map2-cat2: #b40f7b;
 $map2-cat3: #400035;
 */
-
-$map-default-bg: #f4f4f4;
-$map1-bg: #800126;
+/* A green-blue palette
 $map2-cat1: #c7e9b4;
 $map2-cat2: #41b6c4;
 $map2-cat3: #253494;
+*/
+
+$map-default-bg: #f4f4f4;
+$map1-bg: #800126;
+$map2-cat1: #74a3eb;
+$map2-cat2: #001d93;
+$map2-cat3: #01000f;
 
 @mixin tube-colors($base-color) {
   .right {
