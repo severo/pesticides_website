@@ -19578,11 +19578,24 @@
     }
   }
 
+  function addLevelItem(parent, heading, title) {
+    var level = parent.append('div').classed('level-item has-text-centered', true);
+    level.append('p').classed('heading', true).text(heading);
+    level.append('p').classed('title', true).text(title);
+    return level;
+  }
+
   function makeMun$1(parent, dispatcher, view, state) {
     var main = parent.select('#details-main');
     main.html(null);
     makeHeader(main, state.mun.properties.name, state.mun.properties.fuName);
-    main.append('p').html('<strong>Population:</strong> ' + (+state.mun.properties.population).toLocaleString('en-US'));
+    /*main
+      .append('p')
+      .html(
+        '<strong>Population</strong> ' +
+          (+state.mun.properties.population).toLocaleString('en-US')
+      );
+    */
 
     if (view === 'limits') {
       makeLimits(main, dispatcher, state.mun, state.data);
@@ -19601,45 +19614,53 @@
   }
 
   function makeCocktail(parent, dispatcher, mun, data) {
-    // map1Number should always be present - NaN if no tests
+    var level = parent.append('nav').classed('level is-mobile', true);
+    addLevelItem(level, 'Population', (+mun.properties.population).toLocaleString('en-US')); // map1Number should always be present - NaN if no tests
+
     if (isNaN(mun.properties.map1Number)) {
-      parent.append('header').html('<strong class="is-size-4">No data</strong>' + ' about agrotoxics inside drinking water in ' + mun.properties.name + '.');
+      addLevelItem(level, 'Pesticides detected', 'No data');
+      parent.append('header').html('<span class="is-size-4">No data</span>' + ' about agrotoxics inside drinking water in ' + mun.properties.name + '.');
     } else if (mun.properties.map1Number === 0) {
-      parent.append('header').html('<strong class="is-size-4">No agrotoxics</strong>' + ' detected inside drinking water in ' + mun.properties.name + '.');
+      addLevelItem(level, 'Pesticides detected', mun.properties.map1Number);
+      parent.append('header').html('<span class="is-size-4">No agrotoxics</span>' + ' detected inside drinking water in ' + mun.properties.name + '.');
     } else {
-      parent.append('header').html('<strong class="is-size-4"><span class="is-size-2">' + mun.properties.map1Number + '</span> agrotoxic(s)</strong>' + ' detected in drinking water in ' + mun.properties.name + '.');
+      addLevelItem(level, 'Pesticides detected', mun.properties.map1Number);
+      parent.append('header').html('<span class="is-size-4">' + mun.properties.map1Number + '</span> agrotoxic(s)' + ' detected in drinking water in ' + mun.properties.name + '.');
+      var list = parent.append('ul');
       var hhceSubstances = mun.properties.tests.filter(function (sub) {
         return sub.substance.isHhce && sub.max > 0;
       });
 
       if (hhceSubstances.length > 0) {
-        makeTubesCocktail(parent, hhceSubstances, '<strong class="is-size-4">' + hhceSubstances.length + '</strong> out of ' + mun.properties.map1Number + ': associated with ' + '<strong>chronic dieses</strong> ' + 'such as cancer, birth defects and endocrine disruption', 'hhce');
+        makeTubesCocktail(list.append('li'), hhceSubstances, '<span class="is-size-4">' + hhceSubstances.length + '</span> associated with ' + '<strong>chronic dieses</strong> ' + 'such as cancer, birth defects and endocrine disruption', 'hhce');
         var otherSubstances = mun.properties.tests.filter(function (sub) {
           return !sub.substance.isHhce && sub.max > 0;
         });
 
         if (otherSubstances.length > 0) {
-          makeTubesCocktail(parent, otherSubstances, '<strong class="is-size-4">' + otherSubstances.length + '</strong> out of ' + mun.properties.map1Number + ': other pesticides', 'no-hhce');
+          makeTubesCocktail(list.append('li'), otherSubstances, '<span class="is-size-4">' + otherSubstances.length + '</span> other pesticides', 'no-hhce');
         }
       } else {
-        makeTubesCocktail(parent, mun.properties.tests, '', 'no-hhce');
+        makeTubesCocktail(list.append('li'), mun.properties.tests, '', 'no-hhce');
       }
     }
   }
 
   function makeLimits(parent, dispatcher, mun, data) {
-    // map2Category should always be present
+    var level = parent.append('nav').classed('level is-mobile', true);
+    addLevelItem(level, 'Population', (+mun.properties.population).toLocaleString('en-US')); // map2Category should always be present
+
     if (mun.properties.map2Category === MAP2.CATEGORY.NO_TEST) {
-      parent.append('header').html('<strong class="is-size-4">' + 'No data</strong> about agrotoxics inside drinking water in ' + mun.properties.name + '.');
+      parent.append('header').html('<span class="is-size-4">' + 'No data</span> about agrotoxics inside drinking water in ' + mun.properties.name + '.');
     } else if (mun.properties.map2Category === MAP2.CATEGORY.BELOW) {
-      parent.append('header').html('<strong class="is-size-4">' + 'No agrotoxics</strong> detected above the Brazilian or European limits in ' + mun.properties.name + '.');
+      parent.append('header').html('<span class="is-size-4">' + 'No agrotoxics</span> detected above the Brazilian or European limits in ' + mun.properties.name + '.');
     } else {
       var supBrSubstances = mun.properties.tests.filter(function (sub) {
         return sub.map2Category === MAP2.CATEGORY.SUP_BR;
       });
 
       if (supBrSubstances.length > 0) {
-        makeTubesLimits(parent, supBrSubstances, '<strong class="is-size-4">' + supBrSubstances.length + '</strong> agrotoxic(s) detected above the Brazilian limit', 'cat-' + MAP2.CATEGORY.SUP_BR);
+        makeTubesLimits(parent, supBrSubstances, '<span class="is-size-4">' + supBrSubstances.length + '</span> agrotoxic(s) detected above the Brazilian limit', 'cat-' + MAP2.CATEGORY.SUP_BR);
       }
 
       var supEuSubstances = mun.properties.tests.filter(function (sub) {
@@ -19647,7 +19668,7 @@
       });
 
       if (supEuSubstances.length > 0) {
-        makeTubesLimits(parent, supEuSubstances, '<strong class="is-size-4">' + supEuSubstances.length + '</strong> agrotoxic(s) detected above the European limit', 'cat-' + MAP2.CATEGORY.SUP_EU);
+        makeTubesLimits(parent, supEuSubstances, '<span class="is-size-4">' + supEuSubstances.length + '</span> agrotoxic(s) detected above the European limit', 'cat-' + MAP2.CATEGORY.SUP_EU);
       }
     }
   }
@@ -19657,7 +19678,7 @@
     parent
       .append('p')
       .html(
-        '<strong>Population:</strong> ' +
+        '<strong>Population</strong> ' +
           (+mun.properties.population).toLocaleString('en-US')
       );
 

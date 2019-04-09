@@ -8,6 +8,8 @@
       "title": "Brazil"
     },
     "cocktail": {
+      "detected": "Pesticides detected",
+      "nodata0": "No data",
       "nodata1": "No data",
       "nodata2": "about agrotoxics inside drinking water in",
       "nodetection1": "No agrotoxics",
@@ -42,7 +44,7 @@
         "tococktail2": "detected in drinking water"
       }
     },
-    "population": "Population:"
+    "population": "Population"
   },
   "footer": {
     "lang": {

@@ -94,7 +94,6 @@ $map2-cat3: #01000f;
 }
 #search {
   margin-top: 2.5em;
-  margin-bottom: 2em;
   .modal-content {
     max-height: none;
     padding: 0.5em 1em;
@@ -140,6 +139,12 @@ $map2-cat3: #01000f;
         font-size: 1em;
         font-weight: normal;
         margin-top: 0;
+      }
+    }
+    nav.level {
+      margin-top: 2rem;
+      .level-item {
+        display: block;
       }
     }
     .tubes {

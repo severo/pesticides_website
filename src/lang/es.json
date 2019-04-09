@@ -8,6 +8,8 @@
       "title": "Brasil"
     },
     "cocktail": {
+      "detected": "Pesticida(s) detectado(s)",
+      "nodata0": "Sin datos",
       "nodata1": "Sin datos",
       "nodata2": "sobre pesticidas en el agua potable de",
       "nodetection1": "Ningún pesticida",
@@ -42,7 +44,7 @@
         "tococktail2": "detectadas en el agua potable"
       }
     },
-    "population": "Población:"
+    "population": "Población"
   },
   "footer": {
     "lang": {

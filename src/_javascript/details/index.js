@@ -36,18 +36,34 @@ function makeBrazil(parent, dispatcher, view, state) {
   }
 }
 
+function addLevelItem(parent, heading, title) {
+  const level = parent
+    .append('div')
+    .classed('level-item has-text-centered', true);
+  level
+    .append('p')
+    .classed('heading', true)
+    .text(heading);
+  level
+    .append('p')
+    .classed('title', true)
+    .text(title);
+  return level;
+}
+
 function makeMun(parent, dispatcher, view, state) {
   const main = parent.select('#details-main');
 
   main.html(null);
   makeHeader(main, state.mun.properties.name, state.mun.properties.fuName);
-  main
+
+  /*main
     .append('p')
     .html(
       '<strong>{{details.population}}</strong> ' +
         (+state.mun.properties.population).toLocaleString('{{locale}}')
     );
-
+*/
   if (view === 'limits') {
     makeLimits(main, dispatcher, state.mun, state.data);
     makeLimitsToOtherViews(parent, dispatcher, state);
@@ -67,49 +83,71 @@ function makeMun(parent, dispatcher, view, state) {
 }
 
 function makeCocktail(parent, dispatcher, mun, data) {
+  const level = parent.append('nav').classed('level is-mobile', true);
+  addLevelItem(
+    level,
+    '{{details.population}}',
+    (+mun.properties.population).toLocaleString('{{locale}}')
+  );
+
   // map1Number should always be present - NaN if no tests
   if (isNaN(mun.properties.map1Number)) {
+    addLevelItem(
+      level,
+      '{{details.cocktail.detected}}',
+      '{{details.cocktail.nodata0}}'
+    );
     parent
       .append('header')
       .html(
-        '<strong class="is-size-4">{{details.cocktail.nodata1}}</strong>' +
+        '<span class="is-size-4">{{details.cocktail.nodata1}}</span>' +
           ' {{details.cocktail.nodata2}} ' +
           mun.properties.name +
           '.'
       );
   } else if (mun.properties.map1Number === 0) {
+    addLevelItem(
+      level,
+      '{{details.cocktail.detected}}',
+      mun.properties.map1Number
+    );
     parent
       .append('header')
       .html(
-        '<strong class="is-size-4">{{details.cocktail.nodetection1}}</strong>' +
+        '<span class="is-size-4">{{details.cocktail.nodetection1}}</span>' +
           ' {{details.cocktail.nodetection2}} ' +
           mun.properties.name +
           '.'
       );
   } else {
+    addLevelItem(
+      level,
+      '{{details.cocktail.detected}}',
+      mun.properties.map1Number
+    );
+
     parent
       .append('header')
       .html(
-        '<strong class="is-size-4"><span class="is-size-2">' +
+        '<span class="is-size-4">' +
           mun.properties.map1Number +
-          '</span> {{details.cocktail.detections1}}</strong>' +
+          '</span> {{details.cocktail.detections1}}' +
           ' {{details.cocktail.detections2}} ' +
           mun.properties.name +
           '.'
       );
 
+    const list = parent.append('ul');
     const hhceSubstances = mun.properties.tests.filter(
       sub => sub.substance.isHhce && sub.max > 0
     );
     if (hhceSubstances.length > 0) {
       makeTubesCocktail(
-        parent,
+        list.append('li'),
         hhceSubstances,
-        '<strong class="is-size-4">' +
+        '<span class="is-size-4">' +
           hhceSubstances.length +
-          '</strong> {{details.cocktail.hhce1}} ' +
-          mun.properties.map1Number +
-          ': {{details.cocktail.hhce2}} ' +
+          '</span> {{details.cocktail.hhce2}} ' +
           '<strong>{{details.cocktail.hhce3}}</strong> ' +
           '{{details.cocktail.hhce4}}',
         'hhce'
@@ -119,30 +157,35 @@ function makeCocktail(parent, dispatcher, mun, data) {
       );
       if (otherSubstances.length > 0) {
         makeTubesCocktail(
-          parent,
+          list.append('li'),
           otherSubstances,
-          '<strong class="is-size-4">' +
+          '<span class="is-size-4">' +
             otherSubstances.length +
-            '</strong> {{details.cocktail.nohhce1}} ' +
-            mun.properties.map1Number +
-            ': {{details.cocktail.nohhce2}}',
+            '</span> {{details.cocktail.nohhce2}}',
           'no-hhce'
         );
       }
     } else {
-      makeTubesCocktail(parent, mun.properties.tests, '', 'no-hhce');
+      makeTubesCocktail(list.append('li'), mun.properties.tests, '', 'no-hhce');
     }
   }
 }
 
 function makeLimits(parent, dispatcher, mun, data) {
+  const level = parent.append('nav').classed('level is-mobile', true);
+  addLevelItem(
+    level,
+    '{{details.population}}',
+    (+mun.properties.population).toLocaleString('{{locale}}')
+  );
+
   // map2Category should always be present
   if (mun.properties.map2Category === MAP2.CATEGORY.NO_TEST) {
     parent
       .append('header')
       .html(
-        '<strong class="is-size-4">' +
-          '{{details.limits.nodata1}}</strong> {{details.limits.nodata2}} ' +
+        '<span class="is-size-4">' +
+          '{{details.limits.nodata1}}</span> {{details.limits.nodata2}} ' +
           mun.properties.name +
           '.'
       );
@@ -150,8 +193,8 @@ function makeLimits(parent, dispatcher, mun, data) {
     parent
       .append('header')
       .html(
-        '<strong class="is-size-4">' +
-          '{{details.limits.nodetection1}}</strong> {{details.limits.nodetection2}} ' +
+        '<span class="is-size-4">' +
+          '{{details.limits.nodetection1}}</span> {{details.limits.nodetection2}} ' +
           mun.properties.name +
           '.'
       );
@@ -163,9 +206,9 @@ function makeLimits(parent, dispatcher, mun, data) {
       makeTubesLimits(
         parent,
         supBrSubstances,
-        '<strong class="is-size-4">' +
+        '<span class="is-size-4">' +
           supBrSubstances.length +
-          '</strong> {{details.limits.detectionsbr}}',
+          '</span> {{details.limits.detectionsbr}}',
         'cat-' + MAP2.CATEGORY.SUP_BR
       );
     }
@@ -176,9 +219,9 @@ function makeLimits(parent, dispatcher, mun, data) {
       makeTubesLimits(
         parent,
         supEuSubstances,
-        '<strong class="is-size-4">' +
+        '<span class="is-size-4">' +
           supEuSubstances.length +
-          '</strong> {{details.limits.detectionseu}}',
+          '</span> {{details.limits.detectionseu}}',
         'cat-' + MAP2.CATEGORY.SUP_EU
       );
     }
