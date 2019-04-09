@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+# [0.13.0](https://github.com/severo/pesticides_website/compare/v0.12.0...v0.13.0) (2019-04-09)
+
+
+### Bug Fixes
+
+* improve text on chronic dieses ([12f4044](https://github.com/severo/pesticides_website/commit/12f4044))
+* move name below the tube for better lisibility ([b5545ad](https://github.com/severo/pesticides_website/commit/b5545ad))
+* show two columns from tablet onward in layout ([51b585c](https://github.com/severo/pesticides_website/commit/51b585c))
+
+
+### Features
+
+* add numbers to tubes in map 1 ([1cbf9f3](https://github.com/severo/pesticides_website/commit/1cbf9f3))
+
+
+
 # [0.12.0](https://github.com/severo/pesticides_website/compare/v0.11.1...v0.12.0) (2019-04-09)
 
 
