@@ -15,6 +15,8 @@ Technologies used for the project management and building:
   - Run multiple npm-scripts in parallel or sequentially:
     [npm-run-all](https://www.npmjs.com/package/npm-run-all)
   - Watch changes: [onchange](https://www.npmjs.com/package/onchange)
+  - Release:
+    [standard-version](https://github.com/conventional-changelog/standard-version/)
 - CSS:
   - Ensure correct formatting: [Prettier](https://prettier.io/)
   - Sass: [Sass](http://sass-lang.com/) /
@@ -336,6 +338,20 @@ The configuration for Browsersync is defined in the
 
 Note that you certainly want to run both `npm run serve` and `npm run watch` at
 the same time (in two terminals).
+
+### Release
+
+The development MUST be done in the `develop` branch, and the commits must
+follow the
+[Conventional Commits Specification](https://conventionalcommits.org/).
+
+To release a new version:
+
+```
+git checkout master; git pull origin master
+npm run release
+git push --follow-tags origin master && npm publish
+```
 
 ## TODO
 
