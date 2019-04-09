@@ -29207,7 +29207,7 @@
           // Selects the first result in the list
           results.node().focus();
         }
-      } else if (event.code === 'Escape') {
+      } else if (event.code === 'Escape' || event.code === 'Tab' && event.shiftKey) {
         emptyResults();
         hideModal();
       }
@@ -29228,11 +29228,26 @@
   }
 
   function showModal() {
+    // See hideModal() for an explanation of why removing "tabindex"
+    // from the search box
+    select('#search-input').attr('tabindex', -1);
     select('#search-modal').classed('is-active', true);
     select('#search-modal-input').node().focus();
   }
 
   function hideModal() {
+    // TODO: improve this hack, if possible
+    // We set a delay, in order to avoid cycles of:
+    // hide modal -> focus on search box -> open modal
+    // So we wait before allowing the search box to be focused. By the
+    // time the search box recovers its ability to be focused, another
+    // element in the page should already have received the focus.
+    // In particular it's useful if we exit the modal box with
+    // Shift-Tab.
+    var DELAY = 100;
+    window.setTimeout(function () {
+      select('#search-input').attr('tabindex', 0);
+    }, DELAY);
     select('#search-modal').classed('is-active', false);
     select('#search-input').property('value', '');
     cleanModal();
@@ -29286,7 +29301,7 @@
       } else if (event.code === 'NumpadEnter' || event.code === 'Enter') {
         emptyResults();
         dispatcher.call('search-selected', null, result[0].mun);
-      } else if (event.code === 'Escape') {
+      } else if (event.code === 'Escape' || event.code === 'Tab' && idx === nodes.length - 1) {
         emptyResults();
         hideModal();
       }
