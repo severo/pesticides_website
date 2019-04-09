@@ -16,7 +16,8 @@
       "detections2": "detectado(s) en el agua potable de",
       "hhce1": "de",
       "hhce2": "asociado(s) con",
-      "hhce3": "enfermedades crónicas como el cáncer",
+      "hhce3": "enfermedades crónicas",
+      "hhce4": " como cáncer, defectos congénitos y alteración endocrina",
       "nohhce1": "de",
       "nohhce2": "otro(s) pesticida(s)",
       "footer": {

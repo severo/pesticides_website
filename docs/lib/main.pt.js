@@ -19599,7 +19599,7 @@
       });
 
       if (hhceSubstances.length > 0) {
-        makeTubesCocktail(parent, hhceSubstances, '<strong class="is-size-4">' + hhceSubstances.length + '</strong> de ' + mun.properties.map1Number + ': asociado(s) con <strong>enfermedades crónicas como el cáncer</strong>', 'hhce');
+        makeTubesCocktail(parent, hhceSubstances, '<strong class="is-size-4">' + hhceSubstances.length + '</strong> de ' + mun.properties.map1Number + ': asociado(s) con ' + '<strong>enfermedades crónicas</strong> ' + ' como cáncer, defectos congénitos y alteración endocrina', 'hhce');
         var otherSubstances = mun.properties.tests.filter(function (sub) {
           return !sub.substance.isHhce && sub.max > 0;
         });

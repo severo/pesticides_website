@@ -16,7 +16,8 @@
       "detections2": "detected in drinking water in",
       "hhce1": "out of",
       "hhce2": "associated with",
-      "hhce3": "chronic dieses such as cancer",
+      "hhce3": "chronic dieses",
+      "hhce4": "such as cancer, birth defects and endocrine disruption",
       "nohhce1": "out of",
       "nohhce2": "other pesticides",
       "footer": {

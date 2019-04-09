@@ -109,7 +109,9 @@ function makeCocktail(parent, dispatcher, mun, data) {
           hhceSubstances.length +
           '</strong> {{details.cocktail.hhce1}} ' +
           mun.properties.map1Number +
-          ': {{details.cocktail.hhce2}} <strong>{{details.cocktail.hhce3}}</strong>',
+          ': {{details.cocktail.hhce2}} ' +
+          '<strong>{{details.cocktail.hhce3}}</strong> ' +
+          '{{details.cocktail.hhce4}}',
         'hhce'
       );
       const otherSubstances = mun.properties.tests.filter(
