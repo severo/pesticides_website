@@ -1,6 +1,6 @@
 {
   "name": "@severo_bo/pesticides_website",
-  "version": "0.10.0",
+  "version": "0.10.1",
   "description": "Data visualization on pesticides in drinking water in Brazil",
   "directories": {
     "lib": "docs"
@@ -34,6 +34,7 @@
     "lint:test:src:css": "prettier --list-different \"src/**/*.scss\"",
     "lint:test:src:js": "eslint --ignore-path .gitignore --ignore-path .prettierignore \"src/**/*.js\"",
     "lint:test:src:lang": "prettier --list-different \"src/lang/*.json\"",
+    "release": "standard-version",
     "serve": "browser-sync start -c bs-config.js",
     "test": "npm run lint:test",
     "watch": "run-p watch:css watch:js watch:html watch:lang",
@@ -77,6 +78,7 @@
     "rollup": "^1.6.0",
     "rollup-plugin-babel": "^4.3.2",
     "rollup-plugin-node-resolve": "^4.0.1",
+    "standard-version": "^5.0.2",
     "tinyqueue": "^2.0.0",
     "topojson": "^3.0.2"
   },
