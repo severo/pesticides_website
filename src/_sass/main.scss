@@ -42,6 +42,8 @@ $map2-cat2: #b40f7b;
 $map2-cat3: #400035;
 */
 
+$map-default-bg: #f4f4f4;
+$map1-bg: #800126;
 $map2-cat1: #c7e9b4;
 $map2-cat2: #41b6c4;
 $map2-cat3: #253494;
@@ -57,10 +59,10 @@ $map2-cat3: #253494;
 }
 
 #page-title {
-  background-color: #389d55;
+  background-color: $map1-bg;
 
   &.cocktail {
-    background-color: #389d55;
+    background-color: $map1-bg;
   }
   &.limits {
     background-color: $map2-cat3;
@@ -72,7 +74,7 @@ $map2-cat3: #253494;
   margin-bottom: 1em;
   #nav-item-cocktail:hover,
   #nav-item-cocktail.is-active {
-    background-color: #389d55;
+    background-color: $map1-bg;
     color: $light;
   }
   #nav-item-limits:hover,
@@ -207,15 +209,14 @@ $map2-cat3: #253494;
 }
 
 .cocktail .choropleth path {
-  fill-opacity: 0.8;
+  fill: $map-default-bg;
 }
 .limits .choropleth path,
 .limits .legend rect {
   stroke: white;
   stroke-width: 4px;
   &.cat-0 {
-    fill-opacity: 0.8;
-    fill: #eee;
+    fill: $map-default-bg;
   }
   &.cat-1 {
     fill: $map2-cat1;

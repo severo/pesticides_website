@@ -34,7 +34,7 @@ export function makeMap(parent, dispatcher, data) {
   // to pass it a projection as an argument
   const path = geoPath();
 
-  createChoropleth(svg, path, data);
+  createChoropleth(svg, dispatcher, path, data);
   createFuFrontiers(svg, path, data);
   createLegend(svg, dispatcher);
   createOverlay(svg, path, dispatcher, data);

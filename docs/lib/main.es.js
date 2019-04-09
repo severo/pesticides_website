@@ -23860,6 +23860,8 @@
   var saturday = weekday(6);
 
   var sundays = sunday.range;
+  var mondays = monday.range;
+  var thursdays = thursday.range;
 
   var month = newInterval(function(date) {
     date.setDate(1);
@@ -23949,6 +23951,8 @@
   var utcSaturday = utcWeekday(6);
 
   var utcSundays = utcSunday.range;
+  var utcMondays = utcMonday.range;
+  var utcThursdays = utcThursday.range;
 
   var utcMonth = newInterval(function(date) {
     date.setUTCDate(1);
@@ -24930,7 +24934,7 @@
     "ffffe5f7fcb9d9f0a3addd8e78c67941ab5d238443006837004529"
   ).map(colors);
 
-  var interpolateYlGn = ramp(scheme$i);
+  ramp(scheme$i);
 
   var scheme$j = new Array(3).concat(
     "fff7bcfec44fd95f0e",
@@ -24954,7 +24958,7 @@
     "ffffccffeda0fed976feb24cfd8d3cfc4e2ae31a1cbd0026800026"
   ).map(colors);
 
-  ramp(scheme$k);
+  var interpolateYlOrRd = ramp(scheme$k);
 
   var scheme$l = new Array(3).concat(
     "deebf79ecae13182bd",
@@ -25155,26 +25159,36 @@
   };
 
   var cfg$1 = {
-    defaultFill: '#eee',
     max: 27
   };
-  function createChoropleth(parent, path, data) {
-    parent.append('g').classed('choropleth', true).selectAll('path').data(data.mun.features).enter().append('path').attr('id', function (ft) {
+  function createChoropleth(parent, dispatcher, path, data) {
+    var paths = parent.append('g').classed('choropleth', true).selectAll('path').data(data.mun.features).enter().append('path').attr('id', function (ft) {
       return 'id-' + ft.properties.ibgeCode;
-    }).attr('d', path).attr('fill', function (ft) {
-      // For map 1 - cocktail
+    }).attr('d', path);
+    dispatcher.on('make-app-cocktail.choropleth', function () {
+      return cocktailColors(paths);
+    });
+    dispatcher.on('make-app-limits.choropleth', function () {
+      return limitsColors(paths);
+    });
+  }
+
+  function cocktailColors(paths) {
+    paths.style('fill', function (ft) {
       if (!isNaN(ft.properties.map1Number)) {
         return cocktailColor(ft.properties.map1Number);
       }
+    }).attr('class', '');
+  }
 
-      return cfg$1.defaultFill;
-    }).attr('class', function (ft) {
-      // for map 2 - limits
+  function limitsColors(paths) {
+    paths.style('fill', '').attr('class', function (ft) {
       return 'cat-' + ft.properties.map2Category;
     });
   }
+
   var cocktailColor = linear$1().domain([0, cfg$1.max]).interpolate(function () {
-    return interpolateYlGn;
+    return interpolateYlOrRd;
   });
 
   function createFuFrontiers(parent, path, data) {
@@ -29311,7 +29325,7 @@
     // to pass it a projection as an argument
 
     var path = geoPath();
-    createChoropleth(svg, path, data);
+    createChoropleth(svg, dispatcher, path, data);
     createFuFrontiers(svg, path, data);
     createLegend(svg, dispatcher);
     createOverlay(svg, path, dispatcher, data);
