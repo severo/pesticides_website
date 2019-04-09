@@ -19362,8 +19362,8 @@
   var dim = {
     he: 80,
     vHe: 1000,
-    vWi: 400,
-    wi: 36
+    vWi: 1000,
+    wi: 80
   };
   function makeTubesCocktail(parent, substances, titleHtml, tubeClass) {
     var preparedSubstances = substances // useless filter?
@@ -19410,9 +19410,9 @@
     .append('svg').classed('tube', true).classed(tubeClass, true).attr('width', dim.wi).attr('height', dim.he).attr('viewBox', '0,0,' + dim.vWi + ',' + dim.vHe + '');
     /* eslint-disable no-magic-numbers */
 
-    drawTube(svg, 300, 1000).attr('transform', 'translate(100, 0)');
-    drawLiquid(svg, 300, 1000).attr('transform', 'translate(100, 0)');
-    drawText(svg, 300, 1000).attr('transform', 'scale(6) rotate(-90) translate(-10 16)');
+    drawTube(svg, 250, 800).attr('transform', 'translate(375, 0)');
+    drawLiquid(svg, 250, 800).attr('transform', 'translate(375, 0)');
+    drawText(svg).attr('transform', 'scale(5) translate(100, 190)');
   }
   function makeTubesLimits(parent, substances, titleHtml, tubeClass) {
     var preparedSubstances = substances.sort(function (subs1, subs2) {
@@ -19441,9 +19441,9 @@
     .append('svg').classed('tube', true).classed(tubeClass, true).attr('width', dim.wi).attr('height', dim.he).attr('viewBox', '0,0,' + dim.vWi + ',' + dim.vHe + '');
     /* eslint-disable no-magic-numbers */
 
-    drawTube(svg, 300, 1000).attr('transform', 'translate(100, 0)');
-    drawLiquid(svg, 300, 1000).attr('transform', 'translate(100, 0)');
-    drawText(svg, 300, 1000).attr('transform', 'scale(6) rotate(-90) translate(-10 16)');
+    drawTube(svg, 250, 800).attr('transform', 'translate(375, 0)');
+    drawLiquid(svg, 250, 800).attr('transform', 'translate(375, 0)');
+    drawText(svg).attr('transform', 'scale(5) translate(100 190)');
   }
 
   function drawTube(svg, width, height) {
@@ -19514,14 +19514,14 @@
     return liquid;
   }
 
-  function drawText(svg, width, height) {
+  function drawText(svg) {
     /* eslint-disable no-magic-numbers */
     var name = svg.append('g');
     /*const wid = (1.5 * dim.vWi) / 10;
     const hei = dim.vHe - 3 * wid;
     const mid = dim.vWi / 2;*/
 
-    name.append('text').attr('x', 0).attr('y', 0).style('text-anchor', 'end').text(function (subs) {
+    name.append('text').attr('x', 0).attr('y', 0).style('text-anchor', 'middle').text(function (subs) {
       return subs.shortName;
     });
     return name;

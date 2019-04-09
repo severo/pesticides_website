@@ -144,7 +144,8 @@ $map2-cat3: #01000f;
     }
     .tubes {
       svg.tube {
-        margin: 20px;
+        margin: 10px 5px;
+        font-size: 1.5rem;
         &.hhce {
           @include tube-colors(#f03b20);
         }
