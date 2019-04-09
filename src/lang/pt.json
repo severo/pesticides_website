@@ -20,6 +20,11 @@
       "hhce4": " como cáncer, defectos congénitos y alteración endocrina",
       "nohhce1": "de",
       "nohhce2": "otro(s) pesticida(s)",
+      "tubes": {
+        "tube1": " detecciones",
+        "tube2": "en ",
+        "tube3": " tests"
+      },
       "footer": {
         "tolimits1": "Descubra cuántas sustancias fueron",
         "tolimits2": "detectadas por encima de los límites legales"

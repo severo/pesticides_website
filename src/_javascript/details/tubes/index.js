@@ -2,7 +2,7 @@ import * as d3Path from 'd3-path';
 const dim = {
   he: 80,
   vHe: 1000,
-  vWi: 1000,
+  vWi: 1100,
   wi: 80,
 };
 
@@ -18,24 +18,15 @@ export function makeTubesCocktail(parent, substances, titleHtml, tubeClass) {
         {sensitivity: 'base'}
       );
     })
-    .map(subs => {
-      const numTests = subs.tests.length;
-      const numDetections = subs.tests.filter(con => con > 0).length;
-      /*const TO_PCT = 100;
-      const DIGITS = 0;*/
+    .map(sub => {
+      const numTests = sub.tests.length;
+      const numDetections = sub.tests.filter(con => con > 0).length;
       const ratio = numDetections / numTests;
       return {
-        shortName: subs.substance.shortName,
+        numDetections: numDetections,
+        numTests: numTests,
+        shortName: sub.substance.shortName,
         value: ratio,
-        /*valueText:
-          subs.substance.name +
-          ' detected in ' +
-          numDetections +
-          ' of ' +
-          numTests +
-          ' measurements (' +
-          (ratio * TO_PCT).toFixed(DIGITS) +
-          '%)',*/
       };
     });
 
@@ -48,9 +39,6 @@ export function makeTubesCocktail(parent, substances, titleHtml, tubeClass) {
     .selectAll('svg')
     .data(preparedSubstances)
     .enter()
-    // TODO: manage a popup for touch / mouseover, instead of this temporal attr
-    //.append('abbr')
-    //.attr('title', subs => subs.valueText)
     .append('svg')
     .classed('tube', true)
     .classed(tubeClass, true)
@@ -59,9 +47,46 @@ export function makeTubesCocktail(parent, substances, titleHtml, tubeClass) {
     .attr('viewBox', '0,0,' + dim.vWi + ',' + dim.vHe + '');
   /* eslint-disable no-magic-numbers */
 
-  drawTube(svg, 250, 800).attr('transform', 'translate(375, 0)');
-  drawLiquid(svg, 250, 800).attr('transform', 'translate(375, 0)');
-  drawText(svg).attr('transform', 'scale(5) translate(100, 190)');
+  const dyTube = 0;
+  const params = getLiquidParams(250, 800);
+  drawTube(svg, 250, 800).attr('transform', 'translate(0, ' + dyTube + ')');
+  drawLiquid(svg, 250, 800).attr('transform', 'translate(0, ' + dyTube + ')');
+
+  const dyName = 980;
+  svg
+    .append('text')
+    .attr('x', 0)
+    .attr('y', 0)
+    .attr('transform', 'translate(' + params.wid + ', ' + dyName + ') scale(5)')
+    .style('text-anchor', 'start')
+    .text(subs => subs.shortName);
+
+  const text = svg
+    .append('text')
+    .attr('x', 0)
+    .attr('y', 0)
+    .attr(
+      'transform',
+      sub =>
+        'translate(300, ' + (dyTube + params.getY(sub.value)) + ') scale(4)'
+    )
+    .style('text-anchor', 'start')
+    .style('dominant-baseline', 'central');
+  text
+    .append('tspan')
+    .attr('x', '0')
+    .attr('dy', '0')
+    .text(sub => sub.numDetections + '{{details.cocktail.tubes.tube1}}');
+  text
+    .append('tspan')
+    .attr('x', '0')
+    .attr('dy', '1.2em')
+    .text(
+      sub =>
+        '{{details.cocktail.tubes.tube2}}' +
+        sub.numTests +
+        '{{details.cocktail.tubes.tube3}}'
+    );
 }
 
 export function makeTubesLimits(parent, substances, titleHtml, tubeClass) {
@@ -162,46 +187,64 @@ function drawTube(svg, width, height) {
   /* eslint-enable no-magic-numbers */
 }
 
-function drawLiquid(svg, width, height) {
+function getLiquidParams(width, height) {
   /* eslint-disable no-magic-numbers */
-  function getY(ratio, max, margin) {
-    // Value must be between 0 and 1
-    return max * (1 - ratio) + margin;
-  }
-
-  const liquid = svg.append('g').classed('liquid', true);
   const wid = (1.5 * width) / 10;
   const hei = height - 3 * wid;
-  const mid = width / 2;
+  const max = hei - wid;
+  const margin = 2 * wid;
+  function getY(ratio) {
+    // Ratio must be between 0 (empty) and 1 (full)
+    return max * (1 - ratio) + margin;
+  }
+  return {
+    getY: getY,
+    hei: hei,
+    mid: width / 2,
+    wid: wid,
+  };
+  /* eslint-enable no-magic-numbers */
+}
+
+function drawLiquid(svg, width, height) {
+  /* eslint-disable no-magic-numbers */
+
+  const liquid = svg.append('g').classed('liquid', true);
+  const params = getLiquidParams(width, height);
 
   liquid
     .append('path')
     .classed('right', true)
-    .attr('d', subs => {
-      const pesY = wid + getY(subs.value, hei - wid, wid);
+    .attr('d', sub => {
+      const pesY = params.getY(sub.value) + params.wid;
       const dlb = d3Path.path();
-      dlb.moveTo(2 * mid - 2 * wid, pesY);
-      dlb.lineTo(2 * mid - 2 * wid, hei + wid);
+      dlb.moveTo(2 * params.mid - 2 * params.wid, pesY);
+      dlb.lineTo(2 * params.mid - 2 * params.wid, params.hei + params.wid);
       dlb.quadraticCurveTo(
-        2 * mid - 2 * wid,
-        hei + 2 * wid,
-        mid,
-        hei + 2 * wid
+        2 * params.mid - 2 * params.wid,
+        params.hei + 2 * params.wid,
+        params.mid,
+        params.hei + 2 * params.wid
       );
-      dlb.lineTo(mid, pesY);
+      dlb.lineTo(params.mid, pesY);
       dlb.closePath();
       return dlb.toString();
     });
   liquid
     .append('path')
     .classed('left', true)
-    .attr('d', subs => {
-      const pesY = wid + getY(subs.value, hei - wid, wid);
+    .attr('d', sub => {
+      const pesY = params.getY(sub.value) + params.wid;
       const dlb = d3Path.path();
-      dlb.moveTo(2 * wid, pesY);
-      dlb.lineTo(2 * wid, hei + wid);
-      dlb.quadraticCurveTo(2 * wid, hei + 2 * wid, mid, hei + 2 * wid);
-      dlb.lineTo(mid, pesY);
+      dlb.moveTo(2 * params.wid, pesY);
+      dlb.lineTo(2 * params.wid, params.hei + params.wid);
+      dlb.quadraticCurveTo(
+        2 * params.wid,
+        params.hei + 2 * params.wid,
+        params.mid,
+        params.hei + 2 * params.wid
+      );
+      dlb.lineTo(params.mid, pesY);
       dlb.closePath();
       return dlb.toString();
     });
