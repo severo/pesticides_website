@@ -19541,7 +19541,7 @@
     var main = parent.select('#details-main');
     main.html(null);
     makeHeader(main, 'Brasil');
-    main.append('p').html('[trabajo en curso... mostrar un mensaje - buscar o click]');
+    main.append('p').html('Agrotóxicos fueron detectados en el agua que abastece a más de 2.300 ciudades, de 2014 a 2017. Haga click en el mapa o teclee el nombre de su ciudad para descubrir qué químicos salen de su grifo.');
 
     if (view === 'limits') {
       makeLimitsToOtherViews(parent, dispatcher, state);

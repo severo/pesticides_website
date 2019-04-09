@@ -19541,7 +19541,7 @@
     var main = parent.select('#details-main');
     main.html(null);
     makeHeader(main, 'Brazil');
-    main.append('p').html('[work in progress... show a message - search or click]');
+    main.append('p').html('Pesticides were detected in the water that supplies more than 2.300 cities from 2014 to 2017. Search on the map or type your city to discover which chemicals came out of your faucet');
 
     if (view === 'limits') {
       makeLimitsToOtherViews(parent, dispatcher, state);
