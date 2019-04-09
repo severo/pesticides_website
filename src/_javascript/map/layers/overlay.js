@@ -5,7 +5,7 @@ export function createOverlay(parent, path, dispatcher, data) {
       .classed(
         'selected',
         mun => mun.properties.ibgeCode === selectedMun.properties.ibgeCode
-      ); // NO FUNCTIONA !!!
+      );
   }
   function forgetSelectedMun() {
     parent.selectAll('.overlay path').classed('selected', false);

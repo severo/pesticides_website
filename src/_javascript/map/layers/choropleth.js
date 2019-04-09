@@ -28,6 +28,6 @@ export function createChoropleth(parent, path, data) {
     });
 }
 
-const cocktailColor = scaleLinear()
+export const cocktailColor = scaleLinear()
   .domain([0, cfg.max])
   .interpolate(() => interpolateYlGn);

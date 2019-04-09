@@ -1,5 +1,6 @@
 import {createChoropleth} from './layers/choropleth';
 import {createFuFrontiers} from './layers/fu';
+import {createLegend} from './layers/legend';
 import {createOverlay} from './layers/overlay';
 //import {createSubstancesChoropleth} from './layers/substances/choropleth';
 //import {createSubstancesTooltip} from './layers/substances/tooltip';
@@ -35,6 +36,7 @@ export function makeMap(parent, dispatcher, data) {
 
   createChoropleth(svg, path, data);
   createFuFrontiers(svg, path, data);
+  createLegend(svg, dispatcher);
   createOverlay(svg, path, dispatcher, data);
   createTooltip(svg, dispatcher);
 
