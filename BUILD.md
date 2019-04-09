@@ -349,6 +349,7 @@ To release a new version:
 
 ```
 git checkout master; git pull origin master
+git merge develop
 npm run release
 git push --follow-tags origin master && npm publish
 ```
