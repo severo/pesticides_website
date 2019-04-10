@@ -19573,8 +19573,10 @@
 
     if (view === 'limits') {
       makeLimitsToOtherViews(parent, dispatcher, state);
+      makeLimitsSource(parent);
     } else {
       makeCocktailToOtherViews(parent, dispatcher, state);
+      makeCocktailSource(parent);
     }
   }
 
@@ -19778,6 +19780,18 @@
     par.append('a').attr('href', '#').text('detectado na água potável').on('click', function () {
       dispatcher.call('make-app-cocktail', null, state);
     });
+  }
+
+  function makeCocktailSource(parent) {
+    makeLimitsSource(parent);
+  }
+
+  function makeLimitsSource(parent) {
+    var par = parent.select('#details-footer #source').html(null);
+    par.append('h4').text('Fuente');
+    var ul = par.append('ul');
+    ul.append('li').text('datos de concentración de pesticidas: Sistema de Informação de Vigilância da Qualidade da Água para Consumo Humano (SISAGUA), 854.140 mediciones en municipalidades entre 2014 y 2017.');
+    ul.append('li').text('población estimada: Instituto Brasileiro de Geografia e Estatística (IBGE), 2017.');
   }
 
   function startLoading$1(element) {

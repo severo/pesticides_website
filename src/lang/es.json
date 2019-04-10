@@ -29,7 +29,10 @@
       },
       "footer": {
         "tolimits1": "Descubra cuántas sustancias fueron",
-        "tolimits2": "detectadas por encima de los límites legales"
+        "tolimits2": "detectadas por encima de los límites legales",
+        "source1": "Fuente",
+        "source2": "datos de concentración de pesticidas: Sistema de Informação de Vigilância da Qualidade da Água para Consumo Humano (SISAGUA), 854.140 mediciones en municipalidades entre 2014 y 2017.",
+        "source3": "población estimada: Instituto Brasileiro de Geografia e Estatística (IBGE), 2017."
       }
     },
     "limits": {

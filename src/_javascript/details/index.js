@@ -31,8 +31,10 @@ function makeBrazil(parent, dispatcher, view, state) {
 
   if (view === 'limits') {
     makeLimitsToOtherViews(parent, dispatcher, state);
+    makeLimitsSource(parent);
   } else {
     makeCocktailToOtherViews(parent, dispatcher, state);
+    makeCocktailSource(parent);
   }
 }
 
@@ -347,6 +349,18 @@ function makeLimitsToOtherViews(parent, dispatcher, state) {
     .on('click', () => {
       dispatcher.call('make-app-cocktail', null, state);
     });
+}
+
+function makeCocktailSource(parent) {
+  makeLimitsSource(parent);
+}
+
+function makeLimitsSource(parent) {
+  const par = parent.select('#details-footer #source').html(null);
+  par.append('h4').text('{{details.cocktail.footer.source1}}');
+  const ul = par.append('ul');
+  ul.append('li').text('{{details.cocktail.footer.source2}}');
+  ul.append('li').text('{{details.cocktail.footer.source3}}');
 }
 
 function startLoading(element) {

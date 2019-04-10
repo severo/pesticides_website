@@ -172,6 +172,16 @@ $map2-cat3: #01000f;
       }
     }
   }
+  #details-footer {
+    #to-other-views {
+    }
+    #download {
+    }
+    #source {
+      margin-top: 2rem;
+      font-size: 0.7rem;
+    }
+  }
 }
 // See https://github.com/jgthms/bulma/issues/847#issuecomment-314110630
 .is-loading {
