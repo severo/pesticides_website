@@ -19408,10 +19408,10 @@
       return 'translate(300, ' + (dyTube + params.getY(sub.value)) + ') scale(4)';
     }).style('text-anchor', 'start').style('dominant-baseline', 'central');
     text.append('tspan').attr('x', '0').attr('dy', '0').text(function (sub) {
-      return sub.numDetections + ' detecciones';
+      return sub.numDetections + ' detecções';
     });
     text.append('tspan').attr('x', '0').attr('dy', '1.2em').text(function (sub) {
-      return 'en ' + sub.numTests + ' tests';
+      return 'em ' + sub.numTests + ' testes';
     });
   }
   function makeTubesLimits(parent, substances, titleHtml, tubeClass) {
@@ -19569,7 +19569,7 @@
     var main = parent.select('#details-main');
     main.html(null);
     makeHeader(main, 'Brasil');
-    main.append('p').html('Agrotóxicos foram detectados na água que abastece mais de 2.300 cidades, de 2014 a 2017. Clique no mapa ou digite sua cidade para descobrir quais químicos saíram da sua torneira.');
+    main.append('p').html('Agrotóxicos foram detectados na água que abastece mais de 2.300 cidades de 2014 a 2017. Clique no mapa ou digite sua cidade para descobrir quais produtos químicos saíram da sua torneira');
 
     if (view === 'limits') {
       makeLimitsToOtherViews(parent, dispatcher, state);
@@ -19592,7 +19592,7 @@
     /*main
       .append('p')
       .html(
-        '<strong>Población</strong> ' +
+        '<strong>População</strong> ' +
           (+state.mun.properties.population).toLocaleString('pt-BR')
       );
     */
@@ -19615,30 +19615,30 @@
 
   function makeCocktail(parent, dispatcher, mun, data) {
     var level = parent.append('nav').classed('level is-mobile', true);
-    addLevelItem(level, 'Población', (+mun.properties.population).toLocaleString('pt-BR')); // map1Number should always be present - NaN if no tests
+    addLevelItem(level, 'População', (+mun.properties.population).toLocaleString('pt-BR')); // map1Number should always be present - NaN if no tests
 
     if (isNaN(mun.properties.map1Number)) {
-      addLevelItem(level, 'Pesticida(s) detectado(s)', 'Sin datos');
-      parent.append('header').html('<span class="is-size-4">Sin datos</span>' + ' sobre pesticidas en el agua potable de ' + mun.properties.name + '.');
+      addLevelItem(level, 'Agrotóxicos detectados', 'Sem dados');
+      parent.append('header').html('<span class="is-size-4">Sem dados</span>' + ' sobre agrotóxicos dentro da água potável em ' + mun.properties.name + '.');
     } else if (mun.properties.map1Number === 0) {
-      addLevelItem(level, 'Pesticida(s) detectado(s)', mun.properties.map1Number);
-      parent.append('header').html('<span class="is-size-4">Ningún pesticida</span>' + ' detectado en el agua potable de ' + mun.properties.name + '.');
+      addLevelItem(level, 'Agrotóxicos detectados', mun.properties.map1Number);
+      parent.append('header').html('<span class="is-size-4">Sem agrotóxicos</span>' + ' detectado dentro de água potável em ' + mun.properties.name + '.');
     } else {
-      addLevelItem(level, 'Pesticida(s) detectado(s)', mun.properties.map1Number);
-      parent.append('header').html('<span class="is-size-4">' + mun.properties.map1Number + '</span> pesticida(s)' + ' detectado(s) en el agua potable de ' + mun.properties.name + '.');
+      addLevelItem(level, 'Agrotóxicos detectados', mun.properties.map1Number);
+      parent.append('header').html('<span class="is-size-4">' + mun.properties.map1Number + '</span> Agrotóxicos' + ' detectado na água potável em ' + mun.properties.name + '.');
       var list = parent.append('ul');
       var hhceSubstances = mun.properties.tests.filter(function (sub) {
         return sub.substance.isHhce && sub.max > 0;
       });
 
       if (hhceSubstances.length > 0) {
-        makeTubesCocktail(list.append('li'), hhceSubstances, '<span class="is-size-4">' + hhceSubstances.length + '</span> asociado(s) con ' + '<strong>enfermedades crónicas</strong> ' + ' como cáncer, defectos congénitos y alteración endocrina', 'hhce');
+        makeTubesCocktail(list.append('li'), hhceSubstances, '<span class="is-size-4">' + hhceSubstances.length + '</span> associado com ' + '<strong>doenças crônicas</strong> ' + 'como câncer, defeitos congênitos e distúrbios endócrinos', 'hhce');
         var otherSubstances = mun.properties.tests.filter(function (sub) {
           return !sub.substance.isHhce && sub.max > 0;
         });
 
         if (otherSubstances.length > 0) {
-          makeTubesCocktail(list.append('li'), otherSubstances, '<span class="is-size-4">' + otherSubstances.length + '</span> otro(s) pesticida(s)', 'no-hhce');
+          makeTubesCocktail(list.append('li'), otherSubstances, '<span class="is-size-4">' + otherSubstances.length + '</span> outros agrotóxicos', 'no-hhce');
         }
       } else {
         makeTubesCocktail(list.append('li'), mun.properties.tests, '', 'no-hhce');
@@ -19648,19 +19648,19 @@
 
   function makeLimits(parent, dispatcher, mun, data) {
     var level = parent.append('nav').classed('level is-mobile', true);
-    addLevelItem(level, 'Población', (+mun.properties.population).toLocaleString('pt-BR')); // map2Category should always be present
+    addLevelItem(level, 'População', (+mun.properties.population).toLocaleString('pt-BR')); // map2Category should always be present
 
     if (mun.properties.map2Category === MAP2.CATEGORY.NO_TEST) {
-      parent.append('header').html('<span class="is-size-4">' + 'Sin datos</span> sobre pesticides en el agua potable de ' + mun.properties.name + '.');
+      parent.append('header').html('<span class="is-size-4">' + 'Sem dados</span> sobre agrotóxicos dentro da água potável em ' + mun.properties.name + '.');
     } else if (mun.properties.map2Category === MAP2.CATEGORY.BELOW) {
-      parent.append('header').html('<span class="is-size-4">' + 'Ningún pesticida</span> detectado por encima de los límites brasilero o europeo en ' + mun.properties.name + '.');
+      parent.append('header').html('<span class="is-size-4">' + 'sem agrotóxicos</span> detectado acima dos limites brasileiros ou europeus em ' + mun.properties.name + '.');
     } else {
       var supBrSubstances = mun.properties.tests.filter(function (sub) {
         return sub.map2Category === MAP2.CATEGORY.SUP_BR;
       });
 
       if (supBrSubstances.length > 0) {
-        makeTubesLimits(parent, supBrSubstances, '<span class="is-size-4">' + supBrSubstances.length + '</span> pesticida(s) detectado(s) por encima del límite brasilero', 'cat-' + MAP2.CATEGORY.SUP_BR);
+        makeTubesLimits(parent, supBrSubstances, '<span class="is-size-4">' + supBrSubstances.length + '</span> agrotóxico(s) detectado acima do limite brasileiro', 'cat-' + MAP2.CATEGORY.SUP_BR);
       }
 
       var supEuSubstances = mun.properties.tests.filter(function (sub) {
@@ -19668,7 +19668,7 @@
       });
 
       if (supEuSubstances.length > 0) {
-        makeTubesLimits(parent, supEuSubstances, '<span class="is-size-4">' + supEuSubstances.length + '</span> pesticida(s) detectado(s) por encima del límite europeo', 'cat-' + MAP2.CATEGORY.SUP_EU);
+        makeTubesLimits(parent, supEuSubstances, '<span class="is-size-4">' + supEuSubstances.length + '</span> agrotóxico(s) detectado acima do limite europeu', 'cat-' + MAP2.CATEGORY.SUP_EU);
       }
     }
   }
@@ -19678,7 +19678,7 @@
     parent
       .append('p')
       .html(
-        '<strong>Población</strong> ' +
+        '<strong>População</strong> ' +
           (+mun.properties.population).toLocaleString('pt-BR')
       );
 
@@ -19766,16 +19766,16 @@
 
   function makeCocktailToOtherViews(parent, dispatcher, state) {
     var par = parent.select('#details-footer #to-other-views').html(null).append('p');
-    par.append('span').text('Descubra cuántas sustancias fueron ');
-    par.append('a').attr('href', '#').text('detectadas por encima de los límites legales').on('click', function () {
+    par.append('span').text('Descubra quantas substâncias foram ');
+    par.append('a').attr('href', '#').text('detectado acima dos limites legais').on('click', function () {
       dispatcher.call('make-app-limits', null, state);
     });
   }
 
   function makeLimitsToOtherViews(parent, dispatcher, state) {
     var par = parent.select('#details-footer #to-other-views').html(null).append('p');
-    par.append('span').text('Descubra cuántas sustancias fueron ');
-    par.append('a').attr('href', '#').text('detectadas en el agua potable').on('click', function () {
+    par.append('span').text('Descubra quantas substâncias foram ');
+    par.append('a').attr('href', '#').text('detectado na água potável').on('click', function () {
       dispatcher.call('make-app-cocktail', null, state);
     });
   }
@@ -29257,10 +29257,10 @@
     nx: 220,
     ny: 700
   };
-  var map2LabelByCategory = ['Sin medición', 'Todas las sustancias por debajo de los límites brasilero y europeo', 'Pesticida(s) detectado(s) por encima del límite europeo', 'Pesticida(s) detectado(s) por encima del límite brasilero'];
+  var map2LabelByCategory = ['Nunca testado', 'Todas as substâncias abaixo dos limites brasileiro e europeu', 'Agrotóxico(s) detectado(s) acima do limite europeu', 'Agrotóxico(s) detectado(s) acima do limite brasileiro'];
 
   function cocktailLabel(mun) {
-    return Number.isInteger(mun.properties.map1Number) ? mun.properties.map1Number + ' pesticida(s) encontrado(s) en el agua potable.' : 'Sin medición.';
+    return Number.isInteger(mun.properties.map1Number) ? mun.properties.map1Number + ' agrotóxico(s) encontrado(s) na água potável.' : 'Nunca testado.';
   }
 
   function limitsLabel(mun) {
