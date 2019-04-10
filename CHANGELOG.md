@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+# [0.16.0](https://github.com/severo/pesticides_website/compare/v0.15.0...v0.16.0) (2019-04-10)
+
+
+### Features
+
+* add a source section, with references to IBGE and SISAGUA ([e7d8304](https://github.com/severo/pesticides_website/commit/e7d8304))
+
+
+
 # [0.15.0](https://github.com/severo/pesticides_website/compare/v0.14.0...v0.15.0) (2019-04-10)
 
 
