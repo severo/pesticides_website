@@ -63,6 +63,19 @@
   "lang": "en",
   "locale": "en-US",
   "map": {
+    "legend": {
+      "cocktail1": "Number of pesticides detected in",
+      "cocktail2": "drinking water",
+      "cocktail3": "(light: none, dark: 27 different pesticides)",
+      "limits1": "Pesticides detected above legal limits",
+      "limits2": "in drinking water",
+      "limits": {
+        "BELOW": "all agrotoxics below limits",
+        "NO_TEST": "no data",
+        "SUP_BR": "at least one above Brazilian limit",
+        "SUP_EU": "at least one above European limit"
+      }
+    },
     "tooltip": {
       "cocktail": {
         "nevertested": "Never tested",

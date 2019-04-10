@@ -63,6 +63,19 @@
   "lang": "pt",
   "locale": "pt-BR",
   "map": {
+    "legend": {
+      "cocktail1": "Número de pesticidas detectados",
+      "cocktail2": "en el agua potable",
+      "cocktail3": "(claro: 0, oscuro: 27 pesticidas diferentes)",
+      "limits1": "Pesticidas detectados por encima",
+      "limits2": "de los límites legales en el agua potable",
+      "limits": {
+        "BELOW": "todos los pesticidas bajo los límites",
+        "NO_TEST": "sin datos",
+        "SUP_BR": "pesticida(s) encima del límite brasilero",
+        "SUP_EU": "pesticida(s) encima del límite europeo"
+      }
+    },
     "tooltip": {
       "cocktail": {
         "nevertested": "Nunca testado",

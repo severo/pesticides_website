@@ -25249,10 +25249,10 @@
   };
   var legendKeys = ['SUP_BR', 'SUP_EU', 'BELOW', 'NO_TEST'];
   var legendLabels = {
-    BELOW: 'all agrotoxics below limits',
-    NO_TEST: 'no data',
-    SUP_BR: 'at least one above Brazilian limit',
-    SUP_EU: 'at least one above European limit'
+    BELOW: 'todos los pesticidas bajo los límites',
+    NO_TEST: 'sin datos',
+    SUP_BR: 'pesticida(s) encima del límite brasilero',
+    SUP_EU: 'pesticida(s) encima del límite europeo'
   };
   function createLegend(parent, dispatcher) {
     dispatcher.on('make-app-cocktail.legend', function () {
@@ -25277,10 +25277,10 @@
     });
     var label = legend.append('g').attr('fill', '#000').attr('text-anchor', 'start'); // TODO: i18n
 
-    label.append('text').attr('y', -cfg$2.legendCocktail.titleOffsetLine1).attr('font-weight', 'bold').text('Number of pesticides detected in');
-    label.append('text').attr('y', -cfg$2.legendCocktail.titleOffsetLine2).attr('font-weight', 'bold').text('drinking water'); // TODO: i18n
+    label.append('text').attr('y', -cfg$2.legendCocktail.titleOffsetLine1).attr('font-weight', 'bold').text('Número de pesticidas detectados');
+    label.append('text').attr('y', -cfg$2.legendCocktail.titleOffsetLine2).attr('font-weight', 'bold').text('en el agua potable'); // TODO: i18n
 
-    label.append('text').attr('y', -cfg$2.legendCocktail.subtitleOffset).text('(light: none, dark: 27 different pesticides)'); // Scale
+    label.append('text').attr('y', -cfg$2.legendCocktail.subtitleOffset).text('(claro: 0, oscuro: 27 pesticidas diferentes)'); // Scale
 
     legend.append('g').call(axisBottom(xx).tickSize(cfg$2.legendCocktail.tickSize)).select('.domain').remove();
   }
@@ -25303,8 +25303,8 @@
     });
     var label = legend.append('g').attr('fill', '#000').attr('text-anchor', 'start'); // TODO: i18n
 
-    label.append('text').attr('y', -cfg$2.legendLimits.titleOffset).attr('font-weight', 'bold').text('Pesticides detected above legal limits');
-    label.append('text').attr('y', -cfg$2.legendLimits.subtitleOffset).attr('font-weight', 'bold').text('in drinking water');
+    label.append('text').attr('y', -cfg$2.legendLimits.titleOffset).attr('font-weight', 'bold').text('Pesticidas detectados por encima');
+    label.append('text').attr('y', -cfg$2.legendLimits.subtitleOffset).attr('font-weight', 'bold').text('de los límites legales en el agua potable');
   }
 
   function createOverlay(parent, path, dispatcher, data) {

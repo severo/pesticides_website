@@ -24,10 +24,10 @@ const cfg = {
 const legendKeys = ['SUP_BR', 'SUP_EU', 'BELOW', 'NO_TEST'];
 
 const legendLabels = {
-  BELOW: 'all agrotoxics below limits',
-  NO_TEST: 'no data',
-  SUP_BR: 'at least one above Brazilian limit',
-  SUP_EU: 'at least one above European limit',
+  BELOW: '{{map.legend.limits.BELOW}}',
+  NO_TEST: '{{map.legend.limits.NO_TEST}}',
+  SUP_BR: '{{map.legend.limits.SUP_BR}}',
+  SUP_EU: '{{map.legend.limits.SUP_EU}}',
 };
 
 export function createLegend(parent, dispatcher) {
@@ -69,19 +69,19 @@ function createLegendCocktail(parent) {
     .append('text')
     .attr('y', -cfg.legendCocktail.titleOffsetLine1)
     .attr('font-weight', 'bold')
-    .text('Number of pesticides detected in');
+    .text('{{map.legend.cocktail1}}');
 
   label
     .append('text')
     .attr('y', -cfg.legendCocktail.titleOffsetLine2)
     .attr('font-weight', 'bold')
-    .text('drinking water');
+    .text('{{map.legend.cocktail2}}');
 
   // TODO: i18n
   label
     .append('text')
     .attr('y', -cfg.legendCocktail.subtitleOffset)
-    .text('(light: none, dark: 27 different pesticides)');
+    .text('{{map.legend.cocktail3}}');
 
   // Scale
   legend
@@ -134,10 +134,10 @@ function createLegendLimits(parent) {
     .append('text')
     .attr('y', -cfg.legendLimits.titleOffset)
     .attr('font-weight', 'bold')
-    .text('Pesticides detected above legal limits');
+    .text('{{map.legend.limits1}}');
   label
     .append('text')
     .attr('y', -cfg.legendLimits.subtitleOffset)
     .attr('font-weight', 'bold')
-    .text('in drinking water');
+    .text('{{map.legend.limits2}}');
 }
