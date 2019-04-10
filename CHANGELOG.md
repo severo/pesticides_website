@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+# [0.15.0](https://github.com/severo/pesticides_website/compare/v0.14.0...v0.15.0) (2019-04-10)
+
+
+### Bug Fixes
+
+* add translation strings for the legends ([0a06ce1](https://github.com/severo/pesticides_website/commit/0a06ce1))
+* increase size of annotation text aside the tubes ([c1195d0](https://github.com/severo/pesticides_website/commit/c1195d0))
+
+
+### Features
+
+* Portuguese translation by @MastaBaba ([42d793b](https://github.com/severo/pesticides_website/commit/42d793b))
+
+
+
 # [0.14.0](https://github.com/severo/pesticides_website/compare/v0.13.0...v0.14.0) (2019-04-09)
 
 
