@@ -63,6 +63,7 @@ export function makeTubesCocktail(parent, substances, titleHtml, tubeClass) {
 
   const text = svg
     .append('text')
+    .classed('annotation', true)
     .attr('x', 0)
     .attr('y', 0)
     .attr(

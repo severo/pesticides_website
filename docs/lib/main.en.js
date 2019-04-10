@@ -19404,7 +19404,7 @@
     svg.append('text').attr('x', 0).attr('y', 0).attr('transform', 'translate(' + params.wid + ', ' + dyName + ') scale(5)').style('text-anchor', 'start').text(function (subs) {
       return subs.shortName;
     });
-    var text = svg.append('text').attr('x', 0).attr('y', 0).attr('transform', function (sub) {
+    var text = svg.append('text').classed('annotation', true).attr('x', 0).attr('y', 0).attr('transform', function (sub) {
       return 'translate(300, ' + (dyTube + params.getY(sub.value)) + ') scale(4)';
     }).style('text-anchor', 'start').style('dominant-baseline', 'central');
     text.append('tspan').attr('x', '0').attr('dy', '0').text(function (sub) {

@@ -166,6 +166,9 @@ $map2-cat3: #01000f;
         &.cat-3 {
           @include tube-colors($map2-cat3);
         }
+        .annotation {
+          font-size: 1.8rem;
+        }
       }
     }
   }
