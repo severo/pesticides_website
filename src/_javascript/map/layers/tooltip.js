@@ -1,8 +1,9 @@
-import {annotation, annotationCalloutElbow} from 'd3-svg-annotation';
+import {annotation, annotationCalloutCircle} from 'd3-svg-annotation';
 
 const cfg = {
   nx: 220,
   ny: 700,
+  radius: {min: 20, padding: 5},
 };
 
 const map2LabelByCategory = [
@@ -71,7 +72,7 @@ function showTooltip(tooltip, label, mun) {
 // this function will call d3.annotation when a tooltip has to be drawn
 function createAnnotation(label, mun) {
   return annotation()
-    .type(annotationCalloutElbow)
+    .type(annotationCalloutCircle)
     .annotations([
       {
         data: mun,
@@ -82,6 +83,10 @@ function createAnnotation(label, mun) {
         },
         nx: cfg.nx,
         ny: cfg.ny,
+        subject: {
+          radius: Math.max(mun.properties.radius, cfg.radius.min),
+          radiusPadding: cfg.radius.padding,
+        },
         x: mun.properties.centroid[0], // eslint-disable-line id-length
         y: mun.properties.centroid[1], // eslint-disable-line id-length
       },

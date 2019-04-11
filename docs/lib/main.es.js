@@ -23509,6 +23509,23 @@
 
   // Returns the 2D cross product of AB and AC vectors, i.e., the z-component of
 
+  function polygonContains(polygon, point) {
+    var n = polygon.length,
+        p = polygon[n - 1],
+        x = point[0], y = point[1],
+        x0 = p[0], y0 = p[1],
+        x1, y1,
+        inside = false;
+
+    for (var i = 0; i < n; ++i) {
+      p = polygon[i], x1 = p[0], y1 = p[1];
+      if (((y1 > y) !== (y0 > y)) && (x < (x0 - x1) * (y - y1) / (y0 - y1) + x1)) inside = !inside;
+      x0 = x1, y0 = y1;
+    }
+
+    return inside;
+  }
+
   function initRange(domain, range) {
     switch (arguments.length) {
       case 0: break;
@@ -23909,6 +23926,8 @@
   var saturday = weekday(6);
 
   var sundays = sunday.range;
+  var mondays = monday.range;
+  var thursdays = thursday.range;
 
   var month = newInterval(function(date) {
     date.setDate(1);
@@ -23998,6 +24017,8 @@
   var utcSaturday = utcWeekday(6);
 
   var utcSundays = utcSunday.range;
+  var utcMondays = utcMonday.range;
+  var utcThursdays = utcThursday.range;
 
   var utcMonth = newInterval(function(date) {
     date.setUTCDate(1);
@@ -25204,41 +25225,69 @@
   };
 
   var cfg$1 = {
+    backgroundColor: '#f0f0f0',
+    frontiers: {
+      br: 1,
+      fu: 0.5,
+      mun: 0.25
+    },
     max: 27
   };
-  function createChoropleth(parent, dispatcher, path, data) {
-    var paths = parent.append('g').classed('choropleth', true).selectAll('path').data(data.mun.features).enter().append('path').attr('id', function (ft) {
-      return 'id-' + ft.properties.ibgeCode;
-    }).attr('d', path);
+  function createChoropleth(context, dispatcher, path, data, scale) {
     dispatcher.on('make-app-cocktail.choropleth', function () {
-      return cocktailColors(paths);
+      return drawMap(context, path, data, scale, function (mun) {
+        return cocktailColor(mun.properties.map1Number);
+      });
     });
     dispatcher.on('make-app-limits.choropleth', function () {
-      return limitsColors(paths);
+      return drawMap(context, path, data, scale, function (mun) {
+        return limitsColor(mun.properties.map2Category);
+      });
     });
   }
 
-  function cocktailColors(paths) {
-    paths.style('fill', function (ft) {
-      if (!isNaN(ft.properties.map1Number)) {
-        return cocktailColor(ft.properties.map1Number);
-      }
-    }).attr('class', '');
+  function addFrontiers(context, path, data, scale) {
+    // TODO: frontiers instead of polygons for municipalities
+    context.beginPath();
+    path(data.mun);
+    context.lineWidth = cfg$1.frontiers.mun / scale;
+    context.strokeStyle = '#aaa';
+    context.stroke();
+    context.beginPath();
+    path(data.internalFu);
+    context.lineWidth = cfg$1.frontiers.fu / scale;
+    context.strokeStyle = '#000';
+    context.stroke();
+    context.beginPath();
+    path(data.brazil);
+    context.lineWidth = cfg$1.frontiers.br / scale;
+    context.strokeStyle = '#000';
+    context.stroke();
   }
 
-  function limitsColors(paths) {
-    paths.style('fill', '').attr('class', function (ft) {
-      return 'cat-' + ft.properties.map2Category;
+  function drawMap(context, path, data, scale, color) {
+    data.mun.features.forEach(function (mun) {
+      context.beginPath();
+      path(mun);
+      context.fillStyle = color(mun);
+      context.fill();
     });
+    addFrontiers(context, path, data, scale);
   }
 
-  var cocktailColor = linear$1().domain([0, cfg$1.max]).interpolate(function () {
-    return interpolateYlOrRd;
-  });
+  var cocktailColor = function cocktailColor(value) {
+    if (isNaN(value)) {
+      return cfg$1.backgroundColor;
+    }
 
-  function createFuFrontiers(parent, path, data) {
-    return parent.append('g').classed('fu-frontiers', true).selectAll('path').data(data.internalFu.features).enter().append('path').attr('d', path);
-  }
+    return linear$1().domain([0, cfg$1.max]).interpolate(function () {
+      return interpolateYlOrRd;
+    })(value);
+  };
+  var limitsColor = function limitsColor(value) {
+    var colors = ['#f4f4f4', '#74a3eb', '#001d93', '#01000f'];
+    return colors[value];
+  };
 
   var cfg$2 = {
     legendCocktail: {
@@ -25321,43 +25370,75 @@
     label.append('text').attr('y', -cfg$2.legendLimits.subtitleOffset).attr('font-weight', 'bold').text('de los límites legales en el agua potable');
   }
 
-  function createOverlay(parent, path, dispatcher, data) {
-    function rememberSelectedMun(selectedMun) {
-      parent.selectAll('.overlay path').classed('selected', function (mun) {
-        return mun.properties.ibgeCode === selectedMun.properties.ibgeCode;
-      });
-    }
-
-    function forgetSelectedMun() {
-      parent.selectAll('.overlay path').classed('selected', false);
-    }
-
-    dispatcher.on('to-brazil-view.overlay', forgetSelectedMun);
-    dispatcher.on('to-mun-view.overlay mun-click.overlay', rememberSelectedMun);
-
-    function updateView(state) {
-      // Select the municipality, if needed
-      if ('mun' in state) {
-        rememberSelectedMun(state.mun);
-      } else {
-        forgetSelectedMun();
-      }
-    }
-
-    parent.append('g').classed('overlay', true).selectAll('path').data(data.mun.features).enter().append('path') // id is currently useless
-    .attr('id', function (ft) {
-      return 'overlay-id-' + ft.properties.ibgeCode;
-    }).attr('d', path).on('mouseover', function (ft, element) {
-      // invoke callbacks
-      dispatcher.call('mun-mouseover', null, ft);
-    }).on('mouseout', function (ft, element) {
+  function createOverlay(parent, dispatcher, data, canvas, dataWidth) {
+    // The overlay is nearly 100% transparent. It's used to capture the mouse and
+    // touch events
+    var overlay = parent.append('rect').attr('x', 0).attr('y', 0).attr('width', '100%').attr('height', '100%').attr('fill-opacity', '0.01');
+    overlay.on('mouseout', function (ft, element) {
       // invoke callbacks
       dispatcher.call('mun-mouseout');
-    }).on('click', function (ft, element) {
-      // invoke callbacks
-      dispatcher.call('mun-click', null, ft);
     });
-    dispatcher.on('make-app-cocktail.tooltip make-app-limits.tooltip', updateView);
+    overlay.on('click', function () {
+      var mun = findMun(data, event, dataWidth, canvas);
+
+      if (mun) {
+        dispatcher.call('mun-click', null, mun);
+      } else {
+        dispatcher.call('mun-mouseout');
+      }
+    });
+    overlay.on('mouseover mousemove', function () {
+      var mun = findMun(data, event, dataWidth, canvas);
+
+      if (mun) {
+        dispatcher.call('mun-mouseover', null, mun);
+      } else {
+        dispatcher.call('mun-mouseout');
+      }
+    });
+  }
+  /* From d3-geo + adapted to planar polygons */
+
+  var containsGeometryType = {
+    MultiPolygon: function MultiPolygon(object, point) {
+      var coordinates = object.coordinates;
+      var idx = -1;
+      var len = coordinates.length;
+
+      while (++idx < len) {
+        if (polygonContains(coordinates[idx][0], point)) {
+          return true;
+        }
+      }
+
+      return false;
+    },
+    Polygon: function Polygon(object, point) {
+      return polygonContains(object.coordinates[0], point);
+    }
+  };
+
+  function contains(geometry, point) {
+    return geometry && containsGeometryType.hasOwnProperty(geometry.type) ? containsGeometryType[geometry.type](geometry, point) : false;
+  }
+
+  function findMun(data, event, dataWidth, canvas) {
+    // In order to get back to the data dimensions, we need to know the size of
+    // the canvas (client size), scale to the image size, and then divide by the
+    // scale
+    var clientToData = function clientToData(dim) {
+      return dim * dataWidth / canvas.node().clientWidth;
+    };
+
+    var dataX = clientToData(event.layerX);
+    var dataY = clientToData(event.layerY);
+    return data.mun.features.find(function (feature) {
+      // TODO: if necessary, optimize looking first at the bounding box to avoid
+      // more work
+      // TODO: possibly, generate an index
+      // TODO: evaluate picking https://bocoup.com/blog/2d-picking-in-canvas
+      return contains(feature.geometry, [dataX, dataY]);
+    });
   }
 
   var xhtml$1 = "http://www.w3.org/1999/xhtml";
@@ -29269,7 +29350,11 @@
 
   var cfg$3 = {
     nx: 220,
-    ny: 700
+    ny: 700,
+    radius: {
+      min: 20,
+      padding: 5
+    }
   };
   var map2LabelByCategory = ['Sin medición', 'Todas las sustancias por debajo de los límites brasilero y europeo', 'Pesticida(s) detectado(s) por encima del límite europeo', 'Pesticida(s) detectado(s) por encima del límite brasilero'];
 
@@ -29335,7 +29420,7 @@
 
 
   function createAnnotation(label, mun) {
-    return annotation().type(d3CalloutElbow).annotations([{
+    return annotation().type(d3CalloutCircle).annotations([{
       data: mun,
       note: {
         label: label(mun),
@@ -29344,6 +29429,10 @@
       },
       nx: cfg$3.nx,
       ny: cfg$3.ny,
+      subject: {
+        radius: Math.max(mun.properties.radius, cfg$3.radius.min),
+        radiusPadding: cfg$3.radius.padding
+      },
       x: mun.properties.centroid[0],
       // eslint-disable-line id-length
       y: mun.properties.centroid[1] // eslint-disable-line id-length
@@ -29352,29 +29441,49 @@
   }
 
   var cfg$4 = {
-    viewport: {
+    data: {
       height: 960,
       width: 960
+    },
+    drawing: {
+      // 1 is low: the image is blurry. Set 1.5 or more
+      scale: 1.5
+    },
+    svg: {
+      margin: 200
     }
   };
   function makeMap(parent, dispatcher, data) {
-    startLoading$2(parent); // Clean existing contents
-    // TODO: be more clever?
+    startLoading$2(parent);
+    parent.html(null); // 1. create the map as a canvas - for efficiency
+    // As the canvas is set to 100% width, a window resize will modify the client
+    // size of the canvas.
+    // The dimensions here are not related to that effective size (client size).
+    // The canvas width and height attributes correspond to the size of the image
+    // ie. 1.5x scale, and 0-960 in data -> 1440 px square image
+    // (the image will later be redimensioned, ie. reduced, to enter in the 100%
+    // of its container - ie 400px)
 
-    parent.html(null);
-    var svg = parent.append('svg').attr('viewBox', '0,0,' + cfg$4.viewport.width + ',' + cfg$4.viewport.height); // Path is a function that transforms a geometry (a point, a line, a
-    // polygon) into a SVG path (also allows to generate canvas paths, for
+    var canvas = parent.append('canvas');
+    canvas.attr('width', cfg$4.drawing.scale * cfg$4.data.width).attr('height', cfg$4.drawing.scale * cfg$4.data.height);
+    var context = canvas.node().getContext('2d');
+    var scale = cfg$4.drawing.scale;
+    context.scale(scale, scale);
+    context.lineJoin = 'round';
+    context.lineCap = 'round'; // Path is a function that transforms a geometry (a point, a line, a
+    // polygon) into a canvas path (also allows to generate SVG paths, for
     // example)
     // Note that it takes geographic coordinates as an input, not planar ones
     // But as the data is already expressed in px, in 960x960 viewport, no need
     // to pass it a projection as an argument
 
-    var path = geoPath();
-    createChoropleth(svg, dispatcher, path, data);
-    createFuFrontiers(svg, path, data);
+    var path = geoPath(null, context);
+    createChoropleth(context, dispatcher, path, data, scale); // 2. add an SVG layer over the canvas, for interactivity
+
+    var svg = parent.append('svg').style('position', 'absolute').style('top', '0px').style('left', '0px').attr('viewBox', '0,0,' + cfg$4.data.width + ',' + cfg$4.data.height);
     createLegend(svg, dispatcher);
-    createOverlay(svg, path, dispatcher, data);
     createTooltip(svg, dispatcher);
+    createOverlay(svg, dispatcher, data, canvas, cfg$4.data.width);
     endLoading$2(parent);
   }
   /*

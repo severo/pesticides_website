@@ -28,27 +28,8 @@ $primary-invert: $pink-invert;
 
 @import '../../node_modules/bulma/bulma';
 
-/* Some colors previously used in tubes
-$br_dark_green: #006860;
-$br_dark_purple: #770064;
-$br_dark_red: #a92b00;
-$br_light_green: #007d73;
-$br_light_purple: #8f0078;
-$br_light_red: #c63400;
-*/
-/* A purple palette
-$map2-cat1: #da70ba;
-$map2-cat2: #b40f7b;
-$map2-cat3: #400035;
-*/
-/* A green-blue palette
-$map2-cat1: #c7e9b4;
-$map2-cat2: #41b6c4;
-$map2-cat3: #253494;
-*/
-
-$map-default-bg: #f4f4f4;
 $map1-bg: #800126;
+$map2-cat0: #f4f4f4;
 $map2-cat1: #74a3eb;
 $map2-cat2: #001d93;
 $map2-cat3: #01000f;
@@ -58,8 +39,49 @@ $map2-cat3: #01000f;
     fill: $base-color;
   }
   .left {
-    //fill: $base-color;
     fill: darken($base-color, 4%);
+  }
+}
+
+.cocktail {
+  .annotation {
+    path.connector,
+    path.subject,
+    path.note-line {
+      stroke: #26a69a;
+    }
+    .annotation-note text {
+      fill: #26a69a;
+    }
+  }
+}
+
+.limits {
+  .annotation {
+    path.connector,
+    path.subject,
+    path.note-line {
+      stroke: #eb2e6c;
+    }
+    .annotation-note text {
+      fill: #eb2e6c;
+    }
+  }
+  .legend rect {
+    stroke: white;
+    stroke-width: 4px;
+    &.cat-0 {
+      fill: $map-default-bg;
+    }
+    &.cat-1 {
+      fill: $map2-cat1;
+    }
+    &.cat-2 {
+      fill: $map2-cat2;
+    }
+    &.cat-3 {
+      fill: $map2-cat3;
+    }
   }
 }
 
@@ -92,6 +114,7 @@ $map2-cat3: #01000f;
 #app {
   padding-top: 0;
 }
+
 #search {
   margin-top: 2.5em;
   .modal-content {
@@ -125,6 +148,7 @@ $map2-cat3: #01000f;
     background-color: rgba(10, 10, 10, 0.2);
   }
 }
+
 #details {
   #details-main {
     min-height: 150px;
@@ -183,6 +207,39 @@ $map2-cat3: #01000f;
     }
   }
 }
+
+#map {
+  position: relative;
+  min-height: 150px;
+  canvas {
+    width: 100%;
+  }
+  svg {
+    width: 100%;
+    .overlay path {
+      fill: #ffffff01;
+    }
+    .annotation {
+      text {
+        font-size: 1.25rem;
+      }
+    }
+  }
+}
+
+#footer-lang {
+  margin-bottom: 1em;
+  ul,
+  li {
+    display: inline-block;
+  }
+  li + li:before {
+    content: ' · ';
+    padding: 0;
+    position: relative;
+  }
+}
+
 // See https://github.com/jgthms/bulma/issues/847#issuecomment-314110630
 .is-loading {
   position: relative;
@@ -196,72 +253,5 @@ $map2-cat3: #01000f;
     width: 5em;
     height: 5em;
     border-width: 0.25em;
-  }
-}
-
-#map {
-  min-height: 150px;
-  svg {
-    width: 100%;
-    .choropleth {
-      path {
-        stroke: none;
-      }
-    }
-    .overlay path {
-      fill: #ffffff01;
-      &:hover {
-        stroke: #e8336d;
-        stroke-width: 2;
-        stroke-opacity: 0.25;
-      }
-      &.selected {
-        stroke: #e8336d;
-        stroke-width: 2;
-        stroke-opacity: 1;
-      }
-    }
-    .fu-frontiers path {
-      fill: none;
-      stroke: #bbb;
-      stroke-width: 1;
-    }
-    .annotation-note {
-      font-size: 1.25rem;
-    }
-  }
-}
-
-.cocktail .choropleth path {
-  fill: $map-default-bg;
-}
-.limits .choropleth path,
-.limits .legend rect {
-  stroke: white;
-  stroke-width: 4px;
-  &.cat-0 {
-    fill: $map-default-bg;
-  }
-  &.cat-1 {
-    fill: $map2-cat1;
-  }
-  &.cat-2 {
-    fill: $map2-cat2;
-  }
-  &.cat-3 {
-    fill: $map2-cat3;
-  }
-}
-
-nav#footer-lang {
-  margin-bottom: 1em;
-  ul,
-  li {
-    display: inline-block;
-  }
-  li + li:before {
-    content: ' · ';
-    padding: 0;
-    position: relative;
   }
 }
