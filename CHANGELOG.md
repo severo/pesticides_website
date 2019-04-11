@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+# [0.17.0](https://github.com/severo/pesticides_website/compare/v0.16.0...v0.17.0) (2019-04-11)
+
+
+### Bug Fixes
+
+* improve performance on mobiles replacing SVG map by canvas ([47d5110](https://github.com/severo/pesticides_website/commit/47d5110))
+
+
+### Features
+
+* incorporate @MastaBaba translation to pt, and add strings ([e4154c8](https://github.com/severo/pesticides_website/commit/e4154c8))
+
+
+
 # [0.16.0](https://github.com/severo/pesticides_website/compare/v0.15.0...v0.16.0) (2019-04-10)
 
 
