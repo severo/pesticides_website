@@ -30,9 +30,13 @@
       "footer": {
         "tolimits1": "Descubra quantas substâncias foram",
         "tolimits2": "detectado acima dos limites legais",
-        "source1": "Fuente",
-        "source2": "datos de concentración de pesticidas: Sistema de Informação de Vigilância da Qualidade da Água para Consumo Humano (SISAGUA), 854.140 mediciones en municipalidades entre 2014 y 2017.",
-        "source3": "población estimada: Instituto Brasileiro de Geografia e Estatística (IBGE), 2017."
+        "source1": "Fonte",
+        "source21": "Concentração de agrotóxicos: ",
+        "source22": "SISAGUA - Controle Semestral",
+        "source23": ". Sistema de Informação de Vigilância da Qualidade da Água para Consumo Humano (SISAGUA), 854.140 testes a nível municipal de 2014 a 2017.",
+        "source31": "Estimativas da população: ",
+        "source32": "TCU 2017",
+        "source33": ". Instituto Brasileiro de Geografia e Estatística (IBGE), 2017."
       }
     },
     "limits": {
@@ -67,16 +71,16 @@
   "locale": "pt-BR",
   "map": {
     "legend": {
-      "cocktail1": "Número de pesticidas detectados",
-      "cocktail2": "en el agua potable",
-      "cocktail3": "(claro: 0, oscuro: 27 pesticidas diferentes)",
-      "limits1": "Pesticidas detectados por encima",
-      "limits2": "de los límites legales en el agua potable",
+      "cocktail1": "Número de pesticidas detectados em",
+      "cocktail2": "na água potável",
+      "cocktail3": "(claro: nenhum, escuro: 27 agrotóxicos diferentes)",
+      "limits1": "Agrotóxicos detectados acima dos limites legais",
+      "limits2": "do limite legal na água potável",
       "limits": {
-        "BELOW": "todos los pesticidas bajo los límites",
-        "NO_TEST": "sin datos",
-        "SUP_BR": "pesticida(s) encima del límite brasilero",
-        "SUP_EU": "pesticida(s) encima del límite europeo"
+        "BELOW": "todos os agrotóxicos abaixo dos limites",
+        "NO_TEST": "sem dados",
+        "SUP_BR": "pelo menos um acima do limite brasileiro",
+        "SUP_EU": "pelo menos um acima do limite europeu"
       }
     },
     "tooltip": {

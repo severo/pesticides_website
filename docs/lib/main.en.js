@@ -19788,10 +19788,16 @@
 
   function makeLimitsSource(parent) {
     var par = parent.select('#details-footer #source').html(null);
-    par.append('h4').text('Source');
+    par.append('h4').html('Source');
     var ul = par.append('ul');
-    ul.append('li').text('pesticides concentration data: Sistema de Informação de Vigilância da Qualidade da Água para Consumo Humano (SISAGUA), 854.140 measurements in municipalities between 2014 and 2017.');
-    ul.append('li').text('population estimation: Instituto Brasileiro de Geografia e Estatística (IBGE), 2017.');
+    var li1 = ul.append('li');
+    li1.append('span').text('Agrotoxics concentration: ');
+    li1.append('a').attr('href', 'http://dados.gov.br/dataset/controle-semestral').text('SISAGUA - Controle Semestral');
+    li1.append('span').text('. Sistema de Informação de Vigilância da Qualidade da Água para Consumo Humano (SISAGUA), 854.140 tests in municipalities between 2014 and 2017.');
+    var li2 = ul.append('li');
+    li2.append('span').text('Population estimates: ');
+    li2.append('a').attr('href', 'ftp://ftp.ibge.gov.br/Estimativas_de_Populacao/Estimativas_2017/').text('TCU 2017');
+    li2.append('span').text('. Instituto Brasileiro de Geografia e Estatística (IBGE), 2017.');
   }
 
   function startLoading$1(element) {
@@ -23926,8 +23932,6 @@
   var saturday = weekday(6);
 
   var sundays = sunday.range;
-  var mondays = monday.range;
-  var thursdays = thursday.range;
 
   var month = newInterval(function(date) {
     date.setDate(1);
@@ -24017,8 +24021,6 @@
   var utcSaturday = utcWeekday(6);
 
   var utcSundays = utcSunday.range;
-  var utcMondays = utcMonday.range;
-  var utcThursdays = utcThursday.range;
 
   var utcMonth = newInterval(function(date) {
     date.setUTCDate(1);
@@ -25332,7 +25334,7 @@
     var xx = linear$1().domain([0, cfg$2.max]).rangeRound([0, cfg$2.legendCocktail.width * cfg$2.max]);
     var legend = parent.append('g').classed('legend', true) //.style('font-size', '0.8rem')
     //.style('font-family', 'sans-serif')
-    .attr('transform', 'translate(550,66) scale(1.3)');
+    .attr('transform', 'translate(530,66) scale(1.3)');
     legend.selectAll('rect').data(sequence(0, cfg$2.max, 1)).enter().append('rect').attr('height', cfg$2.legendCocktail.height).attr('x', function (el) {
       return xx(el);
     }).attr('width', cfg$2.legendCocktail.width).attr('fill', function (el) {
@@ -25343,7 +25345,7 @@
     label.append('text').attr('y', -cfg$2.legendCocktail.titleOffsetLine1).attr('font-weight', 'bold').text('Number of pesticides detected in');
     label.append('text').attr('y', -cfg$2.legendCocktail.titleOffsetLine2).attr('font-weight', 'bold').text('drinking water'); // TODO: i18n
 
-    label.append('text').attr('y', -cfg$2.legendCocktail.subtitleOffset).text('(light: none, dark: 27 different pesticides)'); // Scale
+    label.append('text').attr('y', -cfg$2.legendCocktail.subtitleOffset).attr('font-size', '0.9rem').text('(light: none, dark: 27 different pesticides)'); // Scale
 
     legend.append('g').call(axisBottom(xx).tickSize(cfg$2.legendCocktail.tickSize)).select('.domain').remove();
   }
@@ -25361,7 +25363,7 @@
     }).attr('width', cfg$2.legendLimits.width);
     legend.selectAll('text').data(legendKeys).enter().append('text').attr('x', cfg$2.legendLimits.label.xOffset).attr('y', function (key, idx) {
       return yy(idx) + cfg$2.legendLimits.label.yOffset;
-    }).text(function (key) {
+    }).attr('font-size', '0.9rem').text(function (key) {
       return legendLabels[key];
     });
     var label = legend.append('g').attr('fill', '#000').attr('text-anchor', 'start'); // TODO: i18n

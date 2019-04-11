@@ -357,10 +357,25 @@ function makeCocktailSource(parent) {
 
 function makeLimitsSource(parent) {
   const par = parent.select('#details-footer #source').html(null);
-  par.append('h4').text('{{details.cocktail.footer.source1}}');
+  par.append('h4').html('{{details.cocktail.footer.source1}}');
   const ul = par.append('ul');
-  ul.append('li').text('{{details.cocktail.footer.source2}}');
-  ul.append('li').text('{{details.cocktail.footer.source3}}');
+  const li1 = ul.append('li');
+  li1.append('span').text('{{details.cocktail.footer.source21}}');
+  li1
+    .append('a')
+    .attr('href', 'http://dados.gov.br/dataset/controle-semestral')
+    .text('{{details.cocktail.footer.source22}}');
+  li1.append('span').text('{{details.cocktail.footer.source23}}');
+  const li2 = ul.append('li');
+  li2.append('span').text('{{details.cocktail.footer.source31}}');
+  li2
+    .append('a')
+    .attr(
+      'href',
+      'ftp://ftp.ibge.gov.br/Estimativas_de_Populacao/Estimativas_2017/'
+    )
+    .text('{{details.cocktail.footer.source32}}');
+  li2.append('span').text('{{details.cocktail.footer.source33}}');
 }
 
 function startLoading(element) {

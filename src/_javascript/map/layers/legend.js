@@ -47,7 +47,7 @@ function createLegendCocktail(parent) {
     .classed('legend', true)
     //.style('font-size', '0.8rem')
     //.style('font-family', 'sans-serif')
-    .attr('transform', 'translate(550,66) scale(1.3)');
+    .attr('transform', 'translate(530,66) scale(1.3)');
 
   legend
     .selectAll('rect')
@@ -81,6 +81,7 @@ function createLegendCocktail(parent) {
   label
     .append('text')
     .attr('y', -cfg.legendCocktail.subtitleOffset)
+    .attr('font-size', '0.9rem')
     .text('{{map.legend.cocktail3}}');
 
   // Scale
@@ -122,6 +123,7 @@ function createLegendLimits(parent) {
     .append('text')
     .attr('x', cfg.legendLimits.label.xOffset)
     .attr('y', (key, idx) => yy(idx) + cfg.legendLimits.label.yOffset)
+    .attr('font-size', '0.9rem')
     .text(key => legendLabels[key]);
 
   const label = legend
