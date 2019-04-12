@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.19.2](https://github.com/severo/pesticides_website/compare/v0.19.1...v0.19.2) (2019-04-12)
+
+
+### Bug Fixes
+
+* stroke in legend + darker background grey + pt translation ([6a2301f](https://github.com/severo/pesticides_website/commit/6a2301f))
+
+
+
 ## [0.19.1](https://github.com/severo/pesticides_website/compare/v0.19.0...v0.19.1) (2019-04-12)
 
 
