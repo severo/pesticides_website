@@ -1,4 +1,4 @@
-import {interpolateYlOrRd, scaleLinear} from 'd3';
+//import {interpolateYlOrRd, scaleLinear} from 'd3';
 
 const cfg = {
   backgroundColor: '#f0f0f0',
@@ -13,7 +13,8 @@ const cfg = {
 export function createChoropleth(context, dispatcher, path, data, scale) {
   dispatcher.on('make-app-cocktail.choropleth', () =>
     drawMap(context, path, data, scale, mun =>
-      cocktailColor(mun.properties.map1Number)
+      //cocktailColor(mun.properties.map1Number)
+      cocktailColor(mun.properties.map1Category)
     )
   );
   dispatcher.on('make-app-limits.choropleth', () =>
@@ -55,12 +56,15 @@ function drawMap(context, path, data, scale, color) {
 }
 
 export const cocktailColor = function(value) {
-  if (isNaN(value)) {
+  /*if (isNaN(value)) {
     return cfg.backgroundColor;
   }
   return scaleLinear()
     .domain([0, cfg.max])
-    .interpolate(() => interpolateYlOrRd)(value);
+    .interpolate(() => interpolateYlOrRd)(value);*/
+  const colors = ['#f4f4f4', '#ffffcc', '#feb24c', '#e31a1c', '#800026'];
+  //["#ffffcc","#ffeda0","#fed976","#feb24c","#fd8d3c","#fc4e2a","#e31a1c","#bd0026","#800026"]
+  return colors[value];
 };
 export const limitsColor = function(value) {
   const colors = ['#f4f4f4', '#74a3eb', '#001d93', '#01000f'];

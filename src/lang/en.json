@@ -74,6 +74,13 @@
       "cocktail1": "Number of pesticides detected in",
       "cocktail2": "drinking water",
       "cocktail3": "(light: none, dark: 27 different pesticides)",
+      "cocktail": {
+        "CAT_1": "No agrotoxic",
+        "CAT_2": "1 to 13 agrotoxics",
+        "CAT_3": "14 to 26 agrotoxics",
+        "CAT_4": "All 27 agrotoxics",
+        "NO_TEST": "no data"
+      },
       "limits1": "Pesticides detected above legal limits",
       "limits2": "in drinking water",
       "limits": {

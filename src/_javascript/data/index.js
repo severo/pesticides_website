@@ -4,6 +4,17 @@ import {feature} from 'topojson';
 import {geoPath} from 'd3-geo';
 
 const EUROPEAN_LIMIT = 0.1;
+export const MAP1 = {
+  CATEGORY: {
+    CAT_1: 1,
+    CAT_2: 2,
+    CAT_3: 3,
+    CAT_4: 4,
+    NO_TEST: 0,
+  },
+  CUT_14: 14,
+  CUT_27: 27,
+};
 export const MAP2 = {
   CATEGORY: {
     BELOW: 1,
@@ -148,6 +159,15 @@ export function loadData(dispatcher) {
           ft.properties.map1Number = ft.properties.tests.filter(
             sub => sub.max > 0
           ).length;
+          if (ft.properties.map1Number === 0) {
+            ft.properties.map1Category = MAP1.CATEGORY.CAT_1;
+          } else if (ft.properties.map1Number < MAP1.CUT_14) {
+            ft.properties.map1Category = MAP1.CATEGORY.CAT_2;
+          } else if (ft.properties.map1Number < MAP1.CUT_27) {
+            ft.properties.map1Category = MAP1.CATEGORY.CAT_3;
+          } else {
+            ft.properties.map1Category = MAP1.CATEGORY.CAT_4;
+          }
           ft.properties.map2Category = ft.properties.tests.reduce(
             (acc, cur) => {
               if (cur.map2Category > acc) {
@@ -159,6 +179,7 @@ export function loadData(dispatcher) {
           );
         } else {
           ft.properties.map1Number = NaN;
+          ft.properties.map1Category = MAP1.CATEGORY.NO_TEST;
           ft.properties.map2Category = MAP2.CATEGORY.NO_TEST;
         }
 

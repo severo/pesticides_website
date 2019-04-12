@@ -56,6 +56,11 @@ $map2-cat3: #01000f;
   }
 }
 
+.legend rect {
+  stroke: white;
+  stroke-width: 4px;
+}
+
 .limits {
   .annotation {
     path.connector,
@@ -68,8 +73,6 @@ $map2-cat3: #01000f;
     }
   }
   .legend rect {
-    stroke: white;
-    stroke-width: 4px;
     &.cat-0 {
       fill: $map2-cat0;
     }
