@@ -14,18 +14,12 @@ export default {
     file: 'docs/lib/main.mustache.js',
     format: 'iife',
     name: 'pesticides_website',
-    //sourcemap: true,
   },
   plugins: [
     resolve(),
-    babel({
-      //exclude: 'node_modules/**', // only transpile our source code
-      //sourceMap: true,
-    }),
+    babel(),
     minify({
-      // Options for babel-minify.
       comments: false,
-      //sourceMap: true,
     }),
   ],
 };
