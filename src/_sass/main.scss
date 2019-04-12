@@ -179,6 +179,10 @@ html {
       }
     }
     .tubes {
+      a:hover text,
+      a:active text {
+        text-decoration: underline;
+      }
       svg.tube {
         margin: 10px 5px;
         font-size: 1.5rem;

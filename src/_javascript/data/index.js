@@ -24,13 +24,13 @@ export const MAP2 = {
   },
 };
 // integrity hash computed with:
-// cat substances.csv | openssl dgst -sha384 -binary | openssl base64 -A
+// cat substances.20190412.csv | openssl dgst -sha384 -binary | openssl base64 -A
 export const cfg = {
   substances: {
     integrityHash:
-      'sha384-rynsKDDG/zobjB0as7G93mhvMWkQGM9PNn9HJshc5pDZ6d70ZOvFqpInuvKlwoES',
+      'sha384-9FmXfWF1E7bRuSKBX9NuEGewjBybCZxXFmPgKI6RBa4sB5oen5inynkWxS0uRuOH',
     url:
-      'https://raw.githubusercontent.com/severo/data_brazil/master/substances.csv',
+      'https://raw.githubusercontent.com/severo/data_brazil/master/substances.20190412.csv',
   },
   // Produced by https://framagit.org/severo/sisagua - export_tests_data()
   // Exported in CSV in https://gist.github.com/severo/55c718f7a22ede328332496bf7b0d1af
@@ -125,6 +125,9 @@ export function loadData(dispatcher) {
           limit: +cur.limit,
           name: cur.name,
           shortName: cur.shortName,
+          url:
+            'https://portrasdoalimento.info/2019/04/12/conheca-os-27-agrotoxicos-encontrados-na-agua-que-abastasse-as-cidades-do-brasil/#' +
+            cur.urlFragment,
         };
       });
       const substancesRawLut = substancesRaw.reduce((acc, cur) => {

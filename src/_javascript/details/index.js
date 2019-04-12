@@ -364,6 +364,7 @@ function makeLimitsSource(parent) {
   li1
     .append('a')
     .attr('href', 'http://dados.gov.br/dataset/controle-semestral')
+    .attr('target', '_top')
     .text('{{details.cocktail.footer.source22}}');
   li1.append('span').text('{{details.cocktail.footer.source23}}');
   const li2 = ul.append('li');
@@ -374,6 +375,7 @@ function makeLimitsSource(parent) {
       'href',
       'ftp://ftp.ibge.gov.br/Estimativas_de_Populacao/Estimativas_2017/'
     )
+    .attr('target', '_top')
     .text('{{details.cocktail.footer.source32}}');
   li2.append('span').text('{{details.cocktail.footer.source33}}');
 }

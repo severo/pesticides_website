@@ -35,7 +35,7 @@
     "lint:test:src:css": "prettier --list-different \"src/**/*.scss\"",
     "lint:test:src:js": "eslint --ignore-path .gitignore --ignore-path .prettierignore \"src/**/*.js\"",
     "lint:test:src:lang": "prettier --list-different \"src/lang/*.json\"",
-    "release": "run-s build:prod standard-version",
+    "release": "standard-version",
     "serve": "browser-sync start -c bs-config.js",
     "test": "npm run lint:test",
     "watch": "run-p watch:css watch:js watch:html watch:lang",

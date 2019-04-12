@@ -26,6 +26,7 @@ export function makeTubesCocktail(parent, substances, titleHtml, tubeClass) {
         numDetections: numDetections,
         numTests: numTests,
         shortName: sub.substance.shortName,
+        url: sub.substance.url,
         value: ratio,
       };
     });
@@ -44,7 +45,10 @@ export function makeTubesCocktail(parent, substances, titleHtml, tubeClass) {
     .classed(tubeClass, true)
     .attr('width', dim.wi)
     .attr('height', dim.he)
-    .attr('viewBox', '0,0,' + dim.vWi + ',' + dim.vHe + '');
+    .attr('viewBox', '0,0,' + dim.vWi + ',' + dim.vHe + '')
+    .append('a')
+    .attr('href', sub => sub.url)
+    .attr('target', '_top');
   /* eslint-disable no-magic-numbers */
 
   const dyTube = 0;
@@ -71,8 +75,7 @@ export function makeTubesCocktail(parent, substances, titleHtml, tubeClass) {
       sub =>
         'translate(300, ' + (dyTube + params.getY(sub.value)) + ') scale(4)'
     )
-    .style('text-anchor', 'start')
-    .style('dominant-baseline', 'central');
+    .style('text-anchor', 'start');
   text
     .append('tspan')
     .attr('x', '0')
@@ -105,6 +108,7 @@ export function makeTubesLimits(parent, substances, titleHtml, tubeClass) {
       const ratio = 1;
       return {
         shortName: subs.substance.shortName,
+        url: subs.substance.url,
         value: ratio,
         //valueText: subs.substance.name,
       };
@@ -127,7 +131,10 @@ export function makeTubesLimits(parent, substances, titleHtml, tubeClass) {
     .classed(tubeClass, true)
     .attr('width', dim.wi)
     .attr('height', dim.he)
-    .attr('viewBox', '0,0,' + dim.vWi + ',' + dim.vHe + '');
+    .attr('viewBox', '0,0,' + dim.vWi + ',' + dim.vHe + '')
+    .append('a')
+    .attr('href', sub => sub.url)
+    .attr('target', '_top');
   /* eslint-disable no-magic-numbers */
 
   drawTube(svg, 250, 800).attr('transform', 'translate(375, 0)');
