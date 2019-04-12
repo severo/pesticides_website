@@ -18893,351 +18893,24 @@
     return path.projection(projection).context(context);
   }
 
-  var EUROPEAN_LIMIT = 0.1;
-  var MAP1 = {
-    CATEGORY: {
-      CAT_1: 1,
-      CAT_2: 2,
-      CAT_3: 3,
-      CAT_4: 4,
-      NO_TEST: 0
-    },
-    CUT_14: 14,
-    CUT_27: 27
-  };
-  var MAP2 = {
-    CATEGORY: {
-      BELOW: 1,
-      NO_TEST: 0,
-      SUP_BR: 3,
-      SUP_EU: 2
-    }
-  }; // integrity hash computed with:
+  var EUROPEAN_LIMIT=.1;var MAP1={CATEGORY:{CAT_1:1,CAT_2:2,CAT_3:3,CAT_4:4,NO_TEST:0},CUT_14:14,CUT_27:27};var MAP2={CATEGORY:{BELOW:1,NO_TEST:0,SUP_BR:3,SUP_EU:2}};// integrity hash computed with:
   // cat substances.csv | openssl dgst -sha384 -binary | openssl base64 -A
+  var cfg={substances:{integrityHash:"sha384-rynsKDDG/zobjB0as7G93mhvMWkQGM9PNn9HJshc5pDZ6d70ZOvFqpInuvKlwoES",url:"https://raw.githubusercontent.com/severo/data_brazil/master/substances.csv"},// Produced by https://framagit.org/severo/sisagua - export_tests_data()
+  // Exported in CSV in https://gist.github.com/severo/55c718f7a22ede328332496bf7b0d1af
+  // Transformed in JSON in https://observablehq.com/d/157dd55cf0b24e0c
+  // Published in https://github.com/severo/data_brazil
+  tests:{integrityHash:"sha384-A0apYNqz52d3JYGAxIZ0NAZL62PfXiD0EvxqA79yyqteRm526Thk7HSx4RkbTHmS",url:"https://raw.githubusercontent.com/severo/data_brazil/master/tests_data.json"},topojson:{integrityHash:"sha384-T57m5+BaBiLe7uyAZrKOU/BqCXtK9t0ZIj+YXAUES8EOxrngeVCKflSzZXnB9kVd",url:"data/br-px-topo.2019031701.json"},values:{integrityHash:"sha384-1mMiVJ4KDmhyjlz86hL3dd+AYo/ShdE/2L8iW5nCdsUHlgsMt9ZS/PTVg12LyTZM",url:"https://raw.githubusercontent.com/severo/data_brazil/master/data_by_municipality_for_maps.csv"}};var fuNames={AC:"Acre",AL:"Alagoas",AM:"Amazonas",AP:"Amap\xE1",BA:"Bahia",CE:"Cear\xE1",DF:"Distrito Federal",ES:"Esp\xEDrito Santo",GO:"Goi\xE1s",MA:"Maranh\xE3o",MG:"Minas Gerais",MS:"Mato Grosso do Sul",MT:"Mato Grosso",PA:"Par\xE1",PB:"Para\xEDba",PE:"Pernambuco",PI:"Piau\xED",PR:"Paran\xE1",RJ:"Rio de Janeiro",RN:"Rio Grande do Norte",RO:"Rond\xF4nia",RR:"Roraima",RS:"Rio Grande do Sul",SC:"Santa Catarina",SE:"Sergipe",SP:"S\xE3o Paulo",TO:"Tocantins"};function loadData(a){var b=this,c=[json(cfg.tests.url,{integrity:cfg.tests.integrityHash}),csv$1(cfg.substances.url,{integrity:cfg.substances.integrityHash}),json(cfg.topojson.url,{integrity:cfg.topojson.integrityHash}),csv$1(cfg.values.url,{integrity:cfg.values.integrityHash},function(a){return {category:{atrAvgCat:a.atrazine_average_category,atrMaxCat:a.atrazine_category,simAvgCat:a.simazine_average_category,simMaxCat:a.simazine_category},ibgeCode:a.ibge_code,number:{detected:+a.detected,eqBr:+a.eq_br,supBr:+a.sup_br,supEu:+a.sup_eu}}})];return Promise.all(c).then(function(c){// Add statistical data to substances
+  function d(a){a=a.sort(function(a,b){return a-b});var b=a.length/2;return 0==b%1?(a[b-1]+a[b])/2:a[Math.floor(b)];/* eslint-enable */}// All datasets have been loaded and checked successfully
+  var e=c[1].map(function(a){return {code:a.code,isHhce:"true"===a.hhce,limit:+a.limit,name:a.name,shortName:a.shortName}}),f=e.reduce(function(a,b){return a[b.code]=b,a},{}),g=c[0],h=c[2],i=c[3].reduce(function(a,b){return a[b.ibgeCode]=b,a},{}),j=toFeatures(h,"municipalities");j.features=j.features.map(function(a){return a.properties.ibgeCode in i&&(a.properties.category=i[a.properties.ibgeCode].category,a.properties.number=i[a.properties.ibgeCode].number),a.properties.ibgeCode in g?(a.properties.tests=parseTests(g[a.properties.ibgeCode],f),a.properties.map1Number=a.properties.tests.filter(function(a){return 0<a.max}).length,a.properties.map1Category=0===a.properties.map1Number?MAP1.CATEGORY.CAT_1:a.properties.map1Number<MAP1.CUT_14?MAP1.CATEGORY.CAT_2:a.properties.map1Number<MAP1.CUT_27?MAP1.CATEGORY.CAT_3:MAP1.CATEGORY.CAT_4,a.properties.map2Category=a.properties.tests.reduce(function(a,b){return b.map2Category>a&&(a=b.map2Category),a},MAP2.CATEGORY.BELOW)):(a.properties.map1Number=NaN,a.properties.map1Category=MAP1.CATEGORY.NO_TEST,a.properties.map2Category=MAP2.CATEGORY.NO_TEST),a.properties.deburredName=deburr(a.properties.name),a.properties.fuName=fuNames[a.properties.fu],a});var k=e.map(function(a){var b=j.features.filter(function(b){return !!("tests"in b.properties)&&1===b.properties.tests.filter(function(b){return b.substance.code===a.code}).length}),c=b.filter(function(b){var c=b.properties.tests.filter(function(b){return b.substance.code===a.code})[0];return 0<c.max}),e=d(b.map(function(b){var c=b.properties.tests.filter(function(b){return b.substance.code===a.code})[0];return c.max}));return {code:a.code,detectedIn:c.length,limit:a.limit,medianConcentration:e,name:a.name,shortName:a.shortName,testedIn:b.length}}),l=k.reduce(function(a,b){return a[b.code]=b,a},{}),m=toFeatures(h,"republic");m.features[0].properties.tests=k.map(function(a){return {max:a.medianConcentration,substance:a}});var n={brazil:m,fu:toFeatures(h,"federative-units"),internalFu:toFeatures(h,"internal-federative-units"),mun:j,substancesLut:l};// Publish the data with the "data-loaded" event
+  a.call("data-loaded",b,n);}).catch(function(a){/* TODO: decide what to do if the init has failed.
+         * Meanwhile, it prints the error in the console. */console.log(a);})}function toFeatures(a,b){// TODO: do the following computation at build time
+  var c=geoPath(),d=feature(a,a.objects[b]);return d.features.map(function(a){var b=Math.sqrt;// eslint-disable-line no-magic-numbers
+  return "properties"in a||(a.properties={}),a.properties.centroid=c.centroid(a.geometry),a.properties.bounds=c.bounds(a.geometry),a.properties.height=a.properties.bounds[1][1]-a.properties.bounds[0][1],a.properties.width=a.properties.bounds[1][0]-a.properties.bounds[0][0],a.properties.radius=b(a.properties.height*a.properties.height+a.properties.width*a.properties.width)/2,a}),d}function parseTests(a,b){// Placeholder to compute max
+  var c=Object.keys(a);return c.reduce(function(c,d){var e=a[d],f={substance:b[d],tests:e.map(function(a){return "NA"===a?1e-10:+a})};return f.max=f.tests.reduce(function(a,b){return b>a&&(a=b),a},-Infinity),f.map2Category=getMap2Category(f.max,f.substance),c.push(f),c},[])}function getMap2Category(a,b){if(a>b.limit)return MAP2.CATEGORY.SUP_BR;// Handle both no detection, and detected but lower than EU and BR limits
+  return a>EUROPEAN_LIMIT?MAP2.CATEGORY.SUP_EU:MAP2.CATEGORY.BELOW}
 
-  var cfg = {
-    substances: {
-      integrityHash: 'sha384-rynsKDDG/zobjB0as7G93mhvMWkQGM9PNn9HJshc5pDZ6d70ZOvFqpInuvKlwoES',
-      url: 'https://raw.githubusercontent.com/severo/data_brazil/master/substances.csv'
-    },
-    // Produced by https://framagit.org/severo/sisagua - export_tests_data()
-    // Exported in CSV in https://gist.github.com/severo/55c718f7a22ede328332496bf7b0d1af
-    // Transformed in JSON in https://observablehq.com/d/157dd55cf0b24e0c
-    // Published in https://github.com/severo/data_brazil
-    tests: {
-      integrityHash: 'sha384-A0apYNqz52d3JYGAxIZ0NAZL62PfXiD0EvxqA79yyqteRm526Thk7HSx4RkbTHmS',
-      url: 'https://raw.githubusercontent.com/severo/data_brazil/master/tests_data.json'
-    },
-    topojson: {
-      integrityHash: 'sha384-T57m5+BaBiLe7uyAZrKOU/BqCXtK9t0ZIj+YXAUES8EOxrngeVCKflSzZXnB9kVd',
-      url: 'data/br-px-topo.2019031701.json'
-    },
-    values: {
-      integrityHash: 'sha384-1mMiVJ4KDmhyjlz86hL3dd+AYo/ShdE/2L8iW5nCdsUHlgsMt9ZS/PTVg12LyTZM',
-      url: 'https://raw.githubusercontent.com/severo/data_brazil/master/data_by_municipality_for_maps.csv'
-    }
-  };
-  var fuNames = {
-    AC: 'Acre',
-    AL: 'Alagoas',
-    AM: 'Amazonas',
-    AP: 'Amapá',
-    BA: 'Bahia',
-    CE: 'Ceará',
-    DF: 'Distrito Federal',
-    ES: 'Espírito Santo',
-    GO: 'Goiás',
-    MA: 'Maranhão',
-    MG: 'Minas Gerais',
-    MS: 'Mato Grosso do Sul',
-    MT: 'Mato Grosso',
-    PA: 'Pará',
-    PB: 'Paraíba',
-    PE: 'Pernambuco',
-    PI: 'Piauí',
-    PR: 'Paraná',
-    RJ: 'Rio de Janeiro',
-    RN: 'Rio Grande do Norte',
-    RO: 'Rondônia',
-    RR: 'Roraima',
-    RS: 'Rio Grande do Sul',
-    SC: 'Santa Catarina',
-    SE: 'Sergipe',
-    SP: 'São Paulo',
-    TO: 'Tocantins'
-  };
-  function loadData(dispatcher) {
-    var _this = this;
-
-    var promises = [json(cfg.tests.url, {
-      integrity: cfg.tests.integrityHash
-    }), csv$1(cfg.substances.url, {
-      integrity: cfg.substances.integrityHash
-    }), json(cfg.topojson.url, {
-      integrity: cfg.topojson.integrityHash
-    }), csv$1(cfg.values.url, {
-      integrity: cfg.values.integrityHash
-    }, function (row) {
-      return {
-        category: {
-          atrAvgCat: row.atrazine_average_category,
-          atrMaxCat: row.atrazine_category,
-          simAvgCat: row.simazine_average_category,
-          simMaxCat: row.simazine_category
-        },
-        ibgeCode: row.ibge_code,
-        number: {
-          detected: +row.detected,
-          eqBr: +row.eq_br,
-          supBr: +row.sup_br,
-          supEu: +row.sup_eu
-        }
-      };
-    })];
-    return Promise.all(promises).then(function (results) {
-      // All datasets have been loaded and checked successfully
-      var TESTS_IDX = 0;
-      var SUBST_IDX = 1;
-      var TOPO_IDX = 2;
-      var VALUES_IDX = 3; // Substances
-
-      var substancesRaw = results[SUBST_IDX].map(function (cur) {
-        return {
-          code: cur.code,
-          isHhce: cur.hhce === 'true',
-          limit: +cur.limit,
-          name: cur.name,
-          shortName: cur.shortName
-        };
-      });
-      var substancesRawLut = substancesRaw.reduce(function (acc, cur) {
-        acc[cur.code] = cur;
-        return acc;
-      }, {}); // Tests
-
-      var tests = results[TESTS_IDX]; // Topologic data
-
-      var topo = results[TOPO_IDX]; // Statistics
-
-      var values = results[VALUES_IDX].reduce(function (acc, cur) {
-        acc[cur.ibgeCode] = cur;
-        return acc;
-      }, {}); // Municipalities
-
-      var mun = toFeatures(topo, 'municipalities');
-      mun.features = mun.features.map(function (ft) {
-        if (ft.properties.ibgeCode in values) {
-          ft.properties.category = values[ft.properties.ibgeCode].category;
-          ft.properties.number = values[ft.properties.ibgeCode].number;
-        }
-
-        if (ft.properties.ibgeCode in tests) {
-          ft.properties.tests = parseTests(tests[ft.properties.ibgeCode], substancesRawLut);
-          ft.properties.map1Number = ft.properties.tests.filter(function (sub) {
-            return sub.max > 0;
-          }).length;
-
-          if (ft.properties.map1Number === 0) {
-            ft.properties.map1Category = MAP1.CATEGORY.CAT_1;
-          } else if (ft.properties.map1Number < MAP1.CUT_14) {
-            ft.properties.map1Category = MAP1.CATEGORY.CAT_2;
-          } else if (ft.properties.map1Number < MAP1.CUT_27) {
-            ft.properties.map1Category = MAP1.CATEGORY.CAT_3;
-          } else {
-            ft.properties.map1Category = MAP1.CATEGORY.CAT_4;
-          }
-
-          ft.properties.map2Category = ft.properties.tests.reduce(function (acc, cur) {
-            if (cur.map2Category > acc) {
-              acc = cur.map2Category;
-            }
-
-            return acc;
-          }, MAP2.CATEGORY.BELOW);
-        } else {
-          ft.properties.map1Number = NaN;
-          ft.properties.map1Category = MAP1.CATEGORY.NO_TEST;
-          ft.properties.map2Category = MAP2.CATEGORY.NO_TEST;
-        } //data.brazil.features[0].properties
-        // TODO: added for use in the search input. But the search could be
-        // improved with Intl.Collator. In case it's improved in search/index.js
-        // don't forget to modify here.
-
-
-        ft.properties.deburredName = deburr(ft.properties.name);
-        ft.properties.fuName = fuNames[ft.properties.fu];
-        return ft;
-      }); // Add statistical data to substances
-
-      function median(arr) {
-        /* eslint-disable */
-        arr = arr.sort(function (v1, v2) {
-          return v1 - v2;
-        });
-        var half = arr.length / 2;
-        return half % 1 == 0 ? (arr[half - 1] + arr[half]) / 2 : arr[Math.floor(half)];
-        /* eslint-enable */
-      }
-
-      var substances = substancesRaw.map(function (sub) {
-        var testedIn = mun.features.filter(function (ft) {
-          if (!('tests' in ft.properties)) {
-            return false;
-          }
-
-          return ft.properties.tests.filter(function (test) {
-            return test.substance.code === sub.code;
-          }).length === 1;
-        });
-        var detectedIn = testedIn.filter(function (ft) {
-          var subTest = ft.properties.tests.filter(function (test) {
-            return test.substance.code === sub.code;
-          })[0];
-          return subTest.max > 0;
-        });
-        var medianConcentration = median(testedIn.map(function (ft) {
-          var subTest = ft.properties.tests.filter(function (test) {
-            return test.substance.code === sub.code;
-          })[0];
-          return subTest.max;
-        }));
-        return {
-          code: sub.code,
-          detectedIn: detectedIn.length,
-          limit: sub.limit,
-          medianConcentration: medianConcentration,
-          name: sub.name,
-          shortName: sub.shortName,
-          testedIn: testedIn.length
-        };
-      });
-      var substancesLut = substances.reduce(function (acc, cur) {
-        acc[cur.code] = cur;
-        return acc;
-      }, {});
-      var brazil = toFeatures(topo, 'republic');
-      brazil.features[0].properties.tests = substances.map(function (sub) {
-        return {
-          max: sub.medianConcentration,
-          substance: sub
-        };
-      });
-      var data = {
-        brazil: brazil,
-        fu: toFeatures(topo, 'federative-units'),
-        internalFu: toFeatures(topo, 'internal-federative-units'),
-        mun: mun,
-        substancesLut: substancesLut
-      }; // Publish the data with the "data-loaded" event
-
-      dispatcher.call('data-loaded', _this, data);
-    }).catch(function (error) {
-      /* TODO: decide what to do if the init has failed.
-       * Meanwhile, it prints the error in the console. */
-      console.log(error);
-    });
-  }
-
-  function toFeatures(topojson, key) {
-    // TODO: do the following computation at build time
-    var path = geoPath();
-    var features = feature(topojson, topojson.objects[key]);
-    features.features.map(function (ft) {
-      if (!('properties' in ft)) {
-        ft.properties = {};
-      }
-
-      ft.properties.centroid = path.centroid(ft.geometry);
-      ft.properties.bounds = path.bounds(ft.geometry);
-      ft.properties.height = ft.properties.bounds[1][1] - ft.properties.bounds[0][1];
-      ft.properties.width = ft.properties.bounds[1][0] - ft.properties.bounds[0][0];
-      ft.properties.radius = Math.sqrt(ft.properties.height * ft.properties.height + ft.properties.width * ft.properties.width) / 2; // eslint-disable-line no-magic-numbers
-
-      return ft;
-    });
-    return features;
-  }
-
-  function parseTests(tests, substancesLut) {
-    // Placeholder to compute max
-    var DETECTED_VALUE = 1e-10;
-    var keys = Object.keys(tests);
-    return keys.reduce(function (acc, substanceCode) {
-      var test = tests[substanceCode];
-      var fTest = {
-        substance: substancesLut[substanceCode],
-        tests: test.map(function (str) {
-          if (str === 'NA') {
-            return DETECTED_VALUE;
-          }
-
-          return +str;
-        })
-      };
-      fTest.max = fTest.tests.reduce(function (max, cur) {
-        if (cur > max) {
-          max = cur;
-        }
-
-        return max;
-      }, -Infinity);
-      fTest.map2Category = getMap2Category(fTest.max, fTest.substance);
-      acc.push(fTest);
-      return acc;
-    }, []);
-  }
-
-  function getMap2Category(max, substance) {
-    if (max > substance.limit) {
-      return MAP2.CATEGORY.SUP_BR;
-    } else if (max > EUROPEAN_LIMIT) {
-      return MAP2.CATEGORY.SUP_EU;
-    } // Handle both no detection, and detected but lower than EU and BR limits
-
-
-    return MAP2.CATEGORY.BELOW;
-  }
-
-  function makeBreadcrumb(parent, dispatcher, state) {
-    startLoading(parent); // Init
-
-    if ('mun' in state) {
-      makeMun(parent, dispatcher, state.data, state.mun);
-    } else {
-      makeBrazil(parent);
-    }
-
-    dispatcher.on('to-mun-view.breadcrumb', function (mun) {
-      makeMun(parent, dispatcher, state.data, mun);
-    });
-    dispatcher.on('to-brazil-view.breadcrumb', function () {
-      makeBrazil(parent);
-    });
-    endLoading(parent);
-  }
-
-  function makeBrazil(parent) {
-    parent.html(null);
-    parent.append('ul').append('li').classed('is-active', true).classed('is-hidden', true).append('a').attr('href', '#').attr('aria-current', 'page').text('Brasil');
-  }
-
-  function makeMun(parent, dispatcher, data, mun) {
-    parent.html(null);
-    var ul = parent.append('ul');
-    ul.append('li').append('a').attr('href', '#').text('Brasil').on('click', function (ft, element) {
-      // invoke callbacks
-      dispatcher.call('breadcrumb-click-brazil', null, data);
-    });
-    ul.append('li').classed('is-active', true).append('a').attr('href', '#').attr('aria-current', 'page').text(mun.properties.name);
-  }
-
-  function startLoading(element) {
-    element.classed('is-loading', true);
-  }
-
-  function endLoading(element) {
-    element.classed('is-loading', false);
-  }
+  function makeBreadcrumb(a,b,c){startLoading(a),"mun"in c?makeMun(a,b,c.data,c.mun):makeBrazil(a),b.on("to-mun-view.breadcrumb",function(d){makeMun(a,b,c.data,d);}),b.on("to-brazil-view.breadcrumb",function(){makeBrazil(a);}),endLoading(a);}function makeBrazil(a){a.html(null),a.append("ul").append("li").classed("is-active",!0).classed("is-hidden",!0).append("a").attr("href","#").attr("aria-current","page").text("Brasil");}function makeMun(a,b,c,d){a.html(null);var e=a.append("ul");e.append("li").append("a").attr("href","#").text("Brasil").on("click",function(){// invoke callbacks
+  b.call("breadcrumb-click-brazil",null,c);}),e.append("li").classed("is-active",!0).append("a").attr("href","#").attr("aria-current","page").text(d.properties.name);}function startLoading(a){a.classed("is-loading",!0);}function endLoading(a){a.classed("is-loading",!1);}
 
   var pi$2 = Math.PI,
       tau$1 = 2 * pi$2,
@@ -19368,322 +19041,22 @@
     }
   };
 
-  var dim = {
-    he: 80,
-    vHe: 1000,
-    vWi: 1100,
-    wi: 80
-  };
-  function makeTubesCocktail(parent, substances, titleHtml, tubeClass) {
-    var preparedSubstances = substances // useless filter?
-    .filter(function (subs) {
-      return subs.max > 0;
-    }).sort(function (subs1, subs2) {
-      // alphabetic order to get some coherence and stability between views
-      return subs1.substance.shortName.localeCompare(subs2.substance.shortName, 'pt-BR', {
-        sensitivity: 'base'
-      });
-    }).map(function (sub) {
-      var numTests = sub.tests.length;
-      var numDetections = sub.tests.filter(function (con) {
-        return con > 0;
-      }).length;
-      var ratio = numDetections / numTests;
-      return {
-        numDetections: numDetections,
-        numTests: numTests,
-        shortName: sub.substance.shortName,
-        value: ratio
-      };
-    });
-    var tubes = parent.append('div').classed('tubes', true);
-
-    if (titleHtml !== '') {
-      tubes.append('header').html(titleHtml);
-    }
-
-    var svg = tubes.selectAll('svg').data(preparedSubstances).enter().append('svg').classed('tube', true).classed(tubeClass, true).attr('width', dim.wi).attr('height', dim.he).attr('viewBox', '0,0,' + dim.vWi + ',' + dim.vHe + '');
-    /* eslint-disable no-magic-numbers */
-
-    var dyTube = 0;
-    var params = getLiquidParams(250, 800);
-    drawTube(svg, 250, 800).attr('transform', 'translate(0, ' + dyTube + ')');
-    drawLiquid(svg, 250, 800).attr('transform', 'translate(0, ' + dyTube + ')');
-    var dyName = 980;
-    svg.append('text').attr('x', 0).attr('y', 0).attr('transform', 'translate(' + params.wid + ', ' + dyName + ') scale(5)').style('text-anchor', 'start').text(function (subs) {
-      return subs.shortName;
-    });
-    var text = svg.append('text').classed('annotation', true).attr('x', 0).attr('y', 0).attr('transform', function (sub) {
-      return 'translate(300, ' + (dyTube + params.getY(sub.value)) + ') scale(4)';
-    }).style('text-anchor', 'start').style('dominant-baseline', 'central');
-    text.append('tspan').attr('x', '0').attr('dy', '0').text(function (sub) {
-      return sub.numDetections + ' detecções';
-    });
-    text.append('tspan').attr('x', '0').attr('dy', '1.2em').text(function (sub) {
-      return 'em ' + sub.numTests + ' testes';
-    });
-  }
-  function makeTubesLimits(parent, substances, titleHtml, tubeClass) {
-    var preparedSubstances = substances.sort(function (subs1, subs2) {
-      // alphabetic order to get some coherence and stability between views
-      return subs1.substance.shortName.localeCompare(subs2.substance.shortName, 'pt-BR', {
-        sensitivity: 'base'
-      });
-    }).map(function (subs) {
-      // TODO: define which level to set in the tubes. Meanwhile: constant 100%
-      var ratio = 1;
-      return {
-        shortName: subs.substance.shortName,
-        value: ratio //valueText: subs.substance.name,
-
-      };
-    });
-    var tubes = parent.append('div').classed('tubes', true);
-
-    if (titleHtml !== '') {
-      tubes.append('header').html(titleHtml);
-    }
-
-    var svg = tubes.selectAll('svg').data(preparedSubstances).enter() // TODO: manage a popup for touch / mouseover, instead of this temporal attr
-    //.append('abbr')
-    //.attr('title', subs => subs.valueText)
-    .append('svg').classed('tube', true).classed(tubeClass, true).attr('width', dim.wi).attr('height', dim.he).attr('viewBox', '0,0,' + dim.vWi + ',' + dim.vHe + '');
-    /* eslint-disable no-magic-numbers */
-
-    drawTube(svg, 250, 800).attr('transform', 'translate(375, 0)');
-    drawLiquid(svg, 250, 800).attr('transform', 'translate(375, 0)');
-    drawText(svg).attr('transform', 'scale(5) translate(100 190)');
-  }
-
-  function drawTube(svg, width, height) {
-    /* eslint-disable no-magic-numbers */
-    var tube = svg.append('g');
-    var wid = 1.5 * width / 10;
-    var hei = height - 3 * wid;
-    var mid = width / 2;
-    var colg_a = '#e7f3f8';
-    var colg_b = '#bfdde3';
-    var colg_c = '#cce8eb';
-    var colg_d = '#b1d8df';
-    var da = path();
-    da.rect(0, 0, mid, wid);
-    tube.append('path').attr('fill', colg_a).attr('d', da.toString());
-    var db = path();
-    db.rect(mid, 0, mid, wid);
-    tube.append('path').attr('fill', colg_b).attr('d', db.toString());
-    var dc = path();
-    dc.moveTo(wid, wid);
-    dc.lineTo(wid, hei + wid);
-    dc.quadraticCurveTo(wid, hei + 3 * wid, mid, hei + 3 * wid);
-    dc.lineTo(mid, wid);
-    dc.closePath();
-    tube.append('path').attr('fill', colg_c).attr('d', dc.toString());
-    var dd = path();
-    dd.moveTo(2 * mid - wid, wid);
-    dd.lineTo(2 * mid - wid, hei + wid);
-    dd.quadraticCurveTo(2 * mid - wid, hei + 3 * wid, mid, hei + 3 * wid);
-    dd.lineTo(mid, wid);
-    dd.closePath();
-    tube.append('path').attr('fill', colg_d).attr('d', dd.toString());
-    return tube;
-    /* eslint-enable no-magic-numbers */
-  }
-
-  function getLiquidParams(width, height) {
-    /* eslint-disable no-magic-numbers */
-    var wid = 1.5 * width / 10;
-    var hei = height - 3 * wid;
-    var max = hei - wid;
-    var margin = 2 * wid;
-
-    function getY(ratio) {
-      // Ratio must be between 0 (empty) and 1 (full)
-      return max * (1 - ratio) + margin;
-    }
-
-    return {
-      getY: getY,
-      hei: hei,
-      mid: width / 2,
-      wid: wid
-    };
-    /* eslint-enable no-magic-numbers */
-  }
-
-  function drawLiquid(svg, width, height) {
-    /* eslint-disable no-magic-numbers */
-    var liquid = svg.append('g').classed('liquid', true);
-    var params = getLiquidParams(width, height);
-    liquid.append('path').classed('right', true).attr('d', function (sub) {
-      var pesY = params.getY(sub.value) + params.wid;
-      var dlb = path();
-      dlb.moveTo(2 * params.mid - 2 * params.wid, pesY);
-      dlb.lineTo(2 * params.mid - 2 * params.wid, params.hei + params.wid);
-      dlb.quadraticCurveTo(2 * params.mid - 2 * params.wid, params.hei + 2 * params.wid, params.mid, params.hei + 2 * params.wid);
-      dlb.lineTo(params.mid, pesY);
-      dlb.closePath();
-      return dlb.toString();
-    });
-    liquid.append('path').classed('left', true).attr('d', function (sub) {
-      var pesY = params.getY(sub.value) + params.wid;
-      var dlb = path();
-      dlb.moveTo(2 * params.wid, pesY);
-      dlb.lineTo(2 * params.wid, params.hei + params.wid);
-      dlb.quadraticCurveTo(2 * params.wid, params.hei + 2 * params.wid, params.mid, params.hei + 2 * params.wid);
-      dlb.lineTo(params.mid, pesY);
-      dlb.closePath();
-      return dlb.toString();
-    });
-    return liquid;
-  }
-
-  function drawText(svg) {
-    /* eslint-disable no-magic-numbers */
-    var name = svg.append('g');
-    /*const wid = (1.5 * dim.vWi) / 10;
+  var dim={he:80,vHe:1e3,vWi:1100,wi:80};function makeTubesCocktail(a,b,c,d){var e=b// useless filter?
+  .filter(function(a){return 0<a.max}).sort(function(a,b){// alphabetic order to get some coherence and stability between views
+  return a.substance.shortName.localeCompare(b.substance.shortName,"pt-BR",{sensitivity:"base"})}).map(function(a){var b=a.tests.length,c=a.tests.filter(function(a){return 0<a}).length;return {numDetections:c,numTests:b,shortName:a.substance.shortName,value:c/b}}),f=a.append("div").classed("tubes",!0);""!==c&&f.append("header").html(c);var g=f.selectAll("svg").data(e).enter().append("svg").classed("tube",!0).classed(d,!0).attr("width",dim.wi).attr("height",dim.he).attr("viewBox","0,0,"+dim.vWi+","+dim.vHe+""),h=0,i=getLiquidParams(250,800);/* eslint-disable no-magic-numbers */drawTube(g,250,800).attr("transform","translate(0, "+h+")"),drawLiquid(g,250,800).attr("transform","translate(0, "+h+")");g.append("text").attr("x",0).attr("y",0).attr("transform","translate("+i.wid+", "+980+") scale(5)").style("text-anchor","start").text(function(a){return a.shortName});var j=g.append("text").classed("annotation",!0).attr("x",0).attr("y",0).attr("transform",function(a){return "translate(300, "+(h+i.getY(a.value))+") scale(4)"}).style("text-anchor","start").style("dominant-baseline","central");j.append("tspan").attr("x","0").attr("dy","0").text(function(a){return a.numDetections+" detecções"}),j.append("tspan").attr("x","0").attr("dy","1.2em").text(function(a){return "em "+a.numTests+" testes"});}function makeTubesLimits(a,b,c,d){var e=b.sort(function(a,b){// alphabetic order to get some coherence and stability between views
+  return a.substance.shortName.localeCompare(b.substance.shortName,"pt-BR",{sensitivity:"base"})}).map(function(a){// TODO: define which level to set in the tubes. Meanwhile: constant 100%
+  return {shortName:a.substance.shortName,value:1//valueText: subs.substance.name,
+  }}),f=a.append("div").classed("tubes",!0);""!==c&&f.append("header").html(c);var g=f.selectAll("svg").data(e).enter()// TODO: manage a popup for touch / mouseover, instead of this temporal attr
+  //.append('abbr')
+  //.attr('title', subs => subs.valueText)
+  .append("svg").classed("tube",!0).classed(d,!0).attr("width",dim.wi).attr("height",dim.he).attr("viewBox","0,0,"+dim.vWi+","+dim.vHe+"");/* eslint-disable no-magic-numbers */drawTube(g,250,800).attr("transform","translate(375, 0)"),drawLiquid(g,250,800).attr("transform","translate(375, 0)"),drawText(g).attr("transform","scale(5) translate(100 190)");}function drawTube(a,b,c){/* eslint-disable no-magic-numbers */var d=a.append("g"),e=1.5*b/10,f=c-3*e,g=b/2,h=path();h.rect(0,0,g,e),d.append("path").attr("fill","#e7f3f8").attr("d",h.toString());var i=path();i.rect(g,0,g,e),d.append("path").attr("fill","#bfdde3").attr("d",i.toString());var j=path();j.moveTo(e,e),j.lineTo(e,f+e),j.quadraticCurveTo(e,f+3*e,g,f+3*e),j.lineTo(g,e),j.closePath(),d.append("path").attr("fill","#cce8eb").attr("d",j.toString());var k=path();return k.moveTo(2*g-e,e),k.lineTo(2*g-e,f+e),k.quadraticCurveTo(2*g-e,f+3*e,g,f+3*e),k.lineTo(g,e),k.closePath(),d.append("path").attr("fill","#b1d8df").attr("d",k.toString()),d;/* eslint-enable no-magic-numbers */}function getLiquidParams(a,b){/* eslint-disable no-magic-numbers */var c=1.5*a/10,d=b-3*c;return {getY:function(a){// Ratio must be between 0 (empty) and 1 (full)
+  return (d-c)*(1-a)+2*c},hei:d,mid:a/2,wid:c};/* eslint-enable no-magic-numbers */}function drawLiquid(a,b,c){/* eslint-disable no-magic-numbers */var d=a.append("g").classed("liquid",!0),e=getLiquidParams(b,c);return d.append("path").classed("right",!0).attr("d",function(a){var b=e.getY(a.value)+e.wid,c=path();return c.moveTo(2*e.mid-2*e.wid,b),c.lineTo(2*e.mid-2*e.wid,e.hei+e.wid),c.quadraticCurveTo(2*e.mid-2*e.wid,e.hei+2*e.wid,e.mid,e.hei+2*e.wid),c.lineTo(e.mid,b),c.closePath(),c.toString()}),d.append("path").classed("left",!0).attr("d",function(a){var b=e.getY(a.value)+e.wid,c=path();return c.moveTo(2*e.wid,b),c.lineTo(2*e.wid,e.hei+e.wid),c.quadraticCurveTo(2*e.wid,e.hei+2*e.wid,e.mid,e.hei+2*e.wid),c.lineTo(e.mid,b),c.closePath(),c.toString()}),d}function drawText(a){/* eslint-disable no-magic-numbers */var b=a.append("g");/*const wid = (1.5 * dim.vWi) / 10;
     const hei = dim.vHe - 3 * wid;
-    const mid = dim.vWi / 2;*/
+    const mid = dim.vWi / 2;*/return b.append("text").attr("x",0).attr("y",0).style("text-anchor","middle").text(function(a){return a.shortName}),b;/* eslint-enable no-magic-numbers */}
 
-    name.append('text').attr('x', 0).attr('y', 0).style('text-anchor', 'middle').text(function (subs) {
-      return subs.shortName;
-    });
-    return name;
-    /* eslint-enable no-magic-numbers */
-  }
-
-  function makeDetails(parent, dispatcher, view, initState) {
-    startLoading$1(parent);
-
-    if ('mun' in initState) {
-      makeMun$1(parent, dispatcher, view, initState);
-    } else {
-      makeBrazil$1(parent, dispatcher, view, initState);
-    }
-
-    dispatcher.on('to-brazil-view.details', function () {
-      makeBrazil$1(parent, dispatcher, {
-        data: initState.data
-      });
-    });
-    dispatcher.on('to-mun-view.details', function (mun) {
-      makeMun$1(parent, dispatcher, view, {
-        data: initState.data,
-        mun: mun
-      });
-    });
-    endLoading$1(parent);
-  }
-
-  function makeBrazil$1(parent, dispatcher, view, state) {
-    var main = parent.select('#details-main');
-    main.html(null);
-    makeHeader(main, 'Brasil');
-    main.append('p').html('Agrotóxicos foram detectados na água que abastece mais de 2.300 cidades de 2014 a 2017. Clique no mapa ou digite sua cidade para descobrir quais produtos químicos saíram da sua torneira');
-
-    if (view === 'limits') {
-      makeLimitsToOtherViews(parent, dispatcher, state);
-      makeLimitsSource(parent);
-    } else {
-      makeCocktailToOtherViews(parent, dispatcher, state);
-      makeCocktailSource(parent);
-    }
-  }
-
-  function addLevelItem(parent, heading, title) {
-    var level = parent.append('div').classed('level-item has-text-centered', true);
-    level.append('p').classed('heading', true).text(heading);
-    level.append('p').classed('title', true).text(title);
-    return level;
-  }
-
-  function makeMun$1(parent, dispatcher, view, state) {
-    var main = parent.select('#details-main');
-    main.html(null);
-    makeHeader(main, state.mun.properties.name, state.mun.properties.fuName);
-    /*main
-      .append('p')
-      .html(
-        '<strong>População</strong> ' +
-          (+state.mun.properties.population).toLocaleString('pt-BR')
-      );
-    */
-
-    if (view === 'limits') {
-      makeLimits(main, dispatcher, state.mun, state.data);
-      makeLimitsToOtherViews(parent, dispatcher, state);
-      /*} else if (view === 'substances') {
-      // init
-      const defaultSubstance = data.substancesLut['25'];
-      makeSubstance(main, dispatcher, mun, data, defaultSubstance);
-       dispatcher.on('substance-selected', substance =>
-        makeSubstance(main, dispatcher, mun, data, substance)
-      );*/
-    } else {
-      makeCocktail(main, dispatcher, state.mun, state.data);
-      makeCocktailToOtherViews(parent, dispatcher, state);
-    }
-  }
-
-  function makeCocktail(parent, dispatcher, mun, data) {
-    var level = parent.append('nav').classed('level is-mobile', true);
-    addLevelItem(level, 'População', (+mun.properties.population).toLocaleString('pt-BR')); // map1Number should always be present - NaN if no tests
-
-    if (isNaN(mun.properties.map1Number)) {
-      addLevelItem(level, 'Agrotóxicos detectados', 'Sem dados');
-      parent.append('header').html('<span class="is-size-4">Sem dados</span>' + ' sobre agrotóxicos dentro da água potável em ' + mun.properties.name + '.');
-    } else if (mun.properties.map1Number === 0) {
-      addLevelItem(level, 'Agrotóxicos detectados', mun.properties.map1Number);
-      parent.append('header').html('<span class="is-size-4">Sem agrotóxicos</span>' + ' detectado dentro de água potável em ' + mun.properties.name + '.');
-    } else {
-      addLevelItem(level, 'Agrotóxicos detectados', mun.properties.map1Number);
-      parent.append('header').html('<span class="is-size-4">' + mun.properties.map1Number + '</span> Agrotóxicos' + ' detectado na água potável em ' + mun.properties.name + '.');
-      var list = parent.append('ul');
-      var hhceSubstances = mun.properties.tests.filter(function (sub) {
-        return sub.substance.isHhce && sub.max > 0;
-      });
-
-      if (hhceSubstances.length > 0) {
-        makeTubesCocktail(list.append('li'), hhceSubstances, '<span class="is-size-4">' + hhceSubstances.length + '</span> associado com ' + '<strong>doenças crônicas</strong> ' + 'como câncer, defeitos congênitos e distúrbios endócrinos', 'hhce');
-        var otherSubstances = mun.properties.tests.filter(function (sub) {
-          return !sub.substance.isHhce && sub.max > 0;
-        });
-
-        if (otherSubstances.length > 0) {
-          makeTubesCocktail(list.append('li'), otherSubstances, '<span class="is-size-4">' + otherSubstances.length + '</span> outros agrotóxicos', 'no-hhce');
-        }
-      } else {
-        makeTubesCocktail(list.append('li'), mun.properties.tests, '', 'no-hhce');
-      }
-    }
-  }
-
-  function makeLimits(parent, dispatcher, mun, data) {
-    var level = parent.append('nav').classed('level is-mobile', true);
-    addLevelItem(level, 'População', (+mun.properties.population).toLocaleString('pt-BR')); // map2Category should always be present
-
-    if (mun.properties.map2Category === MAP2.CATEGORY.NO_TEST) {
-      parent.append('header').html('<span class="is-size-4">' + 'Sem dados</span> sobre agrotóxicos dentro da água potável em ' + mun.properties.name + '.');
-    } else if (mun.properties.map2Category === MAP2.CATEGORY.BELOW) {
-      parent.append('header').html('<span class="is-size-4">' + 'sem agrotóxicos</span> detectado acima dos limites brasileiros ou europeus em ' + mun.properties.name + '.');
-    } else {
-      var supBrSubstances = mun.properties.tests.filter(function (sub) {
-        return sub.map2Category === MAP2.CATEGORY.SUP_BR;
-      });
-
-      if (supBrSubstances.length > 0) {
-        makeTubesLimits(parent, supBrSubstances, '<span class="is-size-4">' + supBrSubstances.length + '</span> agrotóxico(s) detectado acima do limite brasileiro', 'cat-' + MAP2.CATEGORY.SUP_BR);
-      }
-
-      var supEuSubstances = mun.properties.tests.filter(function (sub) {
-        return sub.map2Category === MAP2.CATEGORY.SUP_EU;
-      });
-
-      if (supEuSubstances.length > 0) {
-        makeTubesLimits(parent, supEuSubstances, '<span class="is-size-4">' + supEuSubstances.length + '</span> agrotóxico(s) detectado acima do limite europeu', 'cat-' + MAP2.CATEGORY.SUP_EU);
-      }
-    }
-  }
-  /*function makeSubstance(parent, dispatcher, mun, data, substance) {
+  function makeDetails(a,b,c,d){startLoading$1(a),"mun"in d?makeMun$1(a,b,c,d):makeBrazil$1(a,b,c,d),b.on("to-brazil-view.details",function(){makeBrazil$1(a,b,{data:d.data});}),b.on("to-mun-view.details",function(e){makeMun$1(a,b,c,{data:d.data,mun:e});}),endLoading$1(a);}function makeBrazil$1(a,b,c,d){var e=a.select("#details-main");e.html(null),makeHeader(e,"Brasil"),e.append("p").html("Agrotóxicos foram detectados na água que abastece mais de 2.300 cidades de 2014 a 2017. Clique no mapa ou digite sua cidade para descobrir quais produtos químicos saíram da sua torneira"),"limits"===c?(makeLimitsToOtherViews(a,b,d),makeLimitsSource(a)):(makeCocktailToOtherViews(a,b,d),makeCocktailSource(a));}function addLevelItem(a,b,c){var d=a.append("div").classed("level-item has-text-centered",!0);return d.append("p").classed("heading",!0).text(b),d.append("p").classed("title",!0).text(c),d}function makeMun$1(a,b,c,d){var e=a.select("#details-main");e.html(null),makeHeader(e,d.mun.properties.name,d.mun.properties.fuName),"limits"===c?(makeLimits(e,b,d.mun,d.data),makeLimitsToOtherViews(a,b,d)):(makeCocktail(e,b,d.mun,d.data),makeCocktailToOtherViews(a,b,d));}function makeCocktail(a,b,c){var d=a.append("nav").classed("level is-mobile",!0);// map1Number should always be present - NaN if no tests
+  if(addLevelItem(d,"População",(+c.properties.population).toLocaleString("pt-BR")),isNaN(c.properties.map1Number))addLevelItem(d,"Agrotóxicos detectados","Sem dados"),a.append("header").html("<span class=\"is-size-4\">Sem dados</span> sobre agrotóxicos dentro da água potável em "+c.properties.name+".");else if(0===c.properties.map1Number)addLevelItem(d,"Agrotóxicos detectados",c.properties.map1Number),a.append("header").html("<span class=\"is-size-4\">Sem agrotóxicos</span> detectado dentro de água potável em "+c.properties.name+".");else{addLevelItem(d,"Agrotóxicos detectados",c.properties.map1Number),a.append("header").html("<span class=\"is-size-4\">"+c.properties.map1Number+"</span> Agrotóxicos detectado na água potável em "+c.properties.name+".");var e=a.append("ul"),f=c.properties.tests.filter(function(a){return a.substance.isHhce&&0<a.max});if(0<f.length){makeTubesCocktail(e.append("li"),f,"<span class=\"is-size-4\">"+f.length+"</span> associado com <strong>doenças crônicas</strong> como câncer, defeitos congênitos e distúrbios endócrinos","hhce");var g=c.properties.tests.filter(function(a){return !a.substance.isHhce&&0<a.max});0<g.length&&makeTubesCocktail(e.append("li"),g,"<span class=\"is-size-4\">"+g.length+"</span> outros agrotóxicos","no-hhce");}else makeTubesCocktail(e.append("li"),c.properties.tests,"","no-hhce");}}function makeLimits(a,b,c){var d=a.append("nav").classed("level is-mobile",!0);// map2Category should always be present
+  if(addLevelItem(d,"População",(+c.properties.population).toLocaleString("pt-BR")),c.properties.map2Category===MAP2.CATEGORY.NO_TEST)a.append("header").html("<span class=\"is-size-4\">Sem dados</span> sobre agrotóxicos dentro da água potável em "+c.properties.name+".");else if(c.properties.map2Category===MAP2.CATEGORY.BELOW)a.append("header").html("<span class=\"is-size-4\">sem agrotóxicos</span> detectado acima dos limites brasileiros ou europeus em "+c.properties.name+".");else{var e=c.properties.tests.filter(function(a){return a.map2Category===MAP2.CATEGORY.SUP_BR});0<e.length&&makeTubesLimits(a,e,"<span class=\"is-size-4\">"+e.length+"</span> agrotóxico(s) detectado acima do limite brasileiro","cat-"+MAP2.CATEGORY.SUP_BR);var f=c.properties.tests.filter(function(a){return a.map2Category===MAP2.CATEGORY.SUP_EU});0<f.length&&makeTubesLimits(a,f,"<span class=\"is-size-4\">"+f.length+"</span> agrotóxico(s) detectado acima do limite europeu","cat-"+MAP2.CATEGORY.SUP_EU);}}/*function makeSubstance(parent, dispatcher, mun, data, substance) {
     parent.html(null);
     makeHeader(parent, mun.properties.name, mun.properties.fuName);
     parent
@@ -19761,131 +19134,19 @@
       }
     }
   }
-  */
-
-
-  function makeHeader(parent, title, subtitle) {
-    var header = parent.append('header').attr('id', 'idCard');
-    header.append('h2').text(title);
-
-    if (subtitle) {
-      var fu = header.append('h3'); // TODO: add an icon
-
-      fu.append('span').text('📌 ' + subtitle);
-    }
-  }
-
-  function makeCocktailToOtherViews(parent, dispatcher, state) {
-    var par = parent.select('#details-footer #to-other-views').html(null).append('p');
-    par.append('span').text('Descubra quantas substâncias foram ');
-    par.append('a').attr('href', '#').text('detectado acima dos limites legais').on('click', function () {
-      dispatcher.call('make-app-limits', null, state);
-    });
-  }
-
-  function makeLimitsToOtherViews(parent, dispatcher, state) {
-    var par = parent.select('#details-footer #to-other-views').html(null).append('p');
-    par.append('span').text('Descubra quantas substâncias foram ');
-    par.append('a').attr('href', '#').text('detectado na água potável').on('click', function () {
-      dispatcher.call('make-app-cocktail', null, state);
-    });
-  }
-
-  function makeCocktailSource(parent) {
-    makeLimitsSource(parent);
-  }
-
-  function makeLimitsSource(parent) {
-    var par = parent.select('#details-footer #source').html(null);
-    par.append('h4').html('Fonte');
-    var ul = par.append('ul');
-    var li1 = ul.append('li');
-    li1.append('span').text('Concentração de agrotóxicos: ');
-    li1.append('a').attr('href', 'http://dados.gov.br/dataset/controle-semestral').text('SISAGUA - Controle Semestral');
-    li1.append('span').text('. Sistema de Informação de Vigilância da Qualidade da Água para Consumo Humano (SISAGUA), 854.140 testes a nível municipal de 2014 a 2017.');
-    var li2 = ul.append('li');
-    li2.append('span').text('Estimativas da população: ');
-    li2.append('a').attr('href', 'ftp://ftp.ibge.gov.br/Estimativas_de_Populacao/Estimativas_2017/').text('TCU 2017');
-    li2.append('span').text('. Instituto Brasileiro de Geografia e Estatística (IBGE), 2017.');
-  }
-
-  function startLoading$1(element) {
-    element.classed('is-loading', true);
-  }
-
-  function endLoading$1(element) {
-    element.classed('is-loading', false);
-  }
+  */function makeHeader(a,b,c){var d=a.append("header").attr("id","idCard");if(d.append("h2").text(b),c){var e=d.append("h3");// TODO: add an icon
+  e.append("span").text("\uD83D\uDCCC "+c);}}function makeCocktailToOtherViews(a,b,c){var d=a.select("#details-footer #to-other-views").html(null).append("p");d.append("span").text("Descubra quantas substâncias foram "),d.append("a").attr("href","#").text("detectado acima dos limites legais").on("click",function(){b.call("make-app-limits",null,c);});}function makeLimitsToOtherViews(a,b,c){var d=a.select("#details-footer #to-other-views").html(null).append("p");d.append("span").text("Descubra quantas substâncias foram "),d.append("a").attr("href","#").text("detectado na água potável").on("click",function(){b.call("make-app-cocktail",null,c);});}function makeCocktailSource(a){makeLimitsSource(a);}function makeLimitsSource(a){var b=a.select("#details-footer #source").html(null);b.append("h4").html("Fonte");var c=b.append("ul"),d=c.append("li");d.append("span").text("Concentração de agrotóxicos: "),d.append("a").attr("href","http://dados.gov.br/dataset/controle-semestral").text("SISAGUA - Controle Semestral"),d.append("span").text(". Sistema de Informação de Vigilância da Qualidade da Água para Consumo Humano (SISAGUA), 854.140 testes a nível municipal de 2014 a 2017.");var e=c.append("li");e.append("span").text("Estimativas da população: "),e.append("a").attr("href","ftp://ftp.ibge.gov.br/Estimativas_de_Populacao/Estimativas_2017/").text("TCU 2017"),e.append("span").text(". Instituto Brasileiro de Geografia e Estatística (IBGE), 2017.");}function startLoading$1(a){a.classed("is-loading",!0);}function endLoading$1(a){a.classed("is-loading",!1);}
 
   //import {interpolateYlOrRd, scaleLinear} from 'd3';
-  var cfg$1 = {
-    backgroundColor: '#f0f0f0',
-    frontiers: {
-      br: 1,
-      fu: 0.5,
-      mun: 0.25
-    },
-    max: 27
-  };
-  function createChoropleth(context, dispatcher, path, data, scale) {
-    dispatcher.on('make-app-cocktail.choropleth', function () {
-      return drawMap(context, path, data, scale, function (mun) {
-        return (//cocktailColor(mun.properties.map1Number)
-          cocktailColor(mun.properties.map1Category)
-        );
-      });
-    });
-    dispatcher.on('make-app-limits.choropleth', function () {
-      return drawMap(context, path, data, scale, function (mun) {
-        return limitsColor(mun.properties.map2Category);
-      });
-    });
-  }
-
-  function addFrontiers(context, path, data, scale) {
-    // TODO: frontiers instead of polygons for municipalities
-    context.beginPath();
-    path(data.mun);
-    context.lineWidth = cfg$1.frontiers.mun / scale;
-    context.strokeStyle = '#aaa';
-    context.stroke();
-    context.beginPath();
-    path(data.internalFu);
-    context.lineWidth = cfg$1.frontiers.fu / scale;
-    context.strokeStyle = '#000';
-    context.stroke();
-    context.beginPath();
-    path(data.brazil);
-    context.lineWidth = cfg$1.frontiers.br / scale;
-    context.strokeStyle = '#000';
-    context.stroke();
-  }
-
-  function drawMap(context, path, data, scale, color) {
-    data.mun.features.forEach(function (mun) {
-      context.beginPath();
-      path(mun);
-      context.fillStyle = color(mun);
-      context.fill();
-    });
-    addFrontiers(context, path, data, scale);
-  }
-
-  var cocktailColor = function cocktailColor(value) {
-    /*if (isNaN(value)) {
+  var cfg$1={backgroundColor:"#f0f0f0",frontiers:{br:1,fu:.5,mun:.25},max:27};function createChoropleth(a,b,c,d,e){b.on("make-app-cocktail.choropleth",function(){return drawMap(a,c,d,e,function(a){return(//cocktailColor(mun.properties.map1Number)
+  cocktailColor(a.properties.map1Category))})}),b.on("make-app-limits.choropleth",function(){return drawMap(a,c,d,e,function(a){return limitsColor(a.properties.map2Category)})});}function addFrontiers(a,b,c,d){// TODO: frontiers instead of polygons for municipalities
+  a.beginPath(),b(c.mun),a.lineWidth=cfg$1.frontiers.mun/d,a.strokeStyle="#aaa",a.stroke(),a.beginPath(),b(c.internalFu),a.lineWidth=cfg$1.frontiers.fu/d,a.strokeStyle="#000",a.stroke(),a.beginPath(),b(c.brazil),a.lineWidth=cfg$1.frontiers.br/d,a.strokeStyle="#000",a.stroke();}function drawMap(a,b,c,d,e){c.mun.features.forEach(function(c){a.beginPath(),b(c),a.fillStyle=e(c),a.fill();}),addFrontiers(a,b,c,d);}var cocktailColor=function(a){/*if (isNaN(value)) {
       return cfg.backgroundColor;
     }
     return scaleLinear()
       .domain([0, cfg.max])
-      .interpolate(() => interpolateYlOrRd)(value);*/
-    var colors = ['#f0f0f0', '#ffffcc', '#feb24c', '#e31a1c', '#800026']; //["#ffffcc","#ffeda0","#fed976","#feb24c","#fd8d3c","#fc4e2a","#e31a1c","#bd0026","#800026"]
-
-    return colors[value];
-  };
-  var limitsColor = function limitsColor(value) {
-    var colors = ['#f4f4f4', '#74a3eb', '#001d93', '#01000f'];
-    return colors[value];
-  };
+      .interpolate(() => interpolateYlOrRd)(value);*/ //["#ffffcc","#ffeda0","#fed976","#feb24c","#fd8d3c","#fc4e2a","#e31a1c","#bd0026","#800026"]
+  return ["#f0f0f0","#ffffcc","#feb24c","#e31a1c","#800026"][a]};var limitsColor=function(a){return ["#f4f4f4","#74a3eb","#001d93","#01000f"][a]};
 
   var xhtml = "http://www.w3.org/1999/xhtml";
 
@@ -25139,65 +24400,12 @@
     bezierCurveTo: function(x1, y1, x2, y2, x, y) { this._context.bezierCurveTo(y1, x1, y2, x2, y, x); }
   };
 
-  var cfg$2 = {
-    cocktail: {
-      dim: {
-        /*height: 10,
-        subtitleOffset: 8,
-        tickSize: 15,
-        titleOffsetLine1: 38,
-        titleOffsetLine2: 24,
-        width: 10,*/
-        height: 16,
-        label: {
-          xOffset: 30,
-          yOffset: 15
-        },
-        margin: 4,
-        subtitleOffset: 8,
-        titleOffset: 22,
-        width: 16
-      },
-      keys: ['CAT_4', 'CAT_3', 'CAT_2', 'CAT_1', 'NO_TEST'],
-      labels: {
-        CAT_1: 'Nenhum agrotóxico',
-        CAT_2: 'De 1 a 13',
-        CAT_3: 'De 14 a 26',
-        CAT_4: 'Todos os 27 testados',
-        NO_TEST: 'Testes não foram feitos'
-      }
-    },
-    limits: {
-      dim: {
-        height: 16,
-        label: {
-          xOffset: 30,
-          yOffset: 15
-        },
-        margin: 4,
-        subtitleOffset: 8,
-        titleOffset: 22,
-        width: 16
-      },
-      keys: ['SUP_BR', 'SUP_EU', 'BELOW', 'NO_TEST'],
-      labels: {
-        BELOW: 'todos os agrotóxicos abaixo dos limites',
-        NO_TEST: 'sem dados',
-        SUP_BR: 'pelo menos um acima do limite brasileiro',
-        SUP_EU: 'pelo menos um acima do limite europeu'
-      }
-    },
-    max: 27
-  };
-  function createLegend(parent, dispatcher) {
-    dispatcher.on('make-app-cocktail.legend', function () {
-      return createLegendCocktail(parent);
-    });
-    dispatcher.on('make-app-limits.legend', function () {
-      return createLegendLimits(parent);
-    });
-  }
-  /*
+  var cfg$2={cocktail:{dim:{/*height: 10,
+      subtitleOffset: 8,
+      tickSize: 15,
+      titleOffsetLine1: 38,
+      titleOffsetLine2: 24,
+      width: 10,*/height:16,label:{xOffset:30,yOffset:15},margin:4,subtitleOffset:8,titleOffset:22,width:16},keys:["CAT_4","CAT_3","CAT_2","CAT_1","NO_TEST"],labels:{CAT_1:"Nenhum agrotóxico",CAT_2:"De 1 a 13",CAT_3:"De 14 a 26",CAT_4:"Todos os 27 testados",NO_TEST:"Testes não foram feitos"}},limits:{dim:{height:16,label:{xOffset:30,yOffset:15},margin:4,subtitleOffset:8,titleOffset:22,width:16},keys:["SUP_BR","SUP_EU","BELOW","NO_TEST"],labels:{BELOW:"todos os agrotóxicos abaixo dos limites",NO_TEST:"sem dados",SUP_BR:"pelo menos um acima do limite brasileiro",SUP_EU:"pelo menos um acima do limite europeu"}},max:27};function createLegend(a,b){b.on("make-app-cocktail.legend",function(){return createLegendCocktail(a)}),b.on("make-app-limits.legend",function(){return createLegendLimits(a)});}/*
   function createLegendCocktail(parent) {
     parent.selectAll('g.legend').html(null);
     // TODO: should be a scheme (27 colors), not a continuous scale
@@ -25254,122 +24462,25 @@
       .select('.domain')
       .remove();
   }
-  */
+  */function createLegendCocktail(a){a.selectAll("g.legend").html(null);var b=linear$1().domain([0,cfg$2.cocktail.keys.length]).rangeRound([0,(cfg$2.cocktail.dim.height+cfg$2.cocktail.dim.margin)*cfg$2.cocktail.keys.length]),c=a.append("g").classed("legend",!0)//.style('font-size', '0.8rem')
+  //.style('font-family', 'sans-serif')
+  .attr("transform","translate(620,50) scale(1.3)");c.selectAll("rect").data(cfg$2.cocktail.keys).enter().append("rect").attr("fill",function(a){return cocktailColor(MAP1.CATEGORY[a])}).attr("height",cfg$2.cocktail.dim.height).attr("x",0).attr("y",function(a,c){return b(c)}).attr("width",cfg$2.cocktail.dim.width),c.selectAll("text").data(cfg$2.cocktail.keys).enter().append("text").attr("x",cfg$2.cocktail.dim.label.xOffset).attr("y",function(a,c){return b(c)+cfg$2.cocktail.dim.label.yOffset}).attr("font-size","0.9rem").text(function(a){return cfg$2.cocktail.labels[a]});var d=c.append("g").attr("fill","#000").attr("text-anchor","start");// TODO: i18n
+  d.append("text").attr("y",-cfg$2.cocktail.dim.titleOffset).attr("font-weight","bold").text("Número de agrotóxicos"),d.append("text").attr("y",-cfg$2.cocktail.dim.subtitleOffset).attr("font-weight","bold").text("detectados na água");}function createLegendLimits(a){a.selectAll("g.legend").html(null);var b=linear$1().domain([0,cfg$2.limits.keys.length]).rangeRound([0,(cfg$2.limits.dim.height+cfg$2.limits.dim.margin)*cfg$2.limits.keys.length]),c=a.append("g").classed("legend",!0)//.style('font-size', '0.8rem')
+  //.style('font-family', 'sans-serif')
+  .attr("transform","translate(550,50) scale(1.3)");c.selectAll("rect").data(cfg$2.limits.keys).enter().append("rect").attr("fill",function(a){return limitsColor(MAP2.CATEGORY[a])}).attr("height",cfg$2.limits.dim.height).attr("y",function(a,c){return b(c)}).attr("width",cfg$2.limits.dim.width),c.selectAll("text").data(cfg$2.limits.keys).enter().append("text").attr("x",cfg$2.limits.dim.label.xOffset).attr("y",function(a,c){return b(c)+cfg$2.limits.dim.label.yOffset}).attr("font-size","0.9rem").text(function(a){return cfg$2.limits.labels[a]});var d=c.append("g").attr("fill","#000").attr("text-anchor","start");// TODO: i18n
+  d.append("text").attr("y",-cfg$2.limits.dim.titleOffset).attr("font-weight","bold").text("Agrotóxicos detectados acima dos limites legais"),d.append("text").attr("y",-cfg$2.limits.dim.subtitleOffset).attr("font-weight","bold").text("do limite legal na água potável");}
 
-  function createLegendCocktail(parent) {
-    parent.selectAll('g.legend').html(null);
-    var yy = linear$1().domain([0, cfg$2.cocktail.keys.length]).rangeRound([0, (cfg$2.cocktail.dim.height + cfg$2.cocktail.dim.margin) * cfg$2.cocktail.keys.length]);
-    var legend = parent.append('g').classed('legend', true) //.style('font-size', '0.8rem')
-    //.style('font-family', 'sans-serif')
-    .attr('transform', 'translate(620,50) scale(1.3)');
-    legend.selectAll('rect').data(cfg$2.cocktail.keys).enter().append('rect').attr('fill', function (key) {
-      return cocktailColor(MAP1.CATEGORY[key]);
-    }).attr('height', cfg$2.cocktail.dim.height).attr('x', 0).attr('y', function (key, idx) {
-      return yy(idx);
-    }).attr('width', cfg$2.cocktail.dim.width);
-    legend.selectAll('text').data(cfg$2.cocktail.keys).enter().append('text').attr('x', cfg$2.cocktail.dim.label.xOffset).attr('y', function (key, idx) {
-      return yy(idx) + cfg$2.cocktail.dim.label.yOffset;
-    }).attr('font-size', '0.9rem').text(function (key) {
-      return cfg$2.cocktail.labels[key];
-    });
-    var label = legend.append('g').attr('fill', '#000').attr('text-anchor', 'start'); // TODO: i18n
-
-    label.append('text').attr('y', -cfg$2.cocktail.dim.titleOffset).attr('font-weight', 'bold').text('Número de agrotóxicos');
-    label.append('text').attr('y', -cfg$2.cocktail.dim.subtitleOffset).attr('font-weight', 'bold').text('detectados na água');
-  }
-
-  function createLegendLimits(parent) {
-    parent.selectAll('g.legend').html(null);
-    var yy = linear$1().domain([0, cfg$2.limits.keys.length]).rangeRound([0, (cfg$2.limits.dim.height + cfg$2.limits.dim.margin) * cfg$2.limits.keys.length]);
-    var legend = parent.append('g').classed('legend', true) //.style('font-size', '0.8rem')
-    //.style('font-family', 'sans-serif')
-    .attr('transform', 'translate(550,50) scale(1.3)');
-    legend.selectAll('rect').data(cfg$2.limits.keys).enter().append('rect').attr('fill', function (key) {
-      return limitsColor(MAP2.CATEGORY[key]);
-    }).attr('height', cfg$2.limits.dim.height).attr('y', function (key, idx) {
-      return yy(idx);
-    }).attr('width', cfg$2.limits.dim.width);
-    legend.selectAll('text').data(cfg$2.limits.keys).enter().append('text').attr('x', cfg$2.limits.dim.label.xOffset).attr('y', function (key, idx) {
-      return yy(idx) + cfg$2.limits.dim.label.yOffset;
-    }).attr('font-size', '0.9rem').text(function (key) {
-      return cfg$2.limits.labels[key];
-    });
-    var label = legend.append('g').attr('fill', '#000').attr('text-anchor', 'start'); // TODO: i18n
-
-    label.append('text').attr('y', -cfg$2.limits.dim.titleOffset).attr('font-weight', 'bold').text('Agrotóxicos detectados acima dos limites legais');
-    label.append('text').attr('y', -cfg$2.limits.dim.subtitleOffset).attr('font-weight', 'bold').text('do limite legal na água potável');
-  }
-
-  function createOverlay(parent, dispatcher, data, canvas, dataWidth) {
-    // The overlay is nearly 100% transparent. It's used to capture the mouse and
-    // touch events
-    var overlay = parent.append('rect').attr('x', 0).attr('y', 0).attr('width', '100%').attr('height', '100%').attr('fill', 'white').attr('fill-opacity', '0.01');
-    overlay.on('mouseout', function (ft, element) {
-      // invoke callbacks
-      dispatcher.call('mun-mouseout');
-    });
-    overlay.on('click', function () {
-      var mun = findMun(data, event, dataWidth, canvas);
-
-      if (mun) {
-        dispatcher.call('mun-click', null, mun);
-      } else {
-        dispatcher.call('mun-mouseout');
-      }
-    });
-    overlay.on('mouseover mousemove', function () {
-      var mun = findMun(data, event, dataWidth, canvas);
-
-      if (mun) {
-        dispatcher.call('mun-mouseover', null, mun);
-      } else {
-        dispatcher.call('mun-mouseout');
-      }
-    });
-  }
-  /* From d3-geo + adapted to planar polygons */
-
-  var containsGeometryType = {
-    MultiPolygon: function MultiPolygon(object, point) {
-      var coordinates = object.coordinates;
-      var idx = -1;
-      var len = coordinates.length;
-
-      while (++idx < len) {
-        if (polygonContains(coordinates[idx][0], point)) {
-          return true;
-        }
-      }
-
-      return false;
-    },
-    Polygon: function Polygon(object, point) {
-      return polygonContains(object.coordinates[0], point);
-    }
-  };
-
-  function contains(geometry, point) {
-    return geometry && containsGeometryType.hasOwnProperty(geometry.type) ? containsGeometryType[geometry.type](geometry, point) : false;
-  }
-
-  function findMun(data, event, dataWidth, canvas) {
-    // In order to get back to the data dimensions, we need to know the size of
-    // the canvas (client size), scale to the image size, and then divide by the
-    // scale
-    var clientToData = function clientToData(dim) {
-      return dim * dataWidth / canvas.node().clientWidth;
-    };
-
-    var dataX = clientToData(event.layerX);
-    var dataY = clientToData(event.layerY);
-    return data.mun.features.find(function (feature) {
-      // TODO: if necessary, optimize looking first at the bounding box to avoid
-      // more work
-      // TODO: possibly, generate an index
-      // TODO: evaluate picking https://bocoup.com/blog/2d-picking-in-canvas
-      return contains(feature.geometry, [dataX, dataY]);
-    });
-  }
+  function createOverlay(a,b,c,d,e){// The overlay is nearly 100% transparent. It's used to capture the mouse and
+  // touch events
+  var f=a.append("rect").attr("x",0).attr("y",0).attr("width","100%").attr("height","100%").attr("fill","white").attr("fill-opacity","0.01");f.on("mouseout",function(){// invoke callbacks
+  b.call("mun-mouseout");}),f.on("click",function(){var a=findMun(c,event,e,d);a?b.call("mun-click",null,a):b.call("mun-mouseout");}),f.on("mouseover mousemove",function(){var a=findMun(c,event,e,d);a?b.call("mun-mouseover",null,a):b.call("mun-mouseout");});}/* From d3-geo + adapted to planar polygons */var containsGeometryType={MultiPolygon:function f(a,b){for(var c=a.coordinates,d=-1,e=c.length;++d<e;)if(polygonContains(c[d][0],b))return !0;return !1},Polygon:function c(a,b){return polygonContains(a.coordinates[0],b)}};function contains(a,b){return !!(a&&containsGeometryType.hasOwnProperty(a.type))&&containsGeometryType[a.type](a,b)}function findMun(a,b,c,d){// In order to get back to the data dimensions, we need to know the size of
+  // the canvas (client size), scale to the image size, and then divide by the
+  // scale
+  var e=function(a){return a*c/d.node().clientWidth},f=e(b.layerX),g=e(b.layerY);return a.mun.features.find(function(a){// TODO: if necessary, optimize looking first at the bounding box to avoid
+  // more work
+  // TODO: possibly, generate an index
+  // TODO: evaluate picking https://bocoup.com/blog/2d-picking-in-canvas
+  return contains(a.geometry,[f,g])})}
 
   var xhtml$1 = "http://www.w3.org/1999/xhtml";
 
@@ -29278,145 +28389,29 @@
     return annotation;
   }
 
-  var cfg$3 = {
-    nx: 220,
-    ny: 700,
-    radius: {
-      min: 20,
-      padding: 5
-    }
-  };
-  var map2LabelByCategory = ['Nunca testado', 'Todas as substâncias abaixo dos limites brasileiro e europeu', 'Agrotóxico(s) detectado(s) acima do limite europeu', 'Agrotóxico(s) detectado(s) acima do limite brasileiro'];
+  var cfg$3={nx:220,ny:700,radius:{min:20,padding:5}},map2LabelByCategory=["Nunca testado","Todas as substâncias abaixo dos limites brasileiro e europeu","Agrotóxico(s) detectado(s) acima do limite europeu","Agrotóxico(s) detectado(s) acima do limite brasileiro"];function cocktailLabel(a){return Number.isInteger(a.properties.map1Number)?a.properties.map1Number+" agrotóxico(s) encontrado(s) na água potável.":"Nunca testado."}function limitsLabel(a){return map2LabelByCategory[a.properties.map2Category]}function createTooltip(a,b){function c(a,c){function e(c){b.on("mun-mouseout.tooltip",function(){return showTooltip(d,a,c)});}function f(){b.on("mun-mouseout.tooltip",function(){return clearTooltip(d)});}"mun"in c?e(c.mun):f(),b.on("mun-mouseover.tooltip",function(b){return showTooltip(d,a,b)}),b.on("to-brazil-view.tooltip ",function(){f(),clearTooltip(d);}),b.on("to-mun-view.tooltip mun-click.tooltip",function(b){e(b),showTooltip(d,a,b);});}// create a container for tooltips
+  var d=a.append("g").classed("tooltip",!0);b.on("make-app-cocktail.tooltip",function(a){c(cocktailLabel,a);}),b.on("make-app-limits.tooltip",function(a){c(limitsLabel,a);});}function clearTooltip(a){a.html("");}function showTooltip(a,b,c){a.call(createAnnotation(b,c));}// this function will call d3.annotation when a tooltip has to be drawn
+  function createAnnotation(a,b){return annotation().type(d3CalloutCircle).annotations([{data:b,note:{label:a(b),title:b.properties.name+" ("+b.properties.fuName+")",wrap:cfg$3.nx},nx:cfg$3.nx,ny:cfg$3.ny,subject:{radius:Math.max(b.properties.radius,cfg$3.radius.min),radiusPadding:cfg$3.radius.padding},x:b.properties.centroid[0],// eslint-disable-line id-length
+  y:b.properties.centroid[1]// eslint-disable-line id-length
+  }])}
 
-  function cocktailLabel(mun) {
-    return Number.isInteger(mun.properties.map1Number) ? mun.properties.map1Number + ' agrotóxico(s) encontrado(s) na água potável.' : 'Nunca testado.';
-  }
-
-  function limitsLabel(mun) {
-    return map2LabelByCategory[mun.properties.map2Category];
-  }
-
-  function createTooltip(parent, dispatcher) {
-    // create a container for tooltips
-    var tooltip = parent.append('g').classed('tooltip', true);
-
-    function updateView(label, state) {
-      function rememberSelectedMun(selectedMun) {
-        dispatcher.on('mun-mouseout.tooltip', function () {
-          return showTooltip(tooltip, label, selectedMun);
-        });
-      }
-
-      function forgetSelectedMun() {
-        dispatcher.on('mun-mouseout.tooltip', function () {
-          return clearTooltip(tooltip);
-        });
-      }
-
-      if ('mun' in state) {
-        rememberSelectedMun(state.mun);
-      } else {
-        forgetSelectedMun();
-      }
-
-      dispatcher.on('mun-mouseover.tooltip', function (mun) {
-        return showTooltip(tooltip, label, mun);
-      });
-      dispatcher.on('to-brazil-view.tooltip ', function () {
-        forgetSelectedMun();
-        clearTooltip(tooltip);
-      });
-      dispatcher.on('to-mun-view.tooltip mun-click.tooltip', function (selectedMun) {
-        rememberSelectedMun(selectedMun);
-        showTooltip(tooltip, label, selectedMun);
-      });
-    }
-
-    dispatcher.on('make-app-cocktail.tooltip', function (state) {
-      updateView(cocktailLabel, state);
-    });
-    dispatcher.on('make-app-limits.tooltip', function (state) {
-      updateView(limitsLabel, state);
-    });
-  }
-
-  function clearTooltip(tooltip) {
-    tooltip.html('');
-  }
-
-  function showTooltip(tooltip, label, mun) {
-    tooltip.call(createAnnotation(label, mun));
-  } // this function will call d3.annotation when a tooltip has to be drawn
-
-
-  function createAnnotation(label, mun) {
-    return annotation().type(d3CalloutCircle).annotations([{
-      data: mun,
-      note: {
-        label: label(mun),
-        title: mun.properties.name + ' (' + mun.properties.fuName + ')',
-        wrap: cfg$3.nx
-      },
-      nx: cfg$3.nx,
-      ny: cfg$3.ny,
-      subject: {
-        radius: Math.max(mun.properties.radius, cfg$3.radius.min),
-        radiusPadding: cfg$3.radius.padding
-      },
-      x: mun.properties.centroid[0],
-      // eslint-disable-line id-length
-      y: mun.properties.centroid[1] // eslint-disable-line id-length
-
-    }]);
-  }
-
-  var cfg$4 = {
-    data: {
-      height: 960,
-      width: 960
-    },
-    drawing: {
-      // 1 is low: the image is blurry. Set 1.5 or more
-      scale: 1.5
-    },
-    svg: {
-      margin: 200
-    }
-  };
-  function makeMap(parent, dispatcher, data) {
-    startLoading$2(parent);
-    parent.html(null); // 1. create the map as a canvas - for efficiency
-    // As the canvas is set to 100% width, a window resize will modify the client
-    // size of the canvas.
-    // The dimensions here are not related to that effective size (client size).
-    // The canvas width and height attributes correspond to the size of the image
-    // ie. 1.5x scale, and 0-960 in data -> 1440 px square image
-    // (the image will later be redimensioned, ie. reduced, to enter in the 100%
-    // of its container - ie 400px)
-
-    var canvas = parent.append('canvas');
-    canvas.attr('width', cfg$4.drawing.scale * cfg$4.data.width).attr('height', cfg$4.drawing.scale * cfg$4.data.height);
-    var context = canvas.node().getContext('2d');
-    var scale = cfg$4.drawing.scale;
-    context.scale(scale, scale);
-    context.lineJoin = 'round';
-    context.lineCap = 'round'; // Path is a function that transforms a geometry (a point, a line, a
-    // polygon) into a canvas path (also allows to generate SVG paths, for
-    // example)
-    // Note that it takes geographic coordinates as an input, not planar ones
-    // But as the data is already expressed in px, in 960x960 viewport, no need
-    // to pass it a projection as an argument
-
-    var path = geoPath(null, context);
-    createChoropleth(context, dispatcher, path, data, scale); // 2. add an SVG layer over the canvas, for interactivity
-
-    var svg = parent.append('svg').style('position', 'absolute').style('top', '0px').style('left', '0px').attr('viewBox', '0,0,' + cfg$4.data.width + ',' + cfg$4.data.height);
-    createLegend(svg, dispatcher);
-    createTooltip(svg, dispatcher);
-    createOverlay(svg, dispatcher, data, canvas, cfg$4.data.width);
-    endLoading$2(parent);
-  }
-  /*
+  var cfg$4={data:{height:960,width:960},drawing:{// 1 is low: the image is blurry. Set 1.5 or more
+  scale:1.5},svg:{margin:200}};function makeMap(a,b,c){startLoading$2(a),a.html(null);// 1. create the map as a canvas - for efficiency
+  // As the canvas is set to 100% width, a window resize will modify the client
+  // size of the canvas.
+  // The dimensions here are not related to that effective size (client size).
+  // The canvas width and height attributes correspond to the size of the image
+  // ie. 1.5x scale, and 0-960 in data -> 1440 px square image
+  // (the image will later be redimensioned, ie. reduced, to enter in the 100%
+  // of its container - ie 400px)
+  var d=a.append("canvas");d.attr("width",cfg$4.drawing.scale*cfg$4.data.width).attr("height",cfg$4.drawing.scale*cfg$4.data.height);var e=d.node().getContext("2d"),f=cfg$4.drawing.scale;e.scale(f,f),e.lineJoin="round",e.lineCap="round";// Path is a function that transforms a geometry (a point, a line, a
+  // polygon) into a canvas path (also allows to generate SVG paths, for
+  // example)
+  // Note that it takes geographic coordinates as an input, not planar ones
+  // But as the data is already expressed in px, in 960x960 viewport, no need
+  // to pass it a projection as an argument
+  var g=geoPath(null,e);createChoropleth(e,b,g,c,f);// 2. add an SVG layer over the canvas, for interactivity
+  var h=a.append("svg").style("position","absolute").style("top","0px").style("left","0px").attr("viewBox","0,0,"+cfg$4.data.width+","+cfg$4.data.height);createLegend(h,b),createTooltip(h,b),createOverlay(h,b,c,d,cfg$4.data.width),endLoading$2(a);}/*
   function createSubstances(svg, path, data, dispatcher, substance) {
     //const defaultSubstance = data.substancesLut['25'];
     svg.html(null);
@@ -29424,306 +28419,56 @@
     createFuFrontiers(svg, path, data);
     createSubstancesTooltip(svg, path, dispatcher, substance, mun);
   }
-  */
+  */function startLoading$2(a){a.classed("is-loading",!0);}function endLoading$2(a){a.classed("is-loading",!1);}
 
-  function startLoading$2(element) {
-    element.classed('is-loading', true);
-  }
+  function makeNav(a,b){// init
+  updateNav(a,b),a.on("to-brazil-view.nav",function(){updateNav(a,{data:b.data});}),a.on("to-mun-view.nav",function(c){updateNav(a,{data:b.data,mun:c});}),a.on("make-app-cocktail.nav",function(){selectAll("#navbarMaps .navbar-item").classed("is-active",!1),select("#navbarMaps #nav-item-cocktail").classed("is-active",!0),select("#page-title").classed("cocktail",!0),select("#page-title").classed("limits",!1),select("#page-title").classed("substances",!1);}),a.on("make-app-limits.nav",function(){selectAll("#navbarMaps .navbar-item").classed("is-active",!1),select("#navbarMaps #nav-item-limits").classed("is-active",!0),select("#page-title").classed("cocktail",!1),select("#page-title").classed("limits",!0),select("#page-title").classed("substances",!1);}),a.on("make-app-substances.nav",function(){selectAll("#navbarMaps .navbar-item").classed("is-active",!1),select("#navbarMaps #nav-item-substances").classed("is-active",!0),select("#page-title").classed("cocktail",!1),select("#page-title").classed("limits",!1),select("#page-title").classed("substances",!0);});}function updateNav(a,b){select("#navbarMaps #nav-item-cocktail").on("click",function(){a.call("make-app-cocktail",null,b);}),select("#navbarMaps #nav-item-limits").on("click",function(){a.call("make-app-limits",null,b);}),select("#navbarMaps #nav-item-substances").on("click",function(){a.call("make-app-substances",null,b);});}
 
-  function endLoading$2(element) {
-    element.classed('is-loading', false);
-  }
+  var limit=5;function makeSearch(a,b,c){// TODO: add unit tests to verify that the cities are ordered as expected for
+  // some queries ('sa', 'sao p', etc.)
+  startLoading$3(a);var d=window.fuzzball,e=function(){var a=Math.log10,b=a(812),d=a(12106920);return c.data.mun.features.map(function(c){return {mun:c,name:c.properties.deburredName,popScore:(a(c.properties.population)-b)*(100/(d-b))}})}(),f={cutoff:50,// lowest score to return, default: 0
+  limit:limit,// max number of top results to return, default: no limit / 0.
+  //processor: processor, //takes choice object, returns string, default: no processor. Must supply if choices are not already strings.
+  scorer:function(a,b,c){// All scores are between 0 (worst) and 100 (best)
+  // Get a score based on the distance of Levinstein - see
+  // https://github.com/nol13/fuzzball.js
+  // There are other functions in fuzzball.js, but that one seems to give the
+  // best results (from a point of view of a user), and to run faster
+  var e=d.ratio(a,b.name,c),f=b.popScore,g=2/(1+a.length);// Weight by the population, in order to increase the visibility of big
+  // cities
+  return (1-g)*e+g*f},// any function that takes two values and returns a score, default: ratio
+  unsorted:!1// results won't be sorted if true, default: false. If true limit will be ignored.
+  };// TODO: see if we preprocess something
+  select("#search-input").on("focus",function(){// Init: list of results for an empty value
+  b.call("search-results-updated",null,// Maybe use Intl.Collator instead
+  // https://github.com/nol13/fuzzball.js#collation-and-unicode-stuff
+  // But I think it will not change anything in the result, and make it
+  // slower
+  d.extract("",e,f)),showModal();}),select("#search-modal .modal-background").on("click",function(){hideModal();}),select("#search-modal .modal-close").on("click",function(){hideModal();}),b.on("search-selected.search",function(){hideModal();}),select("#search-modal-input").on("keydown",function(){// Check for up/down key presses
+  if("ArrowDown"===event.code||"NumpadEnter"===event.code||"Enter"===event.code){event.preventDefault();var a=selectAll("#search #results li a");a.empty()||a.node().focus();}else("Escape"===event.code||"Tab"===event.code&&event.shiftKey)&&(emptyResults(),hideModal());}),select("#search-modal-input").on("input",function(a,c,g){// TODO: launch promises, and cancel any previous running promise
+  var h=g[0].value;b.call("search-results-updated",null,// Maybe use Intl.Collator instead
+  // https://github.com/nol13/fuzzball.js#collation-and-unicode-stuff
+  // But I think it will not change anything in the result, and make it
+  // slower
+  d.extract(deburr(h),e,f));}),b.on("search-results-updated.search",function(a){updateResults(a,b);}),endLoading$3(a);}function showModal(){// See hideModal() for an explanation of why removing "tabindex"
+  // from the search box
+  select("#search-input").attr("tabindex",-1),select("#search-modal").classed("is-active",!0),select("#search-modal-input").node().focus();}function hideModal(){// TODO: improve this hack, if possible
+  // We set a delay, in order to avoid cycles of:
+  // hide modal -> focus on search box -> open modal
+  // So we wait before allowing the search box to be focused. By the
+  // time the search box recovers its ability to be focused, another
+  // element in the page should already have received the focus.
+  // In particular it's useful if we exit the modal box with
+  // Shift-Tab.
+  window.setTimeout(function(){select("#search-input").attr("tabindex",0);},100),select("#search-modal").classed("is-active",!1),select("#search-input").property("value",""),cleanModal();}function cleanModal(){select("#search-modal-input").property("value",""),emptyResults();}function emptyResults(){select("#search #results").html("");}function updateResults(a,b){// TODO: style the list, see main search in https://www.tripadvisor.co.uk/
+  var c=select("#search #results").html("").selectAll("li").data(a.slice(0,limit)).enter().append("li").append("a").attr("tabindex",0);c.text(function(a){return a[0].mun.properties.name}),c.append("p").text(function(a){return a[0].mun.properties.fuName}),c.on("click",function(a){// TODO: react to other events? see accessibility
+  // invoke callbacks
+  emptyResults(),b.call("search-selected",null,a[0].mun);}),c.on("keydown",function(a,c,d){"ArrowDown"===event.code?(event.preventDefault(),c<d.length-1&&d[c+1].focus()):"ArrowUp"===event.code?(event.preventDefault(),0<c?d[c-1].focus():select("#search-modal-input").node().focus()):"NumpadEnter"===event.code||"Enter"===event.code?(emptyResults(),b.call("search-selected",null,a[0].mun)):("Escape"===event.code||"Tab"===event.code&&c===d.length-1)&&(emptyResults(),hideModal());});}function startLoading$3(a){a.classed("is-loading",!0);}function endLoading$3(a){a.classed("is-loading",!1);}
 
-  function makeNav(dispatcher, initState) {
-    // init
-    updateNav(dispatcher, initState);
-    dispatcher.on('to-brazil-view.nav', function () {
-      updateNav(dispatcher, {
-        data: initState.data
-      });
-    });
-    dispatcher.on('to-mun-view.nav', function (mun) {
-      updateNav(dispatcher, {
-        data: initState.data,
-        mun: mun
-      });
-    });
-    dispatcher.on('make-app-cocktail.nav', function () {
-      selectAll('#navbarMaps .navbar-item').classed('is-active', false);
-      select('#navbarMaps #nav-item-cocktail').classed('is-active', true);
-      select('#page-title').classed('cocktail', true);
-      select('#page-title').classed('limits', false);
-      select('#page-title').classed('substances', false);
-    });
-    dispatcher.on('make-app-limits.nav', function () {
-      selectAll('#navbarMaps .navbar-item').classed('is-active', false);
-      select('#navbarMaps #nav-item-limits').classed('is-active', true);
-      select('#page-title').classed('cocktail', false);
-      select('#page-title').classed('limits', true);
-      select('#page-title').classed('substances', false);
-    });
-    dispatcher.on('make-app-substances.nav', function () {
-      selectAll('#navbarMaps .navbar-item').classed('is-active', false);
-      select('#navbarMaps #nav-item-substances').classed('is-active', true);
-      select('#page-title').classed('cocktail', false);
-      select('#page-title').classed('limits', false);
-      select('#page-title').classed('substances', true);
-    });
-  }
-
-  function updateNav(dispatcher, state) {
-    select('#navbarMaps #nav-item-cocktail').on('click', function () {
-      dispatcher.call('make-app-cocktail', null, state);
-    });
-    select('#navbarMaps #nav-item-limits').on('click', function () {
-      dispatcher.call('make-app-limits', null, state);
-    });
-    select('#navbarMaps #nav-item-substances').on('click', function () {
-      dispatcher.call('make-app-substances', null, state);
-    });
-  }
-
-  var limit = 5;
-  function makeSearch(parent, dispatcher, state) {
-    startLoading$3(parent); // TODO: add unit tests to verify that the cities are ordered as expected for
-    // some queries ('sa', 'sao p', etc.)
-
-    function scorer(query, choice, options) {
-      // All scores are between 0 (worst) and 100 (best)
-      // Get a score based on the distance of Levinstein - see
-      // https://github.com/nol13/fuzzball.js
-      // There are other functions in fuzzball.js, but that one seems to give the
-      // best results (from a point of view of a user), and to run faster
-      var fuzzScore = fuzz.ratio(query, choice.name, options); // Weight by the population, in order to increase the visibility of big
-      // cities
-
-      var popScore = choice.popScore; // Increase the relative weight of the population when the query string is
-      // short
-      // eslint-disable-next-line no-magic-numbers
-
-      var popProp = 2 / (1 + query.length);
-      var fuzzProp = 1 - popProp;
-      return fuzzProp * fuzzScore + popProp * popScore;
-    }
-
-    var fuzz = window.fuzzball;
-
-    var choices = function () {
-      // TODO: we could compute these two values, but it would take some time, and
-      // the result should be the same (maybe set a unit test)
-      var minPop = 812;
-      var maxPop = 12106920;
-      var popFactor = 100;
-      var logMinPop = Math.log10(minPop);
-      var logMaxPop = Math.log10(maxPop);
-      var div = popFactor / (logMaxPop - logMinPop);
-      return state.data.mun.features.map(function (ft) {
-        return {
-          mun: ft,
-          name: ft.properties.deburredName,
-          popScore: (Math.log10(ft.properties.population) - logMinPop) * div
-        };
-      });
-    }();
-
-    var options = {
-      cutoff: 50,
-      // lowest score to return, default: 0
-      limit: limit,
-      // max number of top results to return, default: no limit / 0.
-      //processor: processor, //takes choice object, returns string, default: no processor. Must supply if choices are not already strings.
-      scorer: scorer,
-      // any function that takes two values and returns a score, default: ratio
-      unsorted: false // results won't be sorted if true, default: false. If true limit will be ignored.
-
-    }; // TODO: see if we preprocess something
-
-    select('#search-input').on('focus', function (aa, bb, cc) {
-      // Init: list of results for an empty value
-      dispatcher.call('search-results-updated', null, // Maybe use Intl.Collator instead
-      // https://github.com/nol13/fuzzball.js#collation-and-unicode-stuff
-      // But I think it will not change anything in the result, and make it
-      // slower
-      fuzz.extract('', choices, options));
-      showModal();
-    });
-    select('#search-modal .modal-background').on('click', function (aa, bb, cc) {
-      hideModal();
-    });
-    select('#search-modal .modal-close').on('click', function (aa, bb, cc) {
-      hideModal();
-    });
-    dispatcher.on('search-selected.search', function (mun) {
-      hideModal();
-    });
-    select('#search-modal-input').on('keydown', function (aa, bb, cc) {
-      // Check for up/down key presses
-      if (event.code === 'ArrowDown' || event.code === 'NumpadEnter' || event.code === 'Enter') {
-        // Avoid scrolling the screen behind the modal
-        event.preventDefault();
-        var results = selectAll('#search #results li a');
-
-        if (!results.empty()) {
-          // Selects the first result in the list
-          results.node().focus();
-        }
-      } else if (event.code === 'Escape' || event.code === 'Tab' && event.shiftKey) {
-        emptyResults();
-        hideModal();
-      }
-    });
-    select('#search-modal-input').on('input', function (aa, bb, cc) {
-      // TODO: launch promises, and cancel any previous running promise
-      var text = cc[0].value;
-      dispatcher.call('search-results-updated', null, // Maybe use Intl.Collator instead
-      // https://github.com/nol13/fuzzball.js#collation-and-unicode-stuff
-      // But I think it will not change anything in the result, and make it
-      // slower
-      fuzz.extract(deburr(text), choices, options));
-    });
-    dispatcher.on('search-results-updated.search', function (fuseResults) {
-      updateResults(fuseResults, dispatcher);
-    });
-    endLoading$3(parent);
-  }
-
-  function showModal() {
-    // See hideModal() for an explanation of why removing "tabindex"
-    // from the search box
-    select('#search-input').attr('tabindex', -1);
-    select('#search-modal').classed('is-active', true);
-    select('#search-modal-input').node().focus();
-  }
-
-  function hideModal() {
-    // TODO: improve this hack, if possible
-    // We set a delay, in order to avoid cycles of:
-    // hide modal -> focus on search box -> open modal
-    // So we wait before allowing the search box to be focused. By the
-    // time the search box recovers its ability to be focused, another
-    // element in the page should already have received the focus.
-    // In particular it's useful if we exit the modal box with
-    // Shift-Tab.
-    var DELAY = 100;
-    window.setTimeout(function () {
-      select('#search-input').attr('tabindex', 0);
-    }, DELAY);
-    select('#search-modal').classed('is-active', false);
-    select('#search-input').property('value', '');
-    cleanModal();
-  }
-
-  function cleanModal() {
-    select('#search-modal-input').property('value', '');
-    emptyResults();
-  }
-
-  function emptyResults() {
-    select('#search #results').html('');
-  }
-
-  function updateResults(fuseResults, dispatcher) {
-    // TODO: style the list, see main search in https://www.tripadvisor.co.uk/
-    var results = select('#search #results').html('').selectAll('li').data(fuseResults.slice(0, limit)).enter().append('li').append('a').attr('tabindex', 0);
-    results.text(function (res) {
-      return res[0].mun.properties.name;
-    });
-    results.append('p').text(function (res) {
-      return res[0].mun.properties.fuName;
-    });
-    results.on('click', function (result, idx) {
-      // TODO: react to other events? see accessibility
-      // invoke callbacks
-      emptyResults();
-      dispatcher.call('search-selected', null, result[0].mun);
-    });
-    results.on('keydown', function (result, idx, nodes) {
-      // Check for up/down key presses
-      if (event.code === 'ArrowDown') {
-        // Avoid scrolling the screen behind the modal
-        event.preventDefault(); // Selects the next result in the list
-
-        if (idx < nodes.length - 1) {
-          nodes[idx + 1].focus();
-        } // Or do nothing if it's the last item
-
-      } else if (event.code === 'ArrowUp') {
-        // Avoid scrolling the screen behind the modal
-        event.preventDefault(); // Selects the previous result in the list
-
-        if (idx > 0) {
-          nodes[idx - 1].focus();
-        } else {
-          // Or focus the search input if the current item is the first in the
-          // list
-          select('#search-modal-input').node().focus();
-        }
-      } else if (event.code === 'NumpadEnter' || event.code === 'Enter') {
-        emptyResults();
-        dispatcher.call('search-selected', null, result[0].mun);
-      } else if (event.code === 'Escape' || event.code === 'Tab' && idx === nodes.length - 1) {
-        emptyResults();
-        hideModal();
-      }
-    });
-  }
-
-  function startLoading$3(element) {
-    element.classed('is-loading', true);
-  }
-
-  function endLoading$3(element) {
-    element.classed('is-loading', false);
-  }
-
-  var dispatcher = dispatch('data-loaded', 'breadcrumb-click-brazil', 'to-brazil-view', 'to-mun-view', 'search-results-updated', 'search-selected', 'make-app-cocktail', 'make-app-limits', 'make-app-substances', 'mun-click', 'mun-mouseover', 'mun-mouseout', 'substance-selected'); // Asynchronous (promise)
-
-  loadData(dispatcher); // Create the layout
-
-  dispatcher.on('data-loaded.main', function (data) {
-    var state = {
-      data: data
-    };
-    makeNav(dispatcher, state);
-    makeSearch(select('section#search'), dispatcher, state);
-    makeMap(select('section#map'), dispatcher, data);
-    dispatcher.call('make-app-cocktail', null, state);
-  });
-  dispatcher.on('make-app-cocktail.main', function (state) {
-    //removeSubstanceSelect(select('#substance-select'));
-    var view = 'cocktail';
-    updateApp(view);
-    makeBreadcrumb(select('nav#breadcrumb'), dispatcher, state);
-    makeDetails(select('section#details'), dispatcher, view, state);
-  });
-  dispatcher.on('make-app-limits.main', function (state) {
-    //removeSubstanceSelect(select('#substance-select'));
-    var view = 'limits';
-    updateApp(view);
-    makeBreadcrumb(select('nav#breadcrumb'), dispatcher, state);
-    makeDetails(select('section#details'), dispatcher, view, state);
-  });
-  /*dispatcher.on('make-app-substances.main', state => {
-    const view = 'substances';
-    updateApp(view);
-    makeBreadcrumb(select('nav#breadcrumb'), dispatcher, state);
-    //makeSubstanceSelect(select('#substance-select'), dispatcher, state);
-    makeDetails(select('section#details'), dispatcher, view, state);
-    makeMap(select('section#map'), dispatcher, view, state);
-  });
-  */
-  // Mun / Brazil
-
-  dispatcher.on('mun-click.main search-selected.main', function (mun) {
-    dispatcher.call('to-mun-view', null, mun);
-  });
-  dispatcher.on('breadcrumb-click-brazil.main', function () {
-    dispatcher.call('to-brazil-view');
-  });
-
-  function updateApp(view) {
-    // TODO: don't hardcode
-    select('section#app').classed('cocktail', false).classed('limits', false).classed('substances', false).classed(view, true);
-  }
+  var dispatcher=dispatch("data-loaded","breadcrumb-click-brazil","to-brazil-view","to-mun-view","search-results-updated","search-selected","make-app-cocktail","make-app-limits","make-app-substances","mun-click","mun-mouseover","mun-mouseout","substance-selected");// Asynchronous (promise)
+  loadData(dispatcher),dispatcher.on("data-loaded.main",function(a){var b={data:a};makeNav(dispatcher,b),makeSearch(select("section#search"),dispatcher,b),makeMap(select("section#map"),dispatcher,a),dispatcher.call("make-app-cocktail",null,b);}),dispatcher.on("make-app-cocktail.main",function(a){//removeSubstanceSelect(select('#substance-select'));
+  updateApp("cocktail"),makeBreadcrumb(select("nav#breadcrumb"),dispatcher,a),makeDetails(select("section#details"),dispatcher,"cocktail",a);}),dispatcher.on("make-app-limits.main",function(a){//removeSubstanceSelect(select('#substance-select'));
+  updateApp("limits"),makeBreadcrumb(select("nav#breadcrumb"),dispatcher,a),makeDetails(select("section#details"),dispatcher,"limits",a);}),dispatcher.on("mun-click.main search-selected.main",function(a){dispatcher.call("to-mun-view",null,a);}),dispatcher.on("breadcrumb-click-brazil.main",function(){dispatcher.call("to-brazil-view");});function updateApp(a){// TODO: don't hardcode
+  select("section#app").classed("cocktail",!1).classed("limits",!1).classed("substances",!1).classed(a,!0);}
 
 }());
