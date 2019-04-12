@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.19.1](https://github.com/severo/pesticides_website/compare/v0.19.0...v0.19.1) (2019-04-12)
+
+
+### Bug Fixes
+
+* white overlay ([41cda5a](https://github.com/severo/pesticides_website/commit/41cda5a))
+
+
+
 # [0.19.0](https://github.com/severo/pesticides_website/compare/v0.18.2...v0.19.0) (2019-04-12)
 
 
