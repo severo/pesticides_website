@@ -9,6 +9,7 @@ export function createOverlay(parent, dispatcher, data, canvas, dataWidth) {
     .attr('y', 0)
     .attr('width', '100%')
     .attr('height', '100%')
+    .attr('fill', 'white')
     .attr('fill-opacity', '0.01');
 
   overlay.on('mouseout', (ft, element) => {

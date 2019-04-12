@@ -25305,7 +25305,7 @@
   function createOverlay(parent, dispatcher, data, canvas, dataWidth) {
     // The overlay is nearly 100% transparent. It's used to capture the mouse and
     // touch events
-    var overlay = parent.append('rect').attr('x', 0).attr('y', 0).attr('width', '100%').attr('height', '100%').attr('fill-opacity', '0.01');
+    var overlay = parent.append('rect').attr('x', 0).attr('y', 0).attr('width', '100%').attr('height', '100%').attr('fill', 'white').attr('fill-opacity', '0.01');
     overlay.on('mouseout', function (ft, element) {
       // invoke callbacks
       dispatcher.call('mun-mouseout');
