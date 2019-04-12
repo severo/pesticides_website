@@ -71,7 +71,7 @@ $map2-cat3: #01000f;
     stroke: white;
     stroke-width: 4px;
     &.cat-0 {
-      fill: $map-default-bg;
+      fill: $map2-cat0;
     }
     &.cat-1 {
       fill: $map2-cat1;
@@ -113,6 +113,7 @@ $map2-cat3: #01000f;
 
 #app {
   padding-top: 0;
+  background-color: rgba(255, 255, 255, 0.75);
 }
 
 #search {
