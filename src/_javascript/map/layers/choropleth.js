@@ -62,7 +62,7 @@ export const cocktailColor = function(value) {
   return scaleLinear()
     .domain([0, cfg.max])
     .interpolate(() => interpolateYlOrRd)(value);*/
-  const colors = ['#f4f4f4', '#ffffcc', '#feb24c', '#e31a1c', '#800026'];
+  const colors = ['#f0f0f0', '#ffffcc', '#feb24c', '#e31a1c', '#800026'];
   //["#ffffcc","#ffeda0","#fed976","#feb24c","#fd8d3c","#fc4e2a","#e31a1c","#bd0026","#800026"]
   return colors[value];
 };

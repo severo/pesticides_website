@@ -71,9 +71,16 @@
   "locale": "pt-BR",
   "map": {
     "legend": {
-      "cocktail1": "Número de pesticidas detectados em",
-      "cocktail2": "na água potável",
+      "cocktail1": "Número de agrotóxicos",
+      "cocktail2": "detectados na água",
       "cocktail3": "(claro: nenhum, escuro: 27 agrotóxicos diferentes)",
+      "cocktail": {
+        "CAT_1": "Nenhum agrotóxico",
+        "CAT_2": "De 1 a 13",
+        "CAT_3": "De 14 a 26",
+        "CAT_4": "Todos os 27 testados",
+        "NO_TEST": "Testes não foram feitos"
+      },
       "limits1": "Agrotóxicos detectados acima dos limites legais",
       "limits2": "do limite legal na água potável",
       "limits": {

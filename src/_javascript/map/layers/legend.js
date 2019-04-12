@@ -12,11 +12,12 @@ const cfg = {
     titleOffsetLine1: 38,
     titleOffsetLine2: 24,
     width: 10,*/
-      height: 20,
+      height: 16,
       label: {xOffset: 30, yOffset: 15},
+      margin: 4,
       subtitleOffset: 8,
       titleOffset: 22,
-      width: 20,
+      width: 16,
     },
     keys: ['CAT_4', 'CAT_3', 'CAT_2', 'CAT_1', 'NO_TEST'],
     labels: {
@@ -29,11 +30,12 @@ const cfg = {
   },
   limits: {
     dim: {
-      height: 20,
+      height: 16,
       label: {xOffset: 30, yOffset: 15},
+      margin: 4,
       subtitleOffset: 8,
       titleOffset: 22,
-      width: 20,
+      width: 16,
     },
     keys: ['SUP_BR', 'SUP_EU', 'BELOW', 'NO_TEST'],
     labels: {
@@ -113,7 +115,11 @@ function createLegendCocktail(parent) {
 
   const yy = scaleLinear()
     .domain([0, cfg.cocktail.keys.length])
-    .rangeRound([0, cfg.cocktail.dim.height * cfg.cocktail.keys.length]);
+    .rangeRound([
+      0,
+      (cfg.cocktail.dim.height + cfg.cocktail.dim.margin) *
+        cfg.cocktail.keys.length,
+    ]);
 
   const legend = parent
     .append('g')
@@ -129,6 +135,7 @@ function createLegendCocktail(parent) {
     .append('rect')
     .attr('fill', key => cocktailColor(MAP1.CATEGORY[key]))
     .attr('height', cfg.cocktail.dim.height)
+    .attr('x', 0)
     .attr('y', (key, idx) => yy(idx))
     .attr('width', cfg.cocktail.dim.width);
 
@@ -165,7 +172,10 @@ function createLegendLimits(parent) {
 
   const yy = scaleLinear()
     .domain([0, cfg.limits.keys.length])
-    .rangeRound([0, cfg.limits.dim.height * cfg.limits.keys.length]);
+    .rangeRound([
+      0,
+      (cfg.limits.dim.height + cfg.limits.dim.margin) * cfg.limits.keys.length,
+    ]);
 
   const legend = parent
     .append('g')

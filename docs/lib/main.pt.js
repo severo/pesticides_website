@@ -19878,7 +19878,7 @@
     return scaleLinear()
       .domain([0, cfg.max])
       .interpolate(() => interpolateYlOrRd)(value);*/
-    var colors = ['#f4f4f4', '#ffffcc', '#feb24c', '#e31a1c', '#800026']; //["#ffffcc","#ffeda0","#fed976","#feb24c","#fd8d3c","#fc4e2a","#e31a1c","#bd0026","#800026"]
+    var colors = ['#f0f0f0', '#ffffcc', '#feb24c', '#e31a1c', '#800026']; //["#ffffcc","#ffeda0","#fed976","#feb24c","#fd8d3c","#fc4e2a","#e31a1c","#bd0026","#800026"]
 
     return colors[value];
   };
@@ -23845,8 +23845,6 @@
   var saturday = weekday(6);
 
   var sundays = sunday.range;
-  var mondays = monday.range;
-  var thursdays = thursday.range;
 
   var month = newInterval(function(date) {
     date.setDate(1);
@@ -23936,8 +23934,6 @@
   var utcSaturday = utcWeekday(6);
 
   var utcSundays = utcSunday.range;
-  var utcMondays = utcMonday.range;
-  var utcThursdays = utcThursday.range;
 
   var utcMonth = newInterval(function(date) {
     date.setUTCDate(1);
@@ -25152,34 +25148,36 @@
         titleOffsetLine1: 38,
         titleOffsetLine2: 24,
         width: 10,*/
-        height: 20,
+        height: 16,
         label: {
           xOffset: 30,
           yOffset: 15
         },
+        margin: 4,
         subtitleOffset: 8,
         titleOffset: 22,
-        width: 20
+        width: 16
       },
       keys: ['CAT_4', 'CAT_3', 'CAT_2', 'CAT_1', 'NO_TEST'],
       labels: {
-        CAT_1: '',
-        CAT_2: '',
-        CAT_3: '',
-        CAT_4: '',
-        NO_TEST: ''
+        CAT_1: 'Nenhum agrotóxico',
+        CAT_2: 'De 1 a 13',
+        CAT_3: 'De 14 a 26',
+        CAT_4: 'Todos os 27 testados',
+        NO_TEST: 'Testes não foram feitos'
       }
     },
     limits: {
       dim: {
-        height: 20,
+        height: 16,
         label: {
           xOffset: 30,
           yOffset: 15
         },
+        margin: 4,
         subtitleOffset: 8,
         titleOffset: 22,
-        width: 20
+        width: 16
       },
       keys: ['SUP_BR', 'SUP_EU', 'BELOW', 'NO_TEST'],
       labels: {
@@ -25234,13 +25232,13 @@
       .append('text')
       .attr('y', -cfg.cocktail.dim.titleOffsetLine1)
       .attr('font-weight', 'bold')
-      .text('Número de pesticidas detectados em');
+      .text('Número de agrotóxicos');
 
     label
       .append('text')
       .attr('y', -cfg.cocktail.dim.titleOffsetLine2)
       .attr('font-weight', 'bold')
-      .text('na água potável');
+      .text('detectados na água');
 
     // TODO: i18n
     label
@@ -25260,13 +25258,13 @@
 
   function createLegendCocktail(parent) {
     parent.selectAll('g.legend').html(null);
-    var yy = linear$1().domain([0, cfg$2.cocktail.keys.length]).rangeRound([0, cfg$2.cocktail.dim.height * cfg$2.cocktail.keys.length]);
+    var yy = linear$1().domain([0, cfg$2.cocktail.keys.length]).rangeRound([0, (cfg$2.cocktail.dim.height + cfg$2.cocktail.dim.margin) * cfg$2.cocktail.keys.length]);
     var legend = parent.append('g').classed('legend', true) //.style('font-size', '0.8rem')
     //.style('font-family', 'sans-serif')
     .attr('transform', 'translate(620,50) scale(1.3)');
     legend.selectAll('rect').data(cfg$2.cocktail.keys).enter().append('rect').attr('fill', function (key) {
       return cocktailColor(MAP1.CATEGORY[key]);
-    }).attr('height', cfg$2.cocktail.dim.height).attr('y', function (key, idx) {
+    }).attr('height', cfg$2.cocktail.dim.height).attr('x', 0).attr('y', function (key, idx) {
       return yy(idx);
     }).attr('width', cfg$2.cocktail.dim.width);
     legend.selectAll('text').data(cfg$2.cocktail.keys).enter().append('text').attr('x', cfg$2.cocktail.dim.label.xOffset).attr('y', function (key, idx) {
@@ -25276,13 +25274,13 @@
     });
     var label = legend.append('g').attr('fill', '#000').attr('text-anchor', 'start'); // TODO: i18n
 
-    label.append('text').attr('y', -cfg$2.cocktail.dim.titleOffset).attr('font-weight', 'bold').text('Número de pesticidas detectados em');
-    label.append('text').attr('y', -cfg$2.cocktail.dim.subtitleOffset).attr('font-weight', 'bold').text('na água potável');
+    label.append('text').attr('y', -cfg$2.cocktail.dim.titleOffset).attr('font-weight', 'bold').text('Número de agrotóxicos');
+    label.append('text').attr('y', -cfg$2.cocktail.dim.subtitleOffset).attr('font-weight', 'bold').text('detectados na água');
   }
 
   function createLegendLimits(parent) {
     parent.selectAll('g.legend').html(null);
-    var yy = linear$1().domain([0, cfg$2.limits.keys.length]).rangeRound([0, cfg$2.limits.dim.height * cfg$2.limits.keys.length]);
+    var yy = linear$1().domain([0, cfg$2.limits.keys.length]).rangeRound([0, (cfg$2.limits.dim.height + cfg$2.limits.dim.margin) * cfg$2.limits.keys.length]);
     var legend = parent.append('g').classed('legend', true) //.style('font-size', '0.8rem')
     //.style('font-family', 'sans-serif')
     .attr('transform', 'translate(550,50) scale(1.3)');
