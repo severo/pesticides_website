@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+# [0.20.0](https://github.com/severo/pesticides_website/compare/v0.19.2...v0.20.0) (2019-04-12)
+
+
+### Bug Fixes
+
+* reduce stroke on legend ([aff5581](https://github.com/severo/pesticides_website/commit/aff5581))
+
+
+### Features
+
+* add link on the tubes + target=_top on all external links ([0f76f8f](https://github.com/severo/pesticides_website/commit/0f76f8f))
+* add version to the CSS and JS files to force update on new version ([9fd34fd](https://github.com/severo/pesticides_website/commit/9fd34fd))
+* reduce JS size by minification (+transpile dependencies - useless?) ([27c2c3f](https://github.com/severo/pesticides_website/commit/27c2c3f))
+* remove English and Spanish - only use Portuguese ([8a9ee8d](https://github.com/severo/pesticides_website/commit/8a9ee8d))
+
+
+
 ## [0.19.2](https://github.com/severo/pesticides_website/compare/v0.19.1...v0.19.2) (2019-04-12)
 
 
