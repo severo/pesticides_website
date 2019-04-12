@@ -1,4 +1,5 @@
 import babel from 'rollup-plugin-babel';
+import minify from 'rollup-plugin-babel-minify';
 import resolve from 'rollup-plugin-node-resolve';
 
 export default {
@@ -13,11 +14,18 @@ export default {
     file: 'docs/lib/main.mustache.js',
     format: 'iife',
     name: 'pesticides_website',
+    //sourcemap: true,
   },
   plugins: [
     resolve(),
     babel({
-      exclude: 'node_modules/**', // only transpile our source code
+      //exclude: 'node_modules/**', // only transpile our source code
+      //sourceMap: true,
+    }),
+    minify({
+      // Options for babel-minify.
+      comments: false,
+      //sourceMap: true,
     }),
   ],
 };
