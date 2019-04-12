@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.18.2](https://github.com/severo/pesticides_website/compare/v0.18.0...v0.18.2) (2019-04-12)
+
+
+### Bug Fixes
+
+* add transparency to the html background ([4c4632b](https://github.com/severo/pesticides_website/commit/4c4632b))
+
+
+
 ## [0.18.1](https://github.com/severo/pesticides_website/compare/v0.18.0...v0.18.1) (2019-04-12)
 
 
