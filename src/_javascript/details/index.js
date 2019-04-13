@@ -156,32 +156,28 @@ function makeCocktail(parent, dispatcher, mun, data) {
     const hhceSubstances = mun.properties.tests.filter(
       sub => sub.substance.isHhce && sub.max > 0
     );
-    if (hhceSubstances.length > 0) {
+    makeTubesCocktail(
+      list.append('li'),
+      hhceSubstances,
+      '<span class="is-size-4">' +
+        hhceSubstances.length +
+        '</span> {{details.cocktail.hhce2}} ' +
+        '<strong>{{details.cocktail.hhce3}}</strong> ' +
+        '{{details.cocktail.hhce4}}',
+      'hhce'
+    );
+    const otherSubstances = mun.properties.tests.filter(
+      sub => !sub.substance.isHhce && sub.max > 0
+    );
+    if (otherSubstances.length > 0) {
       makeTubesCocktail(
         list.append('li'),
-        hhceSubstances,
+        otherSubstances,
         '<span class="is-size-4">' +
-          hhceSubstances.length +
-          '</span> {{details.cocktail.hhce2}} ' +
-          '<strong>{{details.cocktail.hhce3}}</strong> ' +
-          '{{details.cocktail.hhce4}}',
-        'hhce'
+          otherSubstances.length +
+          '</span> {{details.cocktail.nohhce2}}',
+        'no-hhce'
       );
-      const otherSubstances = mun.properties.tests.filter(
-        sub => !sub.substance.isHhce && sub.max > 0
-      );
-      if (otherSubstances.length > 0) {
-        makeTubesCocktail(
-          list.append('li'),
-          otherSubstances,
-          '<span class="is-size-4">' +
-            otherSubstances.length +
-            '</span> {{details.cocktail.nohhce2}}',
-          'no-hhce'
-        );
-      }
-    } else {
-      makeTubesCocktail(list.append('li'), mun.properties.tests, '', 'no-hhce');
     }
   }
 }
