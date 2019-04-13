@@ -48,7 +48,7 @@ export function makeTubesCocktail(parent, substances, titleHtml, tubeClass) {
     .attr('viewBox', '0,0,' + dim.vWi + ',' + dim.vHe + '')
     .append('a')
     .attr('href', sub => sub.url)
-    .attr('target', '_top');
+    .attr('target', '_blank');
   /* eslint-disable no-magic-numbers */
 
   const dyTube = 0;
@@ -134,7 +134,7 @@ export function makeTubesLimits(parent, substances, titleHtml, tubeClass) {
     .attr('viewBox', '0,0,' + dim.vWi + ',' + dim.vHe + '')
     .append('a')
     .attr('href', sub => sub.url)
-    .attr('target', '_top');
+    .attr('target', '_blank');
   /* eslint-disable no-magic-numbers */
 
   drawTube(svg, 250, 800).attr('transform', 'translate(375, 0)');

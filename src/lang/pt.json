@@ -3,21 +3,21 @@
     "brazil": "Brasil"
   },
   "details": {
-    "brazil": {
-      "content": "Agrotóxicos foram detectados na água que abastece mais de 2.300 cidades de 2014 a 2017. Clique no mapa ou digite sua cidade para descobrir quais produtos químicos saíram da sua torneira",
-      "title": "Brasil"
-    },
     "cocktail": {
+      "brazil": {
+        "content": "Agrotóxicos foram detectados na água que abastece mais de 2.300 cidades de 2014 a 2017. Clique no mapa ou digite sua cidade para descobrir quais produtos químicos saíram da sua torneira.",
+        "title": "Brasil"
+      },
       "detected": "Agrotóxicos detectados",
       "nodata0": "Sem dados",
       "nodata1": "Sem dados",
-      "nodata2": "sobre agrotóxicos dentro da água potável em",
-      "nodetection1": "Sem agrotóxicos",
-      "nodetection2": "detectado dentro de água potável em",
-      "detections1": "Agrotóxicos",
-      "detections2": "detectado na água potável em",
+      "nodata2": "sobre agrotóxicos na água que abastece",
+      "nodetection1": "Nenhum agrotóxico",
+      "nodetection2": "detectado na água que abastece",
+      "detections1": "agrotóxico(s)",
+      "detections2": "detectado(s) na água que abastece",
       "hhce1": "de",
-      "hhce2": "associado com",
+      "hhce2": "associado(s) a",
       "hhce3": "doenças crônicas",
       "hhce4": "como câncer, defeitos congênitos e distúrbios endócrinos",
       "nohhce1": "de",
@@ -28,27 +28,36 @@
         "tube3": " testes"
       },
       "footer": {
-        "tolimits1": "Descubra quantas substâncias foram",
-        "tolimits2": "detectado acima dos limites legais",
-        "source1": "Fonte",
-        "source21": "Concentração de agrotóxicos: ",
+        "tolimits1": "Descubra também quantas substâncias foram",
+        "tolimits2": "detectadas acima dos limites legais na água",
+        "tolimits3mun": " em ",
+        "toarticle1": "Entenda: leia",
+        "toarticle2": "reportagem sobre a contaminação da água nas cidades",
+        "toarticle3": ".",
+        "source1": "Fontes",
+        "source21": "Detecção e concentração de agrotóxicos: ",
         "source22": "SISAGUA - Controle Semestral",
         "source23": ". Sistema de Informação de Vigilância da Qualidade da Água para Consumo Humano (SISAGUA), 854.140 testes a nível municipal de 2014 a 2017.",
         "source31": "Estimativas da população: ",
-        "source32": "TCU 2017",
+        "source32": "IBGE 2017",
         "source33": " (FTP). Instituto Brasileiro de Geografia e Estatística (IBGE), 2017."
       }
     },
     "limits": {
+      "brazil": {
+        "content": "Agrotóxicos foram detectados na água que abastece mais de 2.300 cidades de 2014 a 2017. Clique no mapa ou digite sua cidade para descobrir quais produtos químicos saíram da sua torneira em concentração acima do limite considerado seguro.",
+        "title": "Brasil"
+      },
       "nodata1": "Sem dados",
-      "nodata2": "sobre agrotóxicos dentro da água potável em",
-      "nodetection1": "sem agrotóxicos",
-      "nodetection2": "detectado acima dos limites brasileiros ou europeus em",
-      "detectionsbr": "agrotóxico(s) detectado acima do limite brasileiro",
-      "detectionseu": "agrotóxico(s) detectado acima do limite europeu",
+      "nodata2": "sobre agrotóxicos na água que abastece",
+      "nodetection1": "Nenhum ",
+      "nodetection2": "agrotóxico detectado acima dos limites brasileiros ou europeus em",
+      "detectionsbr": "agrotóxico(s) detectado(s) na água em concentração acima do limite considerado seguro no Brasil em",
+      "detectionseu": "agrotóxico(s) detectado(s) acima do limite considerado seguro na União Europeia",
       "footer": {
-        "tococktail1": "Descubra quantas substâncias foram",
-        "tococktail2": "detectado na água potável"
+        "tococktail1": "Descubra também o ",
+        "tococktail2": "total de substâncias detectadas",
+        "tococktail3mun": " na água em "
       }
     },
     "population": "População"
@@ -81,13 +90,13 @@
         "CAT_4": "Todos os 27 testados",
         "NO_TEST": "Testes não foram feitos"
       },
-      "limits1": "Agrotóxicos detectados acima dos limites legais",
-      "limits2": "do limite legal na água potável",
+      "limits1": "Concentração dos agrotóxicos na água",
+      "limits2": "acima dos limites considerados seguros",
       "limits": {
-        "BELOW": "todos os agrotóxicos abaixo dos limites",
-        "NO_TEST": "sem dados",
-        "SUP_BR": "pelo menos um acima do limite brasileiro",
-        "SUP_EU": "pelo menos um acima do limite europeu"
+        "BELOW": "Todos os agrotóxicos dentro dos limites",
+        "NO_TEST": "Sem dados",
+        "SUP_BR": "Pelo menos um acima do limite brasileiro",
+        "SUP_EU": "Pelo menos um acima do limite europeu"
       }
     },
     "tooltip": {

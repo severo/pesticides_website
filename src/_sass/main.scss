@@ -159,6 +159,9 @@ html {
 #details {
   #details-main {
     min-height: 150px;
+    p.brazil {
+      margin-top: 3rem;
+    }
     header#idCard {
       h2,
       h3 {
@@ -210,10 +213,10 @@ html {
   #details-footer {
     #to-other-views {
     }
-    #download {
+    #to-article {
     }
     #source {
-      margin-top: 2rem;
+      margin-top: 4rem;
       font-size: 0.7rem;
     }
   }

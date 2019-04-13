@@ -26,15 +26,25 @@ export function makeDetails(parent, dispatcher, view, initState) {
 function makeBrazil(parent, dispatcher, view, state) {
   const main = parent.select('#details-main');
   main.html(null);
-  makeHeader(main, '{{details.brazil.title}}');
-  main.append('p').html('{{details.brazil.content}}');
 
   if (view === 'limits') {
+    makeHeader(main, '{{details.limits.brazil.title}}');
+    main
+      .append('p')
+      .classed('brazil', true)
+      .html('{{details.limits.brazil.content}}');
     makeLimitsToOtherViews(parent, dispatcher, state);
-    makeLimitsSource(parent);
+    makeToArticle(parent);
+    makeSource(parent);
   } else {
+    makeHeader(main, '{{details.cocktail.brazil.title}}');
+    main
+      .append('p')
+      .classed('brazil', true)
+      .html('{{details.cocktail.brazil.content}}');
     makeCocktailToOtherViews(parent, dispatcher, state);
-    makeCocktailSource(parent);
+    makeToArticle(parent);
+    makeSource(parent);
   }
 }
 
@@ -69,7 +79,8 @@ function makeMun(parent, dispatcher, view, state) {
   if (view === 'limits') {
     makeLimits(main, dispatcher, state.mun, state.data);
     makeLimitsToOtherViews(parent, dispatcher, state);
-
+    makeToArticle(parent);
+    makeSource(parent);
     /*} else if (view === 'substances') {
     // init
     const defaultSubstance = data.substancesLut['25'];
@@ -81,6 +92,8 @@ function makeMun(parent, dispatcher, view, state) {
   } else {
     makeCocktail(main, dispatcher, state.mun, state.data);
     makeCocktailToOtherViews(parent, dispatcher, state);
+    makeToArticle(parent);
+    makeSource(parent);
   }
 }
 
@@ -210,7 +223,8 @@ function makeLimits(parent, dispatcher, mun, data) {
         supBrSubstances,
         '<span class="is-size-4">' +
           supBrSubstances.length +
-          '</span> {{details.limits.detectionsbr}}',
+          '</span> {{details.limits.detectionsbr}} ' +
+          mun.properties.name,
         'cat-' + MAP2.CATEGORY.SUP_BR
       );
     }
@@ -327,13 +341,18 @@ function makeCocktailToOtherViews(parent, dispatcher, state) {
     .html(null)
     .append('p');
   par.append('span').text('{{details.cocktail.footer.tolimits1}} ');
+  const suffix =
+    'mun' in state && state.mun
+      ? '{{details.cocktail.footer.tolimits3mun}}' + state.mun.properties.name
+      : '';
   par
     .append('a')
     .attr('href', '#')
-    .text('{{details.cocktail.footer.tolimits2}}')
+    .text('{{details.cocktail.footer.tolimits2}}' + suffix)
     .on('click', () => {
       dispatcher.call('make-app-limits', null, state);
     });
+  par.append('span').text('.');
 }
 
 function makeLimitsToOtherViews(parent, dispatcher, state) {
@@ -342,20 +361,37 @@ function makeLimitsToOtherViews(parent, dispatcher, state) {
     .html(null)
     .append('p');
   par.append('span').text('{{details.limits.footer.tococktail1}} ');
+  const suffix =
+    'mun' in state && state.mun
+      ? '{{details.limits.footer.tococktail3mun}}' + state.mun.properties.name
+      : '';
   par
     .append('a')
     .attr('href', '#')
-    .text('{{details.limits.footer.tococktail2}}')
+    .text('{{details.limits.footer.tococktail2}}' + suffix)
     .on('click', () => {
       dispatcher.call('make-app-cocktail', null, state);
     });
+  par.append('span').text('.');
 }
 
-function makeCocktailSource(parent) {
-  makeLimitsSource(parent);
+function makeToArticle(parent) {
+  const par = parent
+    .select('#details-footer #to-article')
+    .html(null)
+    .append('p');
+  par.append('span').text('{{details.cocktail.footer.toarticle1}} ');
+  par
+    .append('a')
+    .attr(
+      'href',
+      'https://portrasdoalimento.info/2019/04/12/conheca-os-27-agrotoxicos-encontrados-na-agua-que-abastasse-as-cidades-do-brasil/'
+    )
+    .text('{{details.cocktail.footer.toarticle2}}');
+  par.append('span').text('{{details.cocktail.footer.toarticle3}}');
 }
 
-function makeLimitsSource(parent) {
+function makeSource(parent) {
   const par = parent.select('#details-footer #source').html(null);
   par.append('h4').html('{{details.cocktail.footer.source1}}');
   const ul = par.append('ul');
