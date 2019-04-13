@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.20.3](https://github.com/severo/pesticides_website/compare/v0.20.2...v0.20.3) (2019-04-13)
+
+
+### Bug Fixes
+
+* improve cocnsistency in case of map1 / 1 agrotoxic / no hhce ([2e7dd6e](https://github.com/severo/pesticides_website/commit/2e7dd6e))
+
+
+
 ## [0.20.2](https://github.com/severo/pesticides_website/compare/v0.20.1...v0.20.2) (2019-04-13)
 
 
