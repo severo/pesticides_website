@@ -188,7 +188,7 @@ html {
       }
       svg.tube {
         margin: 10px 5px;
-        font-size: 1.5rem;
+        font-size: 1.6rem;
         &.hhce {
           @include tube-colors(#f03b20);
         }
@@ -203,9 +203,6 @@ html {
         }
         &.cat-3 {
           @include tube-colors($map2-cat3);
-        }
-        .annotation {
-          font-size: 1.8rem;
         }
       }
     }

@@ -13,7 +13,7 @@ export function makeDetails(parent, dispatcher, view, initState) {
   }
 
   dispatcher.on('to-brazil-view.details', () => {
-    makeBrazil(parent, dispatcher, {data: initState.data});
+    makeBrazil(parent, dispatcher, view, {data: initState.data});
   });
 
   dispatcher.on('to-mun-view.details', mun => {

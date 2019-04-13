@@ -1,9 +1,9 @@
 import * as d3Path from 'd3-path';
 const dim = {
-  he: 80,
+  he: 100,
   vHe: 1000,
   vWi: 1100,
-  wi: 80,
+  wi: 100,
 };
 
 export function makeTubesCocktail(parent, substances, titleHtml, tubeClass) {

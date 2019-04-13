@@ -19414,10 +19414,10 @@
   };
 
   const dim = {
-    he: 80,
+    he: 100,
     vHe: 1000,
     vWi: 1100,
-    wi: 80,
+    wi: 100,
   };
 
   function makeTubesCocktail(parent, substances, titleHtml, tubeClass) {
@@ -19477,6 +19477,9 @@
       .attr('y', 0)
       .attr('transform', 'translate(' + params.wid + ', ' + dyName + ') scale(5)')
       .style('text-anchor', 'start')
+      .style('white-space', 'nowrap')
+      .style('overflow', 'hidden')
+      .style('text-overflow', 'ellipsis')
       .text(subs => subs.shortName);
 
     const text = svg
@@ -19705,7 +19708,7 @@
     }
 
     dispatcher.on('to-brazil-view.details', () => {
-      makeBrazil$1(parent, dispatcher, {data: initState.data});
+      makeBrazil$1(parent, dispatcher, view, {data: initState.data});
     });
 
     dispatcher.on('to-mun-view.details', mun => {
@@ -20034,7 +20037,7 @@
       .append('p');
     par.append('span').text('Descubra também quantas substâncias foram ');
     const suffix =
-      'mun' in state && state.mun
+      state && 'mun' in state && state.mun
         ? ' em ' + state.mun.properties.name
         : '';
     par
@@ -20054,7 +20057,7 @@
       .append('p');
     par.append('span').text('Descubra também o  ');
     const suffix =
-      'mun' in state && state.mun
+      state && 'mun' in state && state.mun
         ? ' na água em ' + state.mun.properties.name
         : '';
     par
@@ -24146,8 +24149,6 @@
   var saturday = weekday(6);
 
   var sundays = sunday.range;
-  var mondays = monday.range;
-  var thursdays = thursday.range;
 
   var month = newInterval(function(date) {
     date.setDate(1);
@@ -24237,8 +24238,6 @@
   var utcSaturday = utcWeekday(6);
 
   var utcSundays = utcSunday.range;
-  var utcMondays = utcMonday.range;
-  var utcThursdays = utcThursday.range;
 
   var utcMonth = newInterval(function(date) {
     date.setUTCDate(1);
