@@ -25,6 +25,43 @@ export function createTooltip(parent, dispatcher, widths, initTransform) {
   // create a container for tooltips
   const tooltip = parent.append('g').classed('tooltip', true);
 
+  function updateState(label, transform, curMun, rememberedMun) {
+    // label
+    dispatcher.on('make-app-cocktail.tooltip', state => {
+      updateState(cocktailLabel, transform, curMun, rememberedMun);
+    });
+    dispatcher.on('make-app-limits.tooltip', state => {
+      updateState(limitsLabel, transform, curMun, rememberedMun);
+    });
+    // transform
+    dispatcher.on('zoomed.tooltip', state => {
+      if (state.mun) {
+        updateState(label, state.transform, state.mun, state.mun);
+      } else {
+        updateState(label, state.transform, curMun, rememberedMun);
+      }
+    });
+    // current municipality
+    dispatcher.on('mun-mouseover.tooltip', mun => {
+      updateState(label, transform, mun, rememberedMun);
+    });
+    dispatcher.on('mun-mouseout.tooltip', () => {
+      updateState(label, transform, rememberedMun, rememberedMun);
+    });
+    // current municipality and remembered municipality
+    dispatcher.on('to-mun-view.tooltip', selectedMun => {
+      updateState(label, transform, selectedMun, selectedMun);
+    });
+
+    if (curMun && label) {
+      showTooltip(tooltip, label, curMun, widths, transform);
+    } else {
+      clearTooltip(tooltip);
+    }
+  }
+
+  updateState(null, initTransform, null, null);
+  /*
   function update(label, state, transform) {
     function rememberSelectedMun(selectedMun) {
       showTooltip(tooltip, label, selectedMun, widths, transform);
@@ -90,7 +127,7 @@ export function createTooltip(parent, dispatcher, widths, initTransform) {
   });
   dispatcher.on('make-app-limits.tooltip', state => {
     update(limitsLabel, state, initTransform);
-  });
+  });*/
 }
 
 function clearTooltip(tooltip) {

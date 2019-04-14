@@ -50,16 +50,16 @@ export function createChoropleth(
   function appEvents(transform) {
     dispatcher.on('make-app-cocktail.choropleth', () => {
       drawCocktail(transform);
-      dispatcher.on('zoomed.cocktail-choropleth', updatedTransform => {
-        drawCocktail(updatedTransform);
-        appEvents(updatedTransform);
+      dispatcher.on('zoomed.cocktail-choropleth', state => {
+        drawCocktail(state.transform);
+        appEvents(state.transform);
       });
     });
     dispatcher.on('make-app-limits.choropleth', () => {
       drawLimits(transform);
-      dispatcher.on('zoomed.limits-choropleth', updatedTransform => {
-        drawLimits(updatedTransform);
-        appEvents(updatedTransform);
+      dispatcher.on('zoomed.limits-choropleth', state => {
+        drawLimits(state.transform);
+        appEvents(state.transform);
       });
     });
   }

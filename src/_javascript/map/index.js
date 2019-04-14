@@ -1,10 +1,11 @@
-import {event, zoom, zoomIdentity} from 'd3';
+//import {event, zoom, zoomIdentity} from 'd3';
 import {createChoropleth} from './layers/choropleth';
 import {createLegend} from './layers/legend';
 //import {createSubstancesChoropleth} from './layers/substances/choropleth';
 //import {createSubstancesTooltip} from './layers/substances/tooltip';
 import {createOverlay} from './layers/overlay';
 import {createTooltip} from './layers/tooltip';
+import {zoomIdentity} from 'd3-zoom';
 
 // The data is already projected, it's expressed in px, between 0 and 960px
 const cfg = {
@@ -22,6 +23,7 @@ const cfg = {
       max: 16,
       min: 1,
     },
+    selectedMun: 6,
   },
 };
 
@@ -81,7 +83,7 @@ export function makeMap(parent, dispatcher, data) {
   createOverlay(overlay, dispatcher, data, widths, initTransform);
 
   // 4. Add zoom
-  function constrain(transform, extent, translateExtent) {
+  /*function constrain(transform, extent, translateExtent) {
     const dx0 = transform.invertX(extent[0][0]) - 0;
     const dx1 = transform.invertX(extent[1][0]) - canvas.node().clientWidth;
     const dy0 = transform.invertY(extent[0][1]) - 0;
@@ -92,16 +94,18 @@ export function makeMap(parent, dispatcher, data) {
       // eslint-disable-next-line no-magic-numbers
       dy1 > dy0 ? (dy0 + dy1) / 2 : Math.min(0, dy0) || Math.max(0, dy1)
     );
-  }
+  }*/
 
-  const mapZoom = zoom()
+  /*const mapZoom = zoom()
     .scaleExtent([cfg.zoom.scale.min, cfg.zoom.scale.max])
     .constrain(constrain)
     //.translateExtent([[0, 0], [cfg.data.width, cfg.data.height]])
     //.on('end', zoomed);
     .on('end', zoomed);
+  // we remove all the interactions. Zoom is only used programatically
+  //.filter(ev => false);
 
-  overlay.call(mapZoom);
+  /*overlay.call(mapZoom);
 
   function zoomed() {
     // Fix the x and y values (from client/mouse space to canvas space - due to
@@ -112,17 +116,43 @@ export function makeMap(parent, dispatcher, data) {
       .scale(event.transform.k);
 
     dispatcher.call('zoomed', null, transform);
-    /* Remove? Simulate 'end' event
-    const timeout = 40;
-    setTimeout(() => {
-      if (tr === zoomTransform(overlay.node())) {
-        dispatcher.call('zoomed', null, tr);
-      }
-    }, timeout);*/
-  }
+  }*/
+
+  // When a mun is selected, zoom to the municipality
+  dispatcher.on('to-mun-view.map', mun => {
+    const trK = cfg.zoom.selectedMun;
+
+    const dataPoint = mun.properties.centroid;
+    const canvasPoint = dataPoint.map(
+      dataDim => (dataDim * widths.canvas) / widths.data
+    );
+    const half = 0.5;
+    const zoomedCanvasCenter = (half * widths.canvas) / trK;
+    const zoomedCanvasTranslation = canvasPoint.map(
+      canvasDim => zoomedCanvasCenter - canvasDim
+    );
+    /*const clientTranslation = zoomedCanvasTranslation.map(
+      zoomedCanvasTranslationDim =>
+      (zoomedCanvasTranslationDim * trK * canvas.node().clientWidth) /
+      widths.canvas
+    );
+    const trX = clientTranslation[0];
+    const trY = clientTranslation[1];*/
+
+    const scaledTranslation = zoomedCanvasTranslation.map(
+      zoomedCanvasTranslationDim => zoomedCanvasTranslationDim * trK
+    );
+    const trX = scaledTranslation[0];
+    const trY = scaledTranslation[1];
+
+    const transform = zoomIdentity.translate(trX, trY).scale(trK);
+    //overlay.call(mapZoom.transform, transform);
+    dispatcher.call('zoomed', null, {mun: mun, transform: transform});
+  });
 
   dispatcher.on('to-brazil-view.map', () => {
-    canvas.call(mapZoom.transform, initTransform);
+    //overlay.call(mapZoom.transform, initTransform);
+    dispatcher.call('zoomed', null, {mun: null, transform: initTransform});
   });
 
   endLoading(parent);

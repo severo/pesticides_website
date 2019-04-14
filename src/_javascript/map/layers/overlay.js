@@ -31,8 +31,8 @@ export function createOverlay(
   }
 
   updateEvents(initTransform);
-  dispatcher.on('zoomed.overlay', transform => {
-    updateEvents(transform);
+  dispatcher.on('zoomed.overlay', state => {
+    updateEvents(state.transform);
   });
   /*dispatcher.on('zoomed.overlay', transform => {
     context.save();
