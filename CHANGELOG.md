@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.21.6](https://github.com/severo/pesticides_website/compare/v0.21.5...v0.21.6) (2019-04-14)
+
+
+### Bug Fixes
+
+* reverse changes in thickness, after all ([bfdb23e](https://github.com/severo/pesticides_website/commit/bfdb23e))
+
+
+
 ## [0.21.5](https://github.com/severo/pesticides_website/compare/v0.21.4...v0.21.5) (2019-04-14)
 
 
