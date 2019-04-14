@@ -343,7 +343,7 @@ function makeCocktailToOtherViews(parent, dispatcher, state) {
       : '';
   par
     .append('a')
-    .attr('href', '#')
+    .attr('href', '#_')
     .text('{{details.cocktail.footer.tolimits2}}' + suffix)
     .on('click', () => {
       dispatcher.call('make-app-limits', null, state);
@@ -363,7 +363,7 @@ function makeLimitsToOtherViews(parent, dispatcher, state) {
       : '';
   par
     .append('a')
-    .attr('href', '#')
+    .attr('href', '#_')
     .text('{{details.limits.footer.tococktail2}}' + suffix)
     .on('click', () => {
       dispatcher.call('make-app-cocktail', null, state);

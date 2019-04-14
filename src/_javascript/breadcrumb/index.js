@@ -27,7 +27,7 @@ function makeMun(parent, dispatcher, data, mun) {
   parent.html(null);
   parent
     .append('a')
-    .attr('href', '#')
+    .attr('href', '#_')
     .text('{{breadcrumb.goto-brazil}}')
     .on('click', (ft, element) => {
       dispatcher.call('breadcrumb-click-brazil', null, data);
