@@ -184,9 +184,12 @@ html {
       }
     }
     .tubes {
+      a text {
+        fill: #3273dc;
+      }
       a:hover text,
       a:active text {
-        text-decoration: underline;
+        fill: #363636;
       }
       svg.tube {
         margin: 10px 5px;

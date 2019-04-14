@@ -45,10 +45,7 @@ export function makeTubesCocktail(parent, substances, titleHtml, tubeClass) {
     .classed(tubeClass, true)
     .attr('width', dim.wi)
     .attr('height', dim.he)
-    .attr('viewBox', '0,0,' + dim.vWi + ',' + dim.vHe + '')
-    .append('a')
-    .attr('href', sub => sub.url)
-    .attr('target', '_blank');
+    .attr('viewBox', '0,0,' + dim.vWi + ',' + dim.vHe + '');
   /* eslint-disable no-magic-numbers */
 
   const dyTube = 0;
@@ -58,6 +55,9 @@ export function makeTubesCocktail(parent, substances, titleHtml, tubeClass) {
 
   const dyName = 980;
   svg
+    .append('a')
+    .attr('href', sub => sub.url)
+    .attr('target', '_blank')
     .append('text')
     .attr('x', 0)
     .attr('y', 0)
@@ -131,15 +131,17 @@ export function makeTubesLimits(parent, substances, titleHtml, tubeClass) {
     .classed(tubeClass, true)
     .attr('width', dim.wi)
     .attr('height', dim.he)
-    .attr('viewBox', '0,0,' + dim.vWi + ',' + dim.vHe + '')
-    .append('a')
-    .attr('href', sub => sub.url)
-    .attr('target', '_blank');
+    .attr('viewBox', '0,0,' + dim.vWi + ',' + dim.vHe + '');
   /* eslint-disable no-magic-numbers */
 
   drawTube(svg, 250, 800).attr('transform', 'translate(375, 0)');
   drawLiquid(svg, 250, 800).attr('transform', 'translate(375, 0)');
-  drawText(svg).attr('transform', 'scale(5) translate(100 190)');
+  drawText(
+    svg
+      .append('a')
+      .attr('href', sub => sub.url)
+      .attr('target', '_blank')
+  ).attr('transform', 'scale(5) translate(102 190)');
 }
 
 function drawTube(svg, width, height) {
