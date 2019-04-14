@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.21.5](https://github.com/severo/pesticides_website/compare/v0.21.4...v0.21.5) (2019-04-14)
+
+
+### Bug Fixes
+
+* reduce zoom scale, and increase thickness of states+brazil ([8f822c0](https://github.com/severo/pesticides_website/commit/8f822c0))
+
+
+
 ## [0.21.4](https://github.com/severo/pesticides_website/compare/v0.21.3...v0.21.4) (2019-04-14)
 
 
