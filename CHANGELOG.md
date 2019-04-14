@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.21.3](https://github.com/severo/pesticides_website/compare/v0.21.2...v0.21.3) (2019-04-14)
+
+
+### Bug Fixes
+
+* make state and brazil frontiers thicker ([92e5e29](https://github.com/severo/pesticides_website/commit/92e5e29))
+
+
+
 ## [0.21.2](https://github.com/severo/pesticides_website/compare/v0.21.1...v0.21.2) (2019-04-14)
 
 
