@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.21.1](https://github.com/severo/pesticides_website/compare/v0.21.0...v0.21.1) (2019-04-14)
+
+
+### Bug Fixes
+
+* all external links open in new tab/window ([a90625e](https://github.com/severo/pesticides_website/commit/a90625e))
+* improve 3 texts ([9d5c9cd](https://github.com/severo/pesticides_website/commit/9d5c9cd))
+* increase space between lines of title in legend ([7ea1f96](https://github.com/severo/pesticides_website/commit/7ea1f96))
+* links on tube names in blue + fix y translation + link only on name ([aedaf75](https://github.com/severo/pesticides_website/commit/aedaf75))
+
+
+
 # [0.21.0](https://github.com/severo/pesticides_website/compare/v0.20.3...v0.21.0) (2019-04-14)
 
 
