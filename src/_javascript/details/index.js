@@ -383,6 +383,7 @@ function makeToArticle(parent) {
       'href',
       'https://portrasdoalimento.info/2019/04/12/conheca-os-27-agrotoxicos-encontrados-na-agua-que-abastasse-as-cidades-do-brasil/'
     )
+    .attr('target', '_blank')
     .text('{{details.cocktail.footer.toarticle2}}');
   par.append('span').text('{{details.cocktail.footer.toarticle3}}');
 }
@@ -396,7 +397,7 @@ function makeSource(parent) {
   li1
     .append('a')
     .attr('href', 'http://dados.gov.br/dataset/controle-semestral')
-    .attr('target', '_top')
+    .attr('target', '_blank')
     .text('{{details.cocktail.footer.source22}}');
   li1.append('span').text('{{details.cocktail.footer.source23}}');
   const li2 = ul.append('li');
@@ -407,7 +408,7 @@ function makeSource(parent) {
       'href',
       'ftp://ftp.ibge.gov.br/Estimativas_de_Populacao/Estimativas_2017/'
     )
-    .attr('target', '_top')
+    .attr('target', '_blank')
     .text('{{details.cocktail.footer.source32}}');
   li2.append('span').text('{{details.cocktail.footer.source33}}');
 }
