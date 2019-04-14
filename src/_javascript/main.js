@@ -21,7 +21,8 @@ const dispatcher = dispatch(
   'mun-click',
   'mun-mouseover',
   'mun-mouseout',
-  'substance-selected'
+  'substance-selected',
+  'zoomed'
 );
 
 // Asynchronous (promise)

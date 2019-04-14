@@ -21,62 +21,105 @@ function limitsLabel(mun) {
   return map2LabelByCategory[mun.properties.map2Category];
 }
 
-export function createTooltip(parent, dispatcher) {
+export function createTooltip(parent, dispatcher, widths, initTransform) {
   // create a container for tooltips
   const tooltip = parent.append('g').classed('tooltip', true);
 
-  function updateView(label, state) {
+  function update(label, state, transform) {
     function rememberSelectedMun(selectedMun) {
-      dispatcher.on('mun-mouseout.tooltip', () =>
-        showTooltip(tooltip, label, selectedMun)
-      );
+      showTooltip(tooltip, label, selectedMun, widths, transform);
+
+      // Show the remembered mun, if none is hovered
+      dispatcher.on('mun-mouseout.tooltip', () => {
+        showTooltip(tooltip, label, selectedMun, widths, transform);
+      });
+      // If zoom changes, update the internal state of tooltip
+      dispatcher.on('zoomed.tooltip', updatedTransform => {
+        update(label, {data: state.data, mun: selectedMun}, updatedTransform);
+        dispatcher.on('make-app-cocktail.tooltip', newState => {
+          update(cocktailLabel, newState, updatedTransform);
+        });
+        dispatcher.on('make-app-limits.tooltip', newState => {
+          update(limitsLabel, newState, updatedTransform);
+        });
+      });
     }
     function forgetSelectedMun() {
+      // Remove the tooltip if the overlay sends the event that no mun is
+      // hovered
       dispatcher.on('mun-mouseout.tooltip', () => clearTooltip(tooltip));
+      // If zoom changes, update the internal state of tooltip
+      dispatcher.on('zoomed.tooltip', updatedTransform => {
+        update(label, {data: state.data}, updatedTransform);
+        dispatcher.on('make-app-cocktail.tooltip', newState => {
+          update(cocktailLabel, newState, updatedTransform);
+        });
+        dispatcher.on('make-app-limits.tooltip', newState => {
+          update(limitsLabel, newState, updatedTransform);
+        });
+      });
     }
+    // Show the tooltip when the overlay sends the event that a mun has been
+    // hovered
+    dispatcher.on('mun-mouseover.tooltip', mun => {
+      showTooltip(tooltip, label, mun, widths, transform);
+      dispatcher.on('zoomed.tooltip-mouseover', updatedTransform => {
+        showTooltip(tooltip, label, mun, widths, updatedTransform);
+      });
+    });
+    // Remove the tooltip and forget about the selected mun when going to brazil
+    // view
+    dispatcher.on('to-brazil-view.tooltip', () => {
+      forgetSelectedMun();
+      clearTooltip(tooltip);
+    });
+    // When a mun is selected, by clic or search box, remember that selected mun
+    // (in order to stick to it in stable state), and show the tooltip
+    dispatcher.on('to-mun-view.tooltip mun-click.tooltip', selectedMun => {
+      rememberSelectedMun(selectedMun);
+    });
 
     if ('mun' in state) {
       rememberSelectedMun(state.mun);
     } else {
       forgetSelectedMun();
     }
-
-    dispatcher.on('mun-mouseover.tooltip', mun =>
-      showTooltip(tooltip, label, mun)
-    );
-    dispatcher.on('to-brazil-view.tooltip ', () => {
-      forgetSelectedMun();
-      clearTooltip(tooltip);
-    });
-    dispatcher.on('to-mun-view.tooltip mun-click.tooltip', selectedMun => {
-      rememberSelectedMun(selectedMun);
-      showTooltip(tooltip, label, selectedMun);
-    });
   }
-
   dispatcher.on('make-app-cocktail.tooltip', state => {
-    updateView(cocktailLabel, state);
+    update(cocktailLabel, state, initTransform);
   });
   dispatcher.on('make-app-limits.tooltip', state => {
-    updateView(limitsLabel, state);
+    update(limitsLabel, state, initTransform);
   });
 }
 
 function clearTooltip(tooltip) {
   tooltip.html('');
 }
-function showTooltip(tooltip, label, mun) {
-  tooltip.call(createAnnotation(label, mun));
+function showTooltip(tooltip, label, mun, widths, transform) {
+  tooltip.call(createAnnotation(label, mun, widths, transform));
 }
 
 // this function will call d3.annotation when a tooltip has to be drawn
-function createAnnotation(label, mun) {
+function createAnnotation(label, mun, widths, transform) {
+  const dataPoint = mun.properties.centroid;
+  const canvasPoint = dataPoint.map(dim => (dim * widths.canvas) / widths.data);
+  const zoomedCanvasPoint = transform.apply(canvasPoint);
+  const svgPoint = zoomedCanvasPoint.map(
+    dim => (dim * widths.svg) / widths.canvas
+  );
+  /*const transformedCentroid = transform
+    .apply(mun.properties.centroid.map(dim => dim * scale))
+    .map(dim => dim / scale);*/
+  // TODO: radius
+  const transformedRadius = transform.k * mun.properties.radius;
   return annotation()
     .type(annotationCalloutCircle)
     .annotations([
       {
         data: mun,
         note: {
+          bgPadding: 10,
           label: label(mun),
           title: mun.properties.name + ' (' + mun.properties.fuName + ')',
           wrap: cfg.nx,
@@ -84,11 +127,11 @@ function createAnnotation(label, mun) {
         nx: cfg.nx,
         ny: cfg.ny,
         subject: {
-          radius: Math.max(mun.properties.radius, cfg.radius.min),
+          radius: Math.max(transformedRadius, cfg.radius.min),
           radiusPadding: cfg.radius.padding,
         },
-        x: mun.properties.centroid[0], // eslint-disable-line id-length
-        y: mun.properties.centroid[1], // eslint-disable-line id-length
+        x: svgPoint[0], // eslint-disable-line id-length
+        y: svgPoint[1], // eslint-disable-line id-length
       },
     ]);
 }

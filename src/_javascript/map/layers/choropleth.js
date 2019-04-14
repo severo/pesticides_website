@@ -1,4 +1,5 @@
 //import {interpolateYlOrRd, scaleLinear} from 'd3';
+import {geoIdentity, geoPath} from 'd3-geo';
 
 const cfg = {
   backgroundColor: '#f0f0f0',
@@ -10,21 +11,78 @@ const cfg = {
   max: 27,
 };
 
-export function createChoropleth(context, dispatcher, path, data, scale) {
-  dispatcher.on('make-app-cocktail.choropleth', () =>
-    drawMap(context, path, data, scale, mun =>
-      //cocktailColor(mun.properties.map1Number)
-      cocktailColor(mun.properties.map1Category)
-    )
-  );
-  dispatcher.on('make-app-limits.choropleth', () =>
-    drawMap(context, path, data, scale, mun =>
-      limitsColor(mun.properties.map2Category)
-    )
-  );
+export function createChoropleth(
+  context,
+  dispatcher,
+  data,
+  widths,
+  initTransform
+) {
+  // Path is a function that transforms a geometry (a point, a line, a
+  // polygon) into a canvas path (also allows to generate SVG paths, for
+  // example)
+  // Note that it takes geographic coordinates as an input, not planar ones
+  // But as the data is already expressed in px, in 960x960 viewport, no need
+  // to pass it a projection as an argument
+  const c_projection = geoIdentity().scale(widths.canvas / widths.data);
+  const path = geoPath(c_projection, context);
+
+  function drawCocktail(transform) {
+    drawZoomedMap(
+      context,
+      path,
+      data,
+      widths,
+      mun => cocktailColor(mun.properties.map1Category),
+      transform
+    );
+  }
+  function drawLimits(transform) {
+    drawZoomedMap(
+      context,
+      path,
+      data,
+      widths,
+      mun => limitsColor(mun.properties.map2Category),
+      transform
+    );
+  }
+  function appEvents(transform) {
+    dispatcher.on('make-app-cocktail.choropleth', () => {
+      drawCocktail(transform);
+      dispatcher.on('zoomed.cocktail-choropleth', updatedTransform => {
+        drawCocktail(updatedTransform);
+        appEvents(updatedTransform);
+      });
+    });
+    dispatcher.on('make-app-limits.choropleth', () => {
+      drawLimits(transform);
+      dispatcher.on('zoomed.limits-choropleth', updatedTransform => {
+        drawLimits(updatedTransform);
+        appEvents(updatedTransform);
+      });
+    });
+  }
+  appEvents(initTransform);
 }
 
-function addFrontiers(context, path, data, scale) {
+function drawZoomedMap(context, path, data, widths, color, transform) {
+  context.save();
+  context.clearRect(0, 0, widths.canvas, widths.canvas);
+  context.translate(transform.x, transform.y);
+  context.scale(transform.k, transform.k);
+  drawMap(context, path, data, transform.k, color);
+  context.restore();
+}
+
+function drawMap(context, path, data, scale, color) {
+  data.mun.features.forEach(mun => {
+    context.beginPath();
+    path(mun);
+    context.fillStyle = color(mun);
+    context.fill();
+  });
+
   // TODO: frontiers instead of polygons for municipalities
   context.beginPath();
   path(data.mun);
@@ -43,16 +101,6 @@ function addFrontiers(context, path, data, scale) {
   context.lineWidth = cfg.frontiers.br / scale;
   context.strokeStyle = '#000';
   context.stroke();
-}
-
-function drawMap(context, path, data, scale, color) {
-  data.mun.features.forEach(mun => {
-    context.beginPath();
-    path(mun);
-    context.fillStyle = color(mun);
-    context.fill();
-  });
-  addFrontiers(context, path, data, scale);
 }
 
 export const cocktailColor = function(value) {
