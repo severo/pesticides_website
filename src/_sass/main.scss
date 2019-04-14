@@ -68,8 +68,10 @@ $map2-cat3: #01000f;
     path.note-line {
       stroke: #eb2e6c;
     }
-    .annotation-note text {
-      fill: #eb2e6c;
+    .annotation-note {
+      text {
+        fill: #eb2e6c;
+      }
     }
   }
   .legend rect {
@@ -231,8 +233,14 @@ html {
       fill: #ffffff01;
     }
     .annotation {
-      text {
-        font-size: 1.25rem;
+      .annotation-note {
+        .annotation-note-bg {
+          fill: white;
+          fill-opacity: 1;
+        }
+        text {
+          font-size: 1.25rem;
+        }
       }
     }
   }

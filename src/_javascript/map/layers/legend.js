@@ -121,14 +121,36 @@ function createLegendCocktail(parent) {
         cfg.cocktail.keys.length,
     ]);
 
+  // All the dimensions here work, but are somewhat arbitrary and maybe fragile
+  // TODO: strict control on dimensions
+  const viewportWidth = 960;
+  const dx = 680;
+  const width = viewportWidth - dx;
+  const textHeight = 66;
+
   const legend = parent
     .append('g')
     .classed('legend', true)
-    //.style('font-size', '0.8rem')
-    //.style('font-family', 'sans-serif')
-    .attr('transform', 'translate(620,50) scale(1.3)');
+    .attr('transform', 'translate(' + dx + ',' + textHeight + ') scale(1.3)');
 
+  // white background
   legend
+    .append('rect')
+    .attr('width', width)
+    .attr(
+      'height',
+      (cfg.cocktail.dim.height + cfg.cocktail.dim.margin + 1) *
+        cfg.cocktail.keys.length +
+        textHeight -
+        1
+    )
+    .attr('x', '-8')
+    .attr('y', -textHeight)
+    .style('fill', 'white')
+    .style('stroke', 'none');
+
+  const values = legend.append('g');
+  values
     .selectAll('rect')
     .data(cfg.cocktail.keys)
     .enter()
@@ -139,7 +161,7 @@ function createLegendCocktail(parent) {
     .attr('y', (key, idx) => yy(idx))
     .attr('width', cfg.cocktail.dim.width);
 
-  legend
+  values
     .selectAll('text')
     .data(cfg.cocktail.keys)
     .enter()
@@ -177,14 +199,37 @@ function createLegendLimits(parent) {
       (cfg.limits.dim.height + cfg.limits.dim.margin) * cfg.limits.keys.length,
     ]);
 
+  // All the dimensions here work, but are somewhat arbitrary and maybe fragile
+  // TODO: strict control on dimensions
+  const viewportWidth = 960;
+  const dx = 550;
+  const width = viewportWidth - dx;
+  const textHeight = 50;
+
   const legend = parent
     .append('g')
     .classed('legend', true)
-    //.style('font-size', '0.8rem')
-    //.style('font-family', 'sans-serif')
-    .attr('transform', 'translate(550,50) scale(1.3)');
+    .attr('transform', 'translate(' + dx + ',' + textHeight + ') scale(1.3)');
 
+  // white background
   legend
+    .append('rect')
+    .attr('width', width)
+    .attr(
+      'height',
+      (cfg.limits.dim.height + cfg.limits.dim.margin + 1) *
+        cfg.limits.keys.length +
+        textHeight -
+        1
+    )
+    .attr('x', '-8')
+    .attr('y', -textHeight)
+    .style('fill', 'white')
+    .style('stroke', 'none');
+
+  const values = legend.append('g');
+
+  values
     .selectAll('rect')
     .data(cfg.limits.keys)
     .enter()
@@ -194,7 +239,7 @@ function createLegendLimits(parent) {
     .attr('y', (key, idx) => yy(idx))
     .attr('width', cfg.limits.dim.width);
 
-  legend
+  values
     .selectAll('text')
     .data(cfg.limits.keys)
     .enter()
