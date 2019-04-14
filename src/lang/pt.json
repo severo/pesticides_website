@@ -21,7 +21,7 @@
       "hhce3": "doenças crônicas",
       "hhce4": "como câncer, defeitos congênitos e distúrbios endócrinos",
       "nohhce1": "de",
-      "nohhce2": "outros agrotóxicos",
+      "nohhce2": "outro(s) agrotóxico(s)",
       "tubes": {
         "tube1": " detecções",
         "tube2": "em ",
@@ -37,7 +37,7 @@
         "source1": "Fontes",
         "source21": "Detecção e concentração de agrotóxicos: ",
         "source22": "SISAGUA - Controle Semestral",
-        "source23": ". Sistema de Informação de Vigilância da Qualidade da Água para Consumo Humano (SISAGUA), 854.140 testes a nível municipal de 2014 a 2017.",
+        "source23": ". Sistema de Informação de Vigilância da Qualidade da Água para Consumo Humano (SISAGUA), 854.140 testes de 2014 a 2017.",
         "source31": "Estimativas da população: ",
         "source32": "IBGE 2017",
         "source33": " (FTP). Instituto Brasileiro de Geografia e Estatística (IBGE), 2017."
@@ -52,7 +52,7 @@
       "nodata2": "sobre agrotóxicos na água que abastece",
       "nodetection1": "Nenhum ",
       "nodetection2": "agrotóxico detectado acima dos limites brasileiros ou europeus em",
-      "detectionsbr": "agrotóxico(s) detectado(s) na água em concentração acima do limite considerado seguro no Brasil em",
+      "detectionsbr": "agrotóxico(s) detectado(s) em concentração acima do limite considerado seguro no Brasil na água de",
       "detectionseu": "agrotóxico(s) detectado(s) acima do limite considerado seguro na União Europeia",
       "footer": {
         "tococktail1": "Descubra também o ",
