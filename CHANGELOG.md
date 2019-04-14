@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.21.2](https://github.com/severo/pesticides_website/compare/v0.21.1...v0.21.2) (2019-04-14)
+
+
+### Bug Fixes
+
+* hash links seem to generate problems in iframe ([dd59039](https://github.com/severo/pesticides_website/commit/dd59039))
+* simplify breadcrumb and change text ([aa89980](https://github.com/severo/pesticides_website/commit/aa89980))
+
+
+
 ## [0.21.1](https://github.com/severo/pesticides_website/compare/v0.21.0...v0.21.1) (2019-04-14)
 
 
