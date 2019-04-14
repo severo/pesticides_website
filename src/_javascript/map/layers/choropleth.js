@@ -92,13 +92,13 @@ function drawMap(context, path, data, scale, color) {
 
   context.beginPath();
   path(data.internalFu);
-  context.lineWidth = cfg.frontiers.fu / scale;
+  context.lineWidth = cfg.frontiers.fu; /// scale;
   context.strokeStyle = '#000';
   context.stroke();
 
   context.beginPath();
   path(data.brazil);
-  context.lineWidth = cfg.frontiers.br / scale;
+  context.lineWidth = cfg.frontiers.br; /// scale;
   context.strokeStyle = '#000';
   context.stroke();
 }

@@ -23,7 +23,7 @@ const cfg = {
       max: 16,
       min: 1,
     },
-    selectedMun: 6,
+    selectedMun: 4,
   },
 };
 
