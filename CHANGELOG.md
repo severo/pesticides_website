@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+# [0.23.0](https://github.com/severo/pesticides_website/compare/v0.22.1...v0.23.0) (2019-04-15)
+
+
+### Features
+
+* replace placeholder with link to production ([77a428e](https://github.com/severo/pesticides_website/commit/77a428e))
+
+
+
 ## [0.22.1](https://github.com/severo/pesticides_website/compare/v0.22.0...v0.22.1) (2019-04-15)
 
 
