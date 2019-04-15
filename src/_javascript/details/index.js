@@ -386,7 +386,7 @@ function makeToArticle(parent) {
     .append('a')
     .attr(
       'href',
-      'https://portrasdoalimento.info/2019/04/12/conheca-os-27-agrotoxicos-encontrados-na-agua-que-abastasse-as-cidades-do-brasil/'
+      'https://portrasdoalimento.info/2019/04/15/coquetel-com-27-agrotoxicos-foi-achado-na-agua-de-1-em-cada-4-municipios/'
     )
     .attr('target', '_blank')
     .text('{{details.cocktail.footer.toarticle2}}');
