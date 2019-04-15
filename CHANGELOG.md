@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+# [0.22.0](https://github.com/severo/pesticides_website/compare/v0.21.6...v0.22.0) (2019-04-15)
+
+
+### Features
+
+* add download section in mun view ([0651f63](https://github.com/severo/pesticides_website/commit/0651f63))
+
+
+
 ## [0.21.6](https://github.com/severo/pesticides_website/compare/v0.21.5...v0.21.6) (2019-04-14)
 
 
