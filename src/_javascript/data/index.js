@@ -38,9 +38,9 @@ export const cfg = {
   // Published in https://github.com/severo/data_brazil
   tests: {
     integrityHash:
-      'sha384-A0apYNqz52d3JYGAxIZ0NAZL62PfXiD0EvxqA79yyqteRm526Thk7HSx4RkbTHmS',
+      'sha384-HalAFzIfE4ufclJBlandxnRAPt63GUYtQInBVSWYQOFcAZmVXY2BySUcy9QuOIjk',
     url:
-      'https://raw.githubusercontent.com/severo/data_brazil/master/tests_data.json',
+      'https://raw.githubusercontent.com/severo/data_brazil/master/tests_data.20180415.json',
   },
   topojson: {
     integrityHash:
@@ -297,20 +297,28 @@ function toFeatures(topojson, key) {
   return features;
 }
 
-function parseTests(tests, substancesLut) {
+function parseTests(testsBySubstanceByDate, substancesLut) {
   // Placeholder to compute max
   const DETECTED_VALUE = 1e-10;
-  const keys = Object.keys(tests);
+  const keys = Object.keys(testsBySubstanceByDate);
   return keys.reduce((acc, substanceCode) => {
-    const test = tests[substanceCode];
+    const testsByDate = testsBySubstanceByDate[substanceCode];
+    const dates = Object.keys(testsByDate);
+    const parsedTestsByDate = dates.map(date => {
+      return {
+        date: date,
+        tests: testsByDate[date].map(str => {
+          if (str === 'NA') {
+            return DETECTED_VALUE;
+          }
+          return +str;
+        }),
+      };
+    });
     const fTest = {
       substance: substancesLut[substanceCode],
-      tests: test.map(str => {
-        if (str === 'NA') {
-          return DETECTED_VALUE;
-        }
-        return +str;
-      }),
+      tests: parsedTestsByDate.map(date => date.tests).flat(),
+      testsByDate: parsedTestsByDate,
     };
     fTest.max = fTest.tests.reduce((max, cur) => {
       if (cur > max) {

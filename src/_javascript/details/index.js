@@ -1,5 +1,6 @@
 import {makeTubesCocktail, makeTubesLimits} from './tubes';
 import {MAP2} from '../data';
+import {csvFormat} from 'd3-dsv';
 
 //const DETECTED_VALUE = 1e-10;
 
@@ -35,6 +36,7 @@ function makeBrazil(parent, dispatcher, view, state) {
       .html('{{details.limits.brazil.content}}');
     makeLimitsToOtherViews(parent, dispatcher, state);
     makeToArticle(parent);
+    emptyDownload(parent);
     makeSource(parent);
   } else {
     makeHeader(main, '{{details.cocktail.brazil.title}}');
@@ -44,6 +46,7 @@ function makeBrazil(parent, dispatcher, view, state) {
       .html('{{details.cocktail.brazil.content}}');
     makeCocktailToOtherViews(parent, dispatcher, state);
     makeToArticle(parent);
+    emptyDownload(parent);
     makeSource(parent);
   }
 }
@@ -80,6 +83,7 @@ function makeMun(parent, dispatcher, view, state) {
     makeLimits(main, dispatcher, state.mun, state.data);
     makeLimitsToOtherViews(parent, dispatcher, state);
     makeToArticle(parent);
+    makeDownload(parent, state.mun, state.data);
     makeSource(parent);
     /*} else if (view === 'substances') {
     // init
@@ -93,6 +97,7 @@ function makeMun(parent, dispatcher, view, state) {
     makeCocktail(main, dispatcher, state.mun, state.data);
     makeCocktailToOtherViews(parent, dispatcher, state);
     makeToArticle(parent);
+    makeDownload(parent, state.mun, state.data);
     makeSource(parent);
   }
 }
@@ -387,6 +392,37 @@ function makeToArticle(parent) {
     .text('{{details.cocktail.footer.toarticle2}}');
   par.append('span').text('{{details.cocktail.footer.toarticle3}}');
 }
+function emptyDownload(parent, mun, data) {
+  parent.select('#details-footer #download').html(null);
+}
+function makeDownload(parent, mun, data) {
+  const par = parent.select('#details-footer #download').html(null);
+  const munNameForFilename = mun.properties.deburredName
+    .replace(/[^a-z0-9]/gi, '_')
+    .toLowerCase();
+  par.append('h4').html('{{details.cocktail.footer.download1}}');
+  const ul = par.append('ul');
+  const li1 = ul.append('li');
+  li1
+    .append('a')
+    .attr(
+      'download',
+      '{{details.csv.dates.filename}}' + munNameForFilename + '.csv'
+    )
+    .attr('href', URL.createObjectURL(generateByDateCsvBlob(mun)))
+    .text('{{details.cocktail.footer.download22}} ' + mun.properties.name);
+  li1.append('span').text('{{details.cocktail.footer.download23}}');
+  const li2 = ul.append('li');
+  li2
+    .append('a')
+    .attr(
+      'download',
+      '{{details.csv.substances.filename}}' + munNameForFilename + '.csv'
+    )
+    .attr('href', URL.createObjectURL(generateBySubstanceCsvBlob(mun, data)))
+    .text('{{details.cocktail.footer.download32}} ' + mun.properties.name);
+  li2.append('span').text('{{details.cocktail.footer.download33}}');
+}
 
 function makeSource(parent) {
   const par = parent.select('#details-footer #source').html(null);
@@ -411,6 +447,89 @@ function makeSource(parent) {
     .attr('target', '_blank')
     .text('{{details.cocktail.footer.source32}}');
   li2.append('span').text('{{details.cocktail.footer.source33}}');
+}
+
+function generateBySubstanceJson(mun, data) {
+  const EUROPEAN_LIMIT = 0.1;
+  const json = Object.keys(data.substancesLut)
+    .sort((key1, key2) => key1.localeCompare(key2, '{{locale}}'))
+    .map(key => {
+      const substanceTest = mun.properties.tests.find(
+        test => test.substance.code === key
+      );
+      return {
+        '{{details.csv.substances.columns.name}}': data.substancesLut[key].name,
+        '{{details.csv.substances.columns.supbr}}': substanceTest
+          ? substanceTest.tests.filter(
+              test => test > substanceTest.substance.limit
+            ).length
+          : 0,
+        '{{details.csv.substances.columns.supeu}}': substanceTest
+          ? substanceTest.tests.filter(test => test > EUROPEAN_LIMIT).length
+          : 0,
+        '{{details.csv.substances.columns.tests}}': substanceTest
+          ? substanceTest.tests.length
+          : 0,
+      };
+    });
+  return json;
+}
+function generateBySubstanceCsvBlob(mun, data) {
+  const orderedColumnNames = [
+    '{{details.csv.substances.columns.name}}',
+    '{{details.csv.substances.columns.tests}}',
+    '{{details.csv.substances.columns.supeu}}',
+    '{{details.csv.substances.columns.supbr}}',
+  ];
+  return new Blob(
+    [csvFormat(generateBySubstanceJson(mun, data), orderedColumnNames)],
+    {
+      type: 'text/csv',
+    }
+  );
+}
+
+function generateByDateJson(mun) {
+  const resultsByDate = mun.properties.tests.reduce((acc, testsSubstance) => {
+    testsSubstance.testsByDate.forEach(testsDate => {
+      if (!(testsDate.date in acc)) {
+        acc[testsDate.date] = 0;
+      }
+      acc[testsDate.date] += testsDate.tests.length;
+    });
+    return acc;
+  }, {});
+  const dates = Object.keys(resultsByDate).sort(
+    (date1, date2) => date1 > date2
+  );
+  const json = dates.map(date => {
+    const yearLength = 4;
+    const monthLength = 2;
+    const dayLength = 2;
+    const isoDate =
+      date.slice(0, yearLength) +
+      '-' +
+      date.slice(yearLength, yearLength + monthLength) +
+      '-' +
+      date.slice(
+        yearLength + monthLength,
+        yearLength + monthLength + dayLength
+      );
+    return {
+      '{{details.csv.dates.columns.date}}': isoDate,
+      '{{details.csv.dates.columns.number}}': resultsByDate[date],
+    };
+  });
+  return json;
+}
+function generateByDateCsvBlob(mun) {
+  const orderedColumnNames = [
+    '{{details.csv.dates.columns.date}}',
+    '{{details.csv.dates.columns.number}}',
+  ];
+  return new Blob([csvFormat(generateByDateJson(mun), orderedColumnNames)], {
+    type: 'text/csv',
+  });
 }
 
 function startLoading(element) {

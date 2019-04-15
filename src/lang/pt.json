@@ -3,6 +3,24 @@
     "goto-brazil": "Voltar para o mapa do Brasil"
   },
   "details": {
+    "csv": {
+      "dates": {
+        "columns": {
+          "date": "Data",
+          "number": "Número de testes realizados"
+        },
+        "filename": "testes_por_data_em_"
+      },
+      "substances": {
+        "columns": {
+          "name": "Agrotóxicos",
+          "tests": "Testes feitos",
+          "supeu": "Acima do limite da UE",
+          "supbr": "Acima do limite do Brasil"
+        },
+        "filename": "testes_e_resultados_por_agrótoxico_em_"
+      }
+    },
     "cocktail": {
       "brazil": {
         "content": "Agrotóxicos foram detectados na água que abastece mais de 2.300 cidades de 2014 a 2017. Clique no mapa ou digite sua cidade para descobrir quais produtos químicos saíram da sua torneira.",
@@ -34,6 +52,13 @@
         "toarticle1": "Entenda: leia",
         "toarticle2": "reportagem sobre a contaminação da água nas cidades",
         "toarticle3": ".",
+        "download1": "Download",
+        "download21": "",
+        "download22": "Número de testes realizados por data na cidade de",
+        "download23": " (CSV).",
+        "download31": "",
+        "download32": "Número de testes e resultados por tipo de agrotóxico na cidade de",
+        "download33": " (CSV).",
         "source1": "Fontes",
         "source21": "Detecção e concentração de agrotóxicos: ",
         "source22": "SISAGUA - Controle Semestral",
