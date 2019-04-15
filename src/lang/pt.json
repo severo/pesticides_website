@@ -98,7 +98,7 @@
     "license": "Código-fonte licenciado"
   },
   "hero": {
-    "subtitle": "Agrotóxicos en el agua potable de Brasil",
+    "subtitle": "Agrotóxicos na água potável no Brasil",
     "title": "Quem bebe agrotóxicos?"
   },
   "lang": "pt",
@@ -138,8 +138,8 @@
     }
   },
   "nav": {
-    "cocktail": "Coquetel de agrotóxicos",
-    "concentrations": "Altas concentrações",
+    "cocktail": "Número de agrotóxicos",
+    "concentrations": "Concentração na água",
     "substances": "Substâncias"
   },
   "search": {
