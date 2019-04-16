@@ -16,7 +16,7 @@ git clone https://github.com/severo/pesticides_website.git /tmp/pesticides_websi
 ## Copy the files
 
 The files of the website are located in the `docs` directory. Copy them to the
-appropriate location, for example if you use an Apache2 web server:
+appropriate location. For example, if you use an Apache2 web server:
 
 ```bash
 cp -r /tmp/pesticides_website/docs /var/www/html/pesticides_website
@@ -24,5 +24,5 @@ cp -r /tmp/pesticides_website/docs /var/www/html/pesticides_website
 
 ## Configure your web server
 
-Finally configure your web server (Apache2 or nginx for example) to point to the
+Finally, configure your web server (Apache2 or nginx for example) to point to the
 `/var/www/html/pesticides_website` directory.
