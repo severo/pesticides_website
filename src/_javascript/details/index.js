@@ -432,7 +432,7 @@ function makeSource(parent) {
   li1.append('span').text('{{details.cocktail.footer.source21}}');
   li1
     .append('a')
-    .attr('href', 'http://dados.gov.br/dataset/controle-semestral')
+    .attr('href', 'https://app.rios.org.br/index.php/s/ljppVjrP37ak8HE')
     .attr('target', '_blank')
     .text('{{details.cocktail.footer.source22}}');
   li1.append('span').text('{{details.cocktail.footer.source23}}');

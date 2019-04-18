@@ -60,9 +60,9 @@
         "download32": "Número de testes e resultados por tipo de agrotóxico na cidade de",
         "download33": " (CSV).",
         "source1": "Fontes",
-        "source21": "Detecção e concentração de agrotóxicos: ",
-        "source22": "SISAGUA - Controle Semestral",
-        "source23": ". Sistema de Informação de Vigilância da Qualidade da Água para Consumo Humano (SISAGUA), 854.140 testes de 2014 a 2017.",
+        "source21": "Detecção e concentração de agrotóxicos de 2014 a 2017 de acordo com dados do Sistema de Informação de Vigilância da Qualidade da Água para Consumo Humano (SISAGUA), do Ministério da Saúde. O mapa foi construído a partir de dados obtidos em abril de 2018 e não reflete atualizações feitas desde então. Baixe aqui a ",
+        "source22": "base completa enviada pelo Sisagua em abril de 2018",
+        "source23": ".",
         "source31": "Estimativas da população: ",
         "source32": "IBGE 2017",
         "source33": " (FTP). Instituto Brasileiro de Geografia e Estatística (IBGE), 2017."
