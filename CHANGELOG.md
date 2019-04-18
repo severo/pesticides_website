@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.23.1](https://github.com/severo/pesticides_website/compare/v0.23.0...v0.23.1) (2019-04-18)
+
+
+### Bug Fixes
+
+* prettify markdown ([4ae399f](https://github.com/severo/pesticides_website/commit/4ae399f))
+* update data source URL and text ([2ecd320](https://github.com/severo/pesticides_website/commit/2ecd320))
+* update text in map2 when no detection ([9a63427](https://github.com/severo/pesticides_website/commit/9a63427))
+
+
+
 # [0.23.0](https://github.com/severo/pesticides_website/compare/v0.22.1...v0.23.0) (2019-04-15)
 
 
