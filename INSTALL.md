@@ -24,5 +24,5 @@ cp -r /tmp/pesticides_website/docs /var/www/html/pesticides_website
 
 ## Configure your web server
 
-Finally, configure your web server (Apache2 or nginx for example) to point to the
-`/var/www/html/pesticides_website` directory.
+Finally, configure your web server (Apache2 or nginx for example) to point to
+the `/var/www/html/pesticides_website` directory.
