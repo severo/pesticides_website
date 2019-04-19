@@ -123,7 +123,7 @@ function makeCocktail(parent, dispatcher, mun, data) {
         '<span class="is-size-4">{{details.cocktail.nodata1}}</span>' +
           ' {{details.cocktail.nodata2}} ' +
           mun.properties.name +
-          '.'
+          ' {{details.cocktail.nodata3}}'
       );
   } else if (mun.properties.map1Number === 0) {
     addLevelItem(
@@ -137,7 +137,7 @@ function makeCocktail(parent, dispatcher, mun, data) {
         '<span class="is-size-4">{{details.cocktail.nodetection1}}</span>' +
           ' {{details.cocktail.nodetection2}} ' +
           mun.properties.name +
-          '.'
+          ' {{details.cocktail.nodetection3}}'
       );
   } else {
     addLevelItem(
@@ -154,7 +154,7 @@ function makeCocktail(parent, dispatcher, mun, data) {
           '</span> {{details.cocktail.detections1}}' +
           ' {{details.cocktail.detections2}} ' +
           mun.properties.name +
-          '.'
+          ' {{details.cocktail.detections3}}'
       );
 
     const list = parent.append('ul');
@@ -203,7 +203,7 @@ function makeLimits(parent, dispatcher, mun, data) {
         '<span class="is-size-4">' +
           '{{details.limits.nodata1}}</span> {{details.limits.nodata2}} ' +
           mun.properties.name +
-          '.'
+          ' {{details.limits.nodata3}}'
       );
   } else if (mun.properties.map2Category === MAP2.CATEGORY.BELOW) {
     parent
@@ -212,7 +212,7 @@ function makeLimits(parent, dispatcher, mun, data) {
         '<span class="is-size-4">' +
           '{{details.limits.nodetection1}}</span> {{details.limits.nodetection2}} ' +
           mun.properties.name +
-          '.'
+          ' {{details.limits.nodetection3}}'
       );
   } else {
     const supBrSubstances = mun.properties.tests.filter(
@@ -223,8 +223,9 @@ function makeLimits(parent, dispatcher, mun, data) {
       supBrSubstances,
       '<span class="is-size-4">' +
         supBrSubstances.length +
-        '</span> {{details.limits.detectionsbr}} ' +
-        mun.properties.name,
+        '</span> {{details.limits.detectionsbr1}} ' +
+        mun.properties.name +
+        ' {{details.limits.detectionsbr2}}',
       'cat-' + MAP2.CATEGORY.SUP_BR
     );
     const supEuSubstances = mun.properties.tests.filter(
@@ -236,7 +237,8 @@ function makeLimits(parent, dispatcher, mun, data) {
         supEuSubstances,
         '<span class="is-size-4">' +
           supEuSubstances.length +
-          '</span> {{details.limits.detectionseu}}',
+          '</span> {{details.limits.detectionseu1}}' +
+          ' {{details.limits.detectionseu2}}',
         'cat-' + MAP2.CATEGORY.SUP_EU
       );
     }
