@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.25.1](https://github.com/severo/pesticides_website/compare/v0.25.0...v0.25.1) (2019-04-19)
+
+
+### Bug Fixes
+
+* add mention to years 2014-2017 in main details string ([b5e03b3](https://github.com/severo/pesticides_website/commit/b5e03b3))
+* fix error when generating data files for municipality without tests ([97da3cb](https://github.com/severo/pesticides_website/commit/97da3cb))
+* on limits map, always show the results for Brazilian limits (even if 0) ([6c9bd47](https://github.com/severo/pesticides_website/commit/6c9bd47))
+
+
+
 # [0.25.0](https://github.com/severo/pesticides_website/compare/v0.24.0...v0.25.0) (2019-04-18)
 
 
