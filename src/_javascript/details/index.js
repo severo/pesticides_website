@@ -454,9 +454,9 @@ function generateBySubstanceJson(mun, data) {
   const json = Object.keys(data.substancesLut)
     .sort((key1, key2) => key1.localeCompare(key2, '{{locale}}'))
     .map(key => {
-      const substanceTest = mun.properties.tests.find(
-        test => test.substance.code === key
-      );
+      const substanceTest =
+        'tests' in mun.properties &&
+        mun.properties.tests.find(test => test.substance.code === key);
       return {
         '{{details.csv.substances.columns.name}}': data.substancesLut[key].name,
         '{{details.csv.substances.columns.supbr}}': substanceTest
@@ -490,15 +490,17 @@ function generateBySubstanceCsvBlob(mun, data) {
 }
 
 function generateByDateJson(mun) {
-  const resultsByDate = mun.properties.tests.reduce((acc, testsSubstance) => {
-    testsSubstance.testsByDate.forEach(testsDate => {
-      if (!(testsDate.date in acc)) {
-        acc[testsDate.date] = 0;
-      }
-      acc[testsDate.date] += testsDate.tests.length;
-    });
-    return acc;
-  }, {});
+  const resultsByDate =
+    'tests' in mun.properties &&
+    mun.properties.tests.reduce((acc, testsSubstance) => {
+      testsSubstance.testsByDate.forEach(testsDate => {
+        if (!(testsDate.date in acc)) {
+          acc[testsDate.date] = 0;
+        }
+        acc[testsDate.date] += testsDate.tests.length;
+      });
+      return acc;
+    }, {});
   const dates = Object.keys(resultsByDate).sort(
     (date1, date2) => date1 > date2
   );
