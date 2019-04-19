@@ -218,17 +218,15 @@ function makeLimits(parent, dispatcher, mun, data) {
     const supBrSubstances = mun.properties.tests.filter(
       sub => sub.map2Category === MAP2.CATEGORY.SUP_BR
     );
-    if (supBrSubstances.length > 0) {
-      makeTubesLimits(
-        parent,
-        supBrSubstances,
-        '<span class="is-size-4">' +
-          supBrSubstances.length +
-          '</span> {{details.limits.detectionsbr}} ' +
-          mun.properties.name,
-        'cat-' + MAP2.CATEGORY.SUP_BR
-      );
-    }
+    makeTubesLimits(
+      parent,
+      supBrSubstances,
+      '<span class="is-size-4">' +
+        supBrSubstances.length +
+        '</span> {{details.limits.detectionsbr}} ' +
+        mun.properties.name,
+      'cat-' + MAP2.CATEGORY.SUP_BR
+    );
     const supEuSubstances = mun.properties.tests.filter(
       sub => sub.map2Category === MAP2.CATEGORY.SUP_EU
     );
