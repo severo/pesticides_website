@@ -1,0 +1,28 @@
+name,limit,code,shortName,hhce,urlFragment
+"2,4 D + 2,4,5 T",30,01,"2,4 D + 2,4,5 T",false,doisd
+Alaclor,20,02,Alaclor,true,alacloro
+Aldicarbe + Aldicarbesulfona + Aldicarbesulfóxido,10,03,Aldicarbe,false,aldicarbe
+Aldrin + Dieldrin,0.03,04,Aldrin,false,aldrin
+Atrazina,2,05,Atrazina,true,atrazina
+Carbendazim + benomil,120,06,Carbendazim,true,carbendazim
+Carbofurano,7,07,Carbofurano,false,carbofurano
+Clordano,0.2,08,Clordano,true,clordano
+Clorpirifós + clorpirifós-oxon,30,09,Clorpirifós,false,clopirifos
+DDT + DDD + DDE,1,10,DDT + DDD + DDE,true,ddt
+Diuron,90,11,Diuron,true,diuron
+"Endossulfan (a, ß e sais)",20,12,Endossulfan,false,endossulfan
+Endrin,0.6,13,Endrin,false,endrin
+Glifosato + AMPA,500,14,Glifosato,true,glifosato
+Lindano (gama HCH),2,15,Lindano,true,lindano
+Mancozebe,180,16,Mancozebe,true,mancozebe
+Metamidofós,12,17,Metamidofós,false,metamidifos
+Metolacloro,10,18,Metolacloro,false,metolacloro
+Molinato,6,19,Molinato,false,molinato
+Parationa Metílica,9,20,Parationa Metílica,false,parationa
+Pendimentalina,20,21,Pendimentalina,false,pendimentalina
+Permetrina,20,22,Permetrina,true,permetrina
+Profenofós,60,23,Profenofós,false,profenofos
+Simazina,2,24,Simazina,false,simazina
+Tebuconazol,180,25,Tebuconazol,false,tebuconazol
+Terbufós,1.2,26,Terbufós,false,terbufos
+Trifluralina,20,27,Trifluralina,true,trifluralina

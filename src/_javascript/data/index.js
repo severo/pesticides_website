@@ -29,8 +29,7 @@ export const cfg = {
   substances: {
     integrityHash:
       'sha384-9FmXfWF1E7bRuSKBX9NuEGewjBybCZxXFmPgKI6RBa4sB5oen5inynkWxS0uRuOH',
-    url:
-      'https://raw.githubusercontent.com/severo/data_brazil/master/substances.20190412.csv',
+    url: 'data/substances.20190412.csv',
   },
   // Produced by https://framagit.org/severo/sisagua - export_tests_data()
   // Exported in CSV in https://gist.github.com/severo/55c718f7a22ede328332496bf7b0d1af
@@ -39,8 +38,7 @@ export const cfg = {
   tests: {
     integrityHash:
       'sha384-HalAFzIfE4ufclJBlandxnRAPt63GUYtQInBVSWYQOFcAZmVXY2BySUcy9QuOIjk',
-    url:
-      'https://raw.githubusercontent.com/severo/data_brazil/master/tests_data.20180415.json',
+    url: 'data/tests_data.20180415.json',
   },
   topojson: {
     integrityHash:
@@ -50,8 +48,7 @@ export const cfg = {
   values: {
     integrityHash:
       'sha384-1mMiVJ4KDmhyjlz86hL3dd+AYo/ShdE/2L8iW5nCdsUHlgsMt9ZS/PTVg12LyTZM',
-    url:
-      'https://raw.githubusercontent.com/severo/data_brazil/master/data_by_municipality_for_maps.csv',
+    url: 'data/data_by_municipality_for_maps.csv',
   },
 };
 
